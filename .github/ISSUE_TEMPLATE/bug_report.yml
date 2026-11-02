@@ -1,0 +1,13 @@
+name: Bug report
+description: Something does not work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes: { label: What happened?, description: Include steps to reproduce. }
+    validations: { required: true }
+  - type: input
+    id: version
+    attributes: { label: App version and OS }
+  - type: markdown
+    attributes: { value: Please do not attach your data.json unless you have removed private content. }
