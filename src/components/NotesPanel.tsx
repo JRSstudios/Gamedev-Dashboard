@@ -29,6 +29,7 @@ export function NotesPanel({ projectId }: { projectId: string }) {
     <section className="panel notes" aria-label={t('notes')}>
       <h2>{t('notes')}</h2>
       <textarea
+        id="quick-note"
         value={text}
         rows={3}
         maxLength={20000}

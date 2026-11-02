@@ -2,13 +2,16 @@ import { useEffect, useState } from 'react'
 import { AiDialog } from './components/AiDialog'
 import { AssetBoard } from './components/AssetBoard'
 import { GoalsPanel } from './components/GoalsPanel'
+import { CalendarPanel } from './components/CalendarPanel'
 import { NotesPanel } from './components/NotesPanel'
 import { Sidebar } from './components/Sidebar'
+import { TimerPanel } from './components/TimerPanel'
 import { TopBar } from './components/TopBar'
 import { useT } from './i18n'
 import { addProject } from './model/ops'
 import { saveTextFile } from './platform'
-import { init, mutate, setActiveProject, startFresh, useStore } from './store'
+import { init, mutate, notify, setActiveProject, startFresh, useStore } from './store'
+import { toggleTimer } from './timerActions'
 
 function ErrorScreen({ message, raw }: { message: string; raw: string | null }) {
   const t = useT()
@@ -67,6 +70,26 @@ export default function App() {
     document.documentElement.dataset.theme = theme === 'auto' ? '' : theme
   }, [theme])
 
+  const projectId = data.projects.find((p) => p.id === activeId && !p.archived)?.id ?? null
+  const phase = status.phase
+  useEffect(() => {
+    if (phase !== 'ready' || !projectId) return
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey) return
+      if (e.key.toLowerCase() === 'n') {
+        e.preventDefault()
+        document.getElementById('quick-note')?.focus()
+      } else if (e.key.toLowerCase() === 't') {
+        e.preventDefault()
+        const saved = toggleTimer(projectId)
+        if (saved) notify(t('timerSaved', { minutes: saved }))
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `t` only changes with the language
+  }, [phase, projectId])
+
   if (status.phase === 'loading') return <main className="center-screen muted">{t('loading')}</main>
   if (status.phase === 'error') return <ErrorScreen message={status.message} raw={status.raw} />
 
@@ -84,7 +107,11 @@ export default function App() {
             <>
               <GoalsPanel key={`g-${project.id}`} projectId={project.id} color={project.color} />
               <AssetBoard key={`a-${project.id}`} projectId={project.id} />
-              <NotesPanel key={`n-${project.id}`} projectId={project.id} />
+              <div className="side">
+                <TimerPanel key={`t-${project.id}`} projectId={project.id} />
+                <CalendarPanel key={`c-${project.id}`} projectId={project.id} />
+                <NotesPanel key={`n-${project.id}`} projectId={project.id} />
+              </div>
             </>
           ) : (
             <p className="muted empty">{t('noProjectsBody')}</p>

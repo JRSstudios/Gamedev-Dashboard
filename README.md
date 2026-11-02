@@ -6,6 +6,10 @@ A calm, local-first overview for your game projects. Keep **goals with progress 
 - **Goals & steps** with progress bars per goal, project and overall; drag to reorder
 - **Asset board**: drop files from your file manager, drag cards between columns (Concept art, Music, Sound FX, Reference, Other), image thumbnails, audio preview, tags, search, "file moved" warnings
 - **Notes** with `#tags`, goal links, search and tag filter
+- **Timer**: stopwatch or Pomodoro per goal; a running timer survives closing the app; "today" and "week" totals in the header
+- **Calendar**: month view with heat-map by learned minutes, deadline markers, click a day to see sessions, completed steps and notes
+- **Weekly Markdown export** for devlogs, plus a full project export
+- **Shortcuts**: `Ctrl+N` new note, `Ctrl+T` start/stop timer (`Cmd` on macOS)
 - **Optional local AI** (Ollama / LM Studio): suggests categories, tags and goal steps. Always suggestions, you confirm. The app is fully usable without it. Prefer Claude Code? See [docs/ai.md](docs/ai.md)
 - **German and English**, light and dark theme
 - **Private by design**: no account, no cloud, no telemetry
@@ -45,7 +49,7 @@ See [SECURITY.md](SECURITY.md). Short version: strict CSP, minimal Tauri permiss
 
 ## Roadmap
 
-Timer, calendar view, weekly Markdown review. See [CHANGELOG.md](CHANGELOG.md).
+Screenshots/demo GIF, code-signed installers, AI weekly review. See [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 

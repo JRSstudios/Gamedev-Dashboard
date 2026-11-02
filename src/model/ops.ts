@@ -6,6 +6,7 @@ import type {
   Goal,
   Note,
   Project,
+  Session,
   Settings,
 } from './schema'
 
@@ -78,7 +79,8 @@ export const deleteProject = (data: Data, id: string): Data => {
     goals: data.goals.filter((g) => g.projectId !== id),
     notes: data.notes.filter((n) => n.projectId !== id),
     assets: data.assets.filter((a) => a.projectId !== id),
-    sessions: data.sessions.filter((s) => !s.goalId || !goalIds.has(s.goalId)),
+    sessions: data.sessions.filter((s) => s.projectId !== id && !(s.goalId && goalIds.has(s.goalId))),
+    timer: data.timer?.projectId === id ? null : data.timer,
   }
 }
 
@@ -106,6 +108,8 @@ export const deleteGoal = (data: Data, id: string): Data => ({
   ...data,
   goals: data.goals.filter((g) => g.id !== id),
   notes: data.notes.map((n) => (n.goalId === id ? { ...n, goalId: null } : n)),
+  sessions: data.sessions.map((s) => (s.goalId === id ? { ...s, goalId: null } : s)),
+  timer: data.timer?.goalId === id ? { ...data.timer, goalId: null } : data.timer,
 })
 
 const mapGoal = (data: Data, id: string, fn: (g: Goal) => Goal): Data => ({
@@ -224,3 +228,41 @@ export const updateSettings = (data: Data, patch: Partial<Settings>): Data => ({
   ...data,
   settings: { ...data.settings, ...patch },
 })
+
+// ---- timer ----------------------------------------------------------------
+
+/** A forgotten stopwatch must not log days of "work". */
+export const MAX_SESSION_MINUTES = 12 * 60
+
+export function startTimer(
+  data: Data,
+  projectId: string,
+  goalId: string | null,
+  mode: 'stopwatch' | 'pomodoro',
+  minutes: number,
+  at: Date = new Date(),
+): Data {
+  if (data.timer) return data
+  const length = Math.min(240, Math.max(1, Math.round(minutes) || 25))
+  return { ...data, timer: { projectId, goalId, mode, minutes: length, startedAt: at.toISOString() } }
+}
+
+/** Stops the timer and stores a session. Sessions under 30 seconds are discarded. */
+export function stopTimer(data: Data, at: Date = new Date()): Data {
+  const timer = data.timer
+  if (!timer) return data
+  const started = new Date(timer.startedAt).getTime()
+  const cap = timer.mode === 'pomodoro' ? timer.minutes : MAX_SESSION_MINUTES
+  const elapsed = Math.max(0, Math.min(at.getTime() - started, cap * 60000))
+  const minutes = Math.round(elapsed / 60000)
+  if (minutes < 1) return { ...data, timer: null }
+  const session: Session = {
+    id: newId(),
+    projectId: timer.projectId,
+    goalId: timer.goalId,
+    start: timer.startedAt,
+    end: new Date(started + elapsed).toISOString(),
+    minutes,
+  }
+  return { ...data, timer: null, sessions: [...data.sessions, session] }
+}

@@ -92,7 +92,8 @@ button.grip { cursor: grab; letter-spacing: -2px; touch-action: none; }
 }
 .overall { display: flex; align-items: center; gap: 8px; flex: 1; max-width: 340px; }
 .overall .bar { flex: 1; }
-.topbar > button { margin-left: auto; }
+.stats { display: flex; gap: 6px; align-items: baseline; white-space: nowrap; margin-left: auto; }
+.topbar > button { margin-left: 0; }
 .layout {
   flex: 1; display: grid; gap: 12px; padding: 12px; align-items: start;
   grid-template-columns: 210px minmax(280px, 340px) minmax(0, 1fr) minmax(250px, 310px);
@@ -192,3 +193,28 @@ pre { white-space: pre-wrap; word-break: break-word; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+
+/* timer */
+.side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.clock { font-size: 2.2rem; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.seg button.on { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+.timer label { display: flex; flex-direction: column; gap: 4px; }
+
+/* calendar */
+.calendar .panel-head { gap: 4px; }
+.calendar .month { flex: 1; text-align: center; text-transform: capitalize; font-size: 0.9rem; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.cal-dow { text-align: center; text-transform: capitalize; }
+.cal-day { position: relative; aspect-ratio: 1; padding: 0; border-radius: 6px; font-size: 0.8rem; background: var(--panel-2); border-color: transparent; font-variant-numeric: tabular-nums; }
+.cal-day.outside { opacity: 0.4; }
+.cal-day.lvl-1 { background: color-mix(in srgb, var(--accent) 22%, var(--panel-2)); }
+.cal-day.lvl-2 { background: color-mix(in srgb, var(--accent) 45%, var(--panel-2)); }
+.cal-day.lvl-3 { background: color-mix(in srgb, var(--accent) 70%, var(--panel-2)); color: var(--accent-text); }
+.cal-day.lvl-4 { background: var(--accent); color: var(--accent-text); }
+.cal-day.today { border-color: var(--text); }
+.cal-day.selected { outline: 2px solid var(--accent); outline-offset: 1px; }
+.deadline-dot { position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; background: var(--danger); }
+.day-detail { display: flex; flex-direction: column; gap: 4px; }
+.day-detail h4 { margin: 6px 0 0; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.day-detail ul { display: flex; flex-direction: column; gap: 2px; }

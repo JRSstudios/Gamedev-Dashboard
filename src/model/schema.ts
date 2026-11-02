@@ -60,10 +60,22 @@ export const ProjectSchema = z.object({
 
 export const SessionSchema = z.object({
   id,
+  /** Added after v1.0 of the schema; older files simply have no project on their sessions. */
+  projectId: id.nullable().default(null),
   goalId: id.nullable(),
   start: iso,
   end: iso,
   minutes: z.number().min(0).max(100000),
+})
+
+/** A running timer. Persisted so it survives closing the app; elapsed time is derived from `startedAt`. */
+export const TimerSchema = z.object({
+  projectId: id,
+  goalId: id.nullable(),
+  mode: z.enum(['stopwatch', 'pomodoro']),
+  /** Pomodoro length in minutes (ignored for the stopwatch). */
+  minutes: z.number().int().min(1).max(240),
+  startedAt: iso,
 })
 
 export const SettingsSchema = z.object({
@@ -83,6 +95,7 @@ export const DataSchema = z.object({
   notes: z.array(NoteSchema).max(20000),
   assets: z.array(AssetSchema).max(20000),
   sessions: z.array(SessionSchema).max(50000),
+  timer: TimerSchema.nullable().default(null),
   settings: SettingsSchema,
 })
 
@@ -91,6 +104,8 @@ export type Goal = z.infer<typeof GoalSchema>
 export type Note = z.infer<typeof NoteSchema>
 export type Asset = z.infer<typeof AssetSchema>
 export type Project = z.infer<typeof ProjectSchema>
+export type Session = z.infer<typeof SessionSchema>
+export type Timer = z.infer<typeof TimerSchema>
 export type Settings = z.infer<typeof SettingsSchema>
 export type Data = z.infer<typeof DataSchema>
 export type AssetCategory = (typeof ASSET_CATEGORIES)[number]
@@ -104,6 +119,7 @@ export function emptyData(): Data {
     notes: [],
     assets: [],
     sessions: [],
+    timer: null,
     settings: {
       language: 'auto',
       theme: 'auto',

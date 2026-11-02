@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react'
 import { useT } from '../i18n'
-import { projectToMarkdown } from '../model/markdown'
+import { projectToMarkdown, weekToMarkdown } from '../model/markdown'
 import { updateSettings } from '../model/ops'
 import { projectProgress, totalProgress } from '../model/progress'
+import { dayKey, formatMinutes, minutesOnDay, minutesThisWeek } from '../model/time'
 import { confirmDialog, pickTextFile, saveTextFile } from '../platform'
 import { mutate, notify, replaceData, useStore } from '../store'
 import { ProgressBar } from './ProgressBar'
@@ -16,6 +18,11 @@ export function TopBar({ onOpenAi }: { onOpenAi: () => void }) {
   const total = totalProgress(data)
   const current = project ? projectProgress(data, project.id) : null
   const { language, theme } = data.settings
+  const [clock, setClock] = useState(() => new Date())
+  useEffect(() => {
+    const id = setInterval(() => setClock(new Date()), 30_000)
+    return () => clearInterval(id)
+  }, [])
 
   const importJson = async () => {
     const text = await pickTextFile('json')
@@ -44,6 +51,10 @@ export function TopBar({ onOpenAi }: { onOpenAi: () => void }) {
           <strong>{current.pct}%</strong>
         </div>
       )}
+      <div className="stats small" title={t('shortcuts')}>
+        <span className="muted">{t('today')}</span> <strong>{formatMinutes(minutesOnDay(data, dayKey(clock)))}</strong>
+        <span className="muted">{t('thisWeek')}</span> <strong>{formatMinutes(minutesThisWeek(data, clock))}</strong>
+      </div>
       <button onClick={onOpenAi}>🤖 {t('ai')}</button>
       <details className="menu">
         <summary>☰ {t('menu')}</summary>
@@ -66,6 +77,11 @@ export function TopBar({ onOpenAi }: { onOpenAi: () => void }) {
           </label>
           <button onClick={() => void saveTextFile(`gamedev-dashboard-${today()}.json`, JSON.stringify(data, null, 2))}>{t('exportJson')}</button>
           <button onClick={() => void importJson()}>{t('importJson')}</button>
+          {project && (
+            <button onClick={() => void saveTextFile(`${project.name.replace(/[^\p{L}\p{N}_-]+/gu, '-')}-week-${today()}.md`, weekToMarkdown(data, project.id))}>
+              {t('exportWeek')}
+            </button>
+          )}
           {project && (
             <button onClick={() => void saveTextFile(`${project.name.replace(/[^\p{L}\p{N}_-]+/gu, '-')}-${today()}.md`, projectToMarkdown(data, project.id))}>
               {t('exportMarkdown')}

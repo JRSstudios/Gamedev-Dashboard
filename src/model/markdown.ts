@@ -1,5 +1,6 @@
 import type { Data } from './schema'
 import { goalProgress, projectProgress } from './progress'
+import { dayKey, dayOf, formatMinutes, startOfWeek } from './time'
 
 /** Plain-Markdown snapshot of a project, handy for Claude Code, Obsidian or a devlog. */
 export function projectToMarkdown(data: Data, projectId: string): string {
@@ -26,5 +27,44 @@ export function projectToMarkdown(data: Data, projectId: string): string {
   for (const n of data.notes.filter((x) => x.projectId === projectId)) {
     lines.push(`- ${n.createdAt.slice(0, 10)}: ${n.text.replace(/\r?\n/g, ' ')}`)
   }
+  return lines.join('\n') + '\n'
+}
+
+/** Devlog-style summary of the week (Monday to Sunday) containing `now`. */
+export function weekToMarkdown(data: Data, projectId: string, now: Date = new Date()): string {
+  const project = data.projects.find((p) => p.id === projectId)
+  if (!project) return ''
+  const from = startOfWeek(now)
+  const to = new Date(from.getFullYear(), from.getMonth(), from.getDate() + 7)
+  const inWeek = (iso: string) => {
+    const t = new Date(iso).getTime()
+    return t >= from.getTime() && t < to.getTime()
+  }
+  const lines: string[] = [`# ${project.name} — week of ${dayKey(from)}`, '']
+
+  const sessions = data.sessions.filter((s) => s.projectId === projectId && inWeek(s.start))
+  const total = sessions.reduce((sum, s) => sum + s.minutes, 0)
+  lines.push(`## Time (${formatMinutes(total)})`, '')
+  const byDay = new Map<string, number>()
+  for (const s of sessions) byDay.set(dayOf(s.start), (byDay.get(dayOf(s.start)) ?? 0) + s.minutes)
+  for (const [day, minutes] of [...byDay].sort()) lines.push(`- ${day}: ${formatMinutes(minutes)}`)
+  if (byDay.size === 0) lines.push('- –')
+
+  lines.push('', '## Completed steps', '')
+  let steps = 0
+  for (const goal of data.goals.filter((g) => g.projectId === projectId)) {
+    for (const s of goal.steps) {
+      if (s.done && s.doneAt && inWeek(s.doneAt)) {
+        lines.push(`- [x] ${s.title} (${goal.title})`)
+        steps++
+      }
+    }
+  }
+  if (steps === 0) lines.push('- –')
+
+  lines.push('', '## Notes', '')
+  const notes = data.notes.filter((n) => n.projectId === projectId && inWeek(n.createdAt))
+  for (const n of notes) lines.push(`- ${dayOf(n.createdAt)}: ${n.text.replace(/\r?\n/g, ' ')}`)
+  if (notes.length === 0) lines.push('- –')
   return lines.join('\n') + '\n'
 }
