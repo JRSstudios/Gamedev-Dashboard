@@ -45,4 +45,13 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: cargo test --manifest-path src-tauri/Cargo.toml
-      - run: cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
+      - name: cargo clippy
+        shell: bash
+        run: |
+          status=0
+          cargo clippy --manifest-path src-tauri/Cargo.toml --message-format=short -- -D warnings > clippy.log 2>&1 || status=$?
+          cat clippy.log
+          if [ $status -ne 0 ]; then
+            grep -E 'error|warning' clippy.log | head -20 | while read -r line; do echo "::error::${line}"; done
+          fi
+          exit $status
