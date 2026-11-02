@@ -17,13 +17,15 @@ import {
   addAssets,
   deleteAsset,
   fileName,
+  guessCategory,
+  guessKind,
   moveAsset,
   newAsset,
   sanitizeTag,
   updateAsset,
 } from '../model/ops'
 import { ASSET_CATEGORIES, type Asset, type AssetCategory } from '../model/schema'
-import { IS_DESKTOP, onNativeFileDrop, pathsExist, pickAssetPaths } from '../platform'
+import { IS_DESKTOP, onNativeFileDrop, openLink, pathsExist, pickAssetPaths } from '../platform'
 import { deleteBlob, MAX_DEMO_FILE_BYTES, putBlob } from '../storage/indexedDb'
 import { mutate, notify, useStore } from '../store'
 
@@ -86,7 +88,13 @@ function AssetCard({ asset, missing }: { asset: Asset; missing: boolean }) {
             {playing ? '⏸' : '▶'}
           </button>
         )}
-        <span className="asset-name" title={asset.path ?? asset.name}>{asset.name}</span>
+        {asset.kind === 'link' && asset.url ? (
+          <button className="link-btn asset-name" title={asset.url} onClick={() => void openLink(asset.url as string)}>
+            🔗 {asset.name}
+          </button>
+        ) : (
+          <span className="asset-name" title={asset.path ?? asset.name}>{asset.name}</span>
+        )}
         <button className="icon" aria-label={t('remove')} onClick={remove}>×</button>
       </div>
       {missing && <p className="warn small">⚠ {t('missingFile')}</p>}
@@ -115,16 +123,18 @@ function AssetCard({ asset, missing }: { asset: Asset; missing: boolean }) {
   )
 }
 
-function Column({ category, assets, missing }: { category: AssetCategory; assets: Asset[]; missing: Set<string> }) {
+function Column({ category, assets, missing, hideTitle }: { category: AssetCategory; assets: Asset[]; missing: Set<string>; hideTitle?: boolean }) {
   const t = useT()
   const { setNodeRef, isOver } = useDroppable({ id: `col:${category}` })
   return (
     <div ref={setNodeRef} className={isOver ? 'column over' : 'column'}>
-      <h3>
-        {t(`cat_${category}`)} <span className="muted small">{assets.length}</span>
-      </h3>
+      {!hideTitle && (
+        <h3>
+          {t(`cat_${category}`)} <span className="muted small">{assets.length}</span>
+        </h3>
+      )}
       <SortableContext items={assets.map((a) => a.id)} strategy={verticalListSortingStrategy}>
-        <ul className="asset-list">
+        <ul className={hideTitle ? 'asset-list gallery' : 'asset-list'}>
           {assets.map((a) => <AssetCard key={a.id} asset={a} missing={missing.has(a.id)} />)}
         </ul>
       </SortableContext>
@@ -132,7 +142,19 @@ function Column({ category, assets, missing }: { category: AssetCategory; assets
   )
 }
 
-export function AssetBoard({ projectId }: { projectId: string }) {
+interface BoardProps {
+  projectId: string
+  /** Categories shown (and used for newly added files). */
+  categories?: readonly AssetCategory[]
+  /** 'grid' renders a single large gallery, 'columns' one column per category. */
+  layout?: 'columns' | 'grid'
+  title?: string
+  hint?: string
+  /** Extra controls next to the search box (e.g. add-link form). */
+  actions?: React.ReactNode
+}
+
+export function AssetBoard({ projectId, categories = ASSET_CATEGORIES, layout = 'columns', title, hint, actions }: BoardProps) {
   const t = useT()
   const allAssets = useStore((s) => s.data.assets)
   const [query, setQuery] = useState('')
@@ -140,15 +162,21 @@ export function AssetBoard({ projectId }: { projectId: string }) {
   const [missing, setMissing] = useState<Set<string>>(new Set())
   const projectRef = useRef(projectId)
   projectRef.current = projectId
+  const catsRef = useRef(categories)
+  catsRef.current = categories
+  const fit = (name: string): AssetCategory => {
+    const guess = guessCategory(guessKind(name))
+    return catsRef.current.includes(guess) ? guess : catsRef.current[0]
+  }
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 
-  const assets = allAssets.filter((a) => a.projectId === projectId)
+  const assets = allAssets.filter((a) => a.projectId === projectId && categories.includes(a.category))
 
   const addPaths = useCallback((paths: string[]) => {
-    const created = paths.map((p) => newAsset(projectRef.current, fileName(p), p))
+    const created = paths.map((p) => newAsset(projectRef.current, fileName(p), p, fit(fileName(p))))
     if (created.length) mutate((d) => addAssets(d, created))
   }, [])
 
@@ -159,7 +187,7 @@ export function AssetBoard({ projectId }: { projectId: string }) {
         notify(t('fileTooLarge', { name: file.name }))
         continue
       }
-      const asset = newAsset(projectRef.current, file.name, null)
+      const asset = newAsset(projectRef.current, file.name, null, fit(file.name))
       await putBlob(asset.id, file)
       created.push(asset)
     }
@@ -240,7 +268,7 @@ export function AssetBoard({ projectId }: { projectId: string }) {
       }}
     >
       <div className="panel-head">
-        <h2>{t('assets')}</h2>
+        <h2>{title ?? t('assets')}</h2>
         <input
           type="search"
           className="search"
@@ -248,6 +276,7 @@ export function AssetBoard({ projectId }: { projectId: string }) {
           placeholder={t('searchAssets')}
           onChange={(e) => setQuery(e.target.value)}
         />
+        {actions}
         {IS_DESKTOP ? (
           <button onClick={() => void pickAssetPaths().then(addPaths)}>{t('addFiles')}</button>
         ) : (
@@ -266,11 +295,11 @@ export function AssetBoard({ projectId }: { projectId: string }) {
         )}
       </div>
       {!IS_DESKTOP && <p className="muted small">{t('demoNote')}</p>}
-      {assets.length === 0 && <p className="muted empty">{t('noAssets')}</p>}
+      {assets.length === 0 && <p className="muted empty">{hint ?? t('noAssets')}</p>}
       <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={onDragEnd}>
-        <div className="board">
-          {ASSET_CATEGORIES.map((c) => (
-            <Column key={c} category={c} assets={shown.filter((a) => a.category === c)} missing={missing} />
+        <div className={layout === 'grid' ? 'board grid' : 'board'}>
+          {categories.map((c) => (
+            <Column key={c} category={c} hideTitle={layout === 'grid'} assets={shown.filter((a) => a.category === c)} missing={missing} />
           ))}
         </div>
       </DndContext>

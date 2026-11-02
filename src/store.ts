@@ -8,19 +8,33 @@ export type Status =
   | { phase: 'ready' }
   | { phase: 'error'; message: string; raw: string | null }
 
+export const SECTIONS = ['overview', 'goals', 'concept', 'inspiration', 'research', 'audio', 'assets', 'notes', 'planner', 'integrations', 'settings'] as const
+export type Section = (typeof SECTIONS)[number]
+
 interface State {
   status: Status
   data: Data
   activeProjectId: string | null
+  section: Section
   saveError: string | null
   notice: string | null
 }
 
 const ACTIVE_KEY = 'gamedev-dashboard.activeProject'
+const SECTION_KEY = 'gamedev-dashboard.section'
+
+function readSection(): Section {
+  try {
+    const stored = localStorage.getItem(SECTION_KEY)
+    return SECTIONS.find((s) => s === stored) ?? 'overview'
+  } catch {
+    return 'overview'
+  }
+}
 const SAVE_DELAY_MS = 250
 
 const adapter = createAdapter()
-let state: State = { status: { phase: 'loading' }, data: emptyData(), activeProjectId: null, saveError: null, notice: null }
+let state: State = { status: { phase: 'loading' }, data: emptyData(), activeProjectId: null, section: readSection(), saveError: null, notice: null }
 const listeners = new Set<() => void>()
 
 function setState(patch: Partial<State>) {
@@ -105,6 +119,15 @@ export function replaceData(json: string) {
   const active = data.projects.find((p) => !p.archived)?.id ?? null
   setState({ data, activeProjectId: active })
   scheduleSave()
+}
+
+export function setSection(section: Section) {
+  setState({ section })
+  try {
+    localStorage.setItem(SECTION_KEY, section)
+  } catch {
+    /* ignore */
+  }
 }
 
 export function setActiveProject(id: string | null) {

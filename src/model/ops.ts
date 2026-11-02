@@ -4,16 +4,39 @@ import type {
   AssetKind,
   Data,
   Goal,
+  Integrations,
   Note,
   Project,
+  Research,
   Session,
   Settings,
 } from './schema'
+import { isHttpUrl } from './schema'
 
 /** Pure, immutable operations on `Data`. The store wraps these. */
 
 export const newId = (): string => crypto.randomUUID()
 const now = (): string => new Date().toISOString()
+
+export const EMPTY_INTEGRATIONS: Integrations = {
+  unityDir: null,
+  unityExe: null,
+  blenderDir: null,
+  blenderExe: null,
+  blenderExportDir: null,
+  unityMap: {},
+}
+
+/** Where files of a category land inside a Unity project unless the user overrides it. */
+export const DEFAULT_UNITY_MAP: Record<string, string> = {
+  concept: 'Assets/Art/Concept',
+  inspiration: 'Assets/Art/Reference',
+  music: 'Assets/Audio/Music',
+  sfx: 'Assets/Audio/SFX',
+  model: 'Assets/Models',
+  reference: 'Assets/Art/Reference',
+  other: 'Assets/Misc',
+}
 
 export const PROJECT_COLORS = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#ef4444']
 
@@ -38,6 +61,7 @@ export function guessKind(name: string): AssetKind {
 export function guessCategory(kind: AssetKind): AssetCategory {
   if (kind === 'audio') return 'music'
   if (kind === 'image') return 'concept'
+  if (kind === 'model') return 'model'
   return 'other'
 }
 
@@ -62,6 +86,7 @@ export function addProject(data: Data, name: string): { data: Data; project: Pro
     color: PROJECT_COLORS[data.projects.length % PROJECT_COLORS.length],
     archived: false,
     createdAt: now(),
+    integrations: { ...EMPTY_INTEGRATIONS },
   }
   return { data: { ...data, projects: [...data.projects, project] }, project }
 }
@@ -79,6 +104,7 @@ export const deleteProject = (data: Data, id: string): Data => {
     goals: data.goals.filter((g) => g.projectId !== id),
     notes: data.notes.filter((n) => n.projectId !== id),
     assets: data.assets.filter((a) => a.projectId !== id),
+    research: data.research.filter((r) => r.projectId !== id),
     sessions: data.sessions.filter((s) => s.projectId !== id && !(s.goalId && goalIds.has(s.goalId))),
     timer: data.timer?.projectId === id ? null : data.timer,
   }
@@ -164,7 +190,20 @@ export function newAsset(projectId: string, name: string, path: string | null, c
     category: category ?? guessCategory(kind),
     tags: [],
     note: '',
+    url: null,
     addedAt: now(),
+  }
+}
+
+/** Inspiration link: stored as an asset of kind 'link'. Returns null for anything but http(s). */
+export function newLink(projectId: string, url: string, title: string, category: AssetCategory = 'inspiration'): Asset | null {
+  const clean = url.trim()
+  if (!isHttpUrl(clean)) return null
+  const host = new URL(clean).hostname.replace(/^www\./, '')
+  return {
+    ...newAsset(projectId, (title.trim() || host).slice(0, 300), null, category),
+    kind: 'link',
+    url: clean,
   }
 }
 
@@ -266,3 +305,43 @@ export function stopTimer(data: Data, at: Date = new Date()): Data {
   }
   return { ...data, timer: null, sessions: [...data.sessions, session] }
 }
+
+// ---- research -------------------------------------------------------------
+
+export function addResearch(
+  data: Data,
+  projectId: string,
+  entry: Pick<Research, 'title' | 'body'> & Partial<Pick<Research, 'sources' | 'query' | 'model'>>,
+): Data {
+  const body = entry.body.trim().slice(0, 40000)
+  const title = entry.title.trim().slice(0, 200)
+  if (!title && !body) return data
+  const item: Research = {
+    id: newId(),
+    projectId,
+    title: title || (body.split('\n')[0] ?? '').slice(0, 80),
+    body,
+    sources: (entry.sources ?? []).filter((x) => isHttpUrl(x.url)).slice(0, 30),
+    query: (entry.query ?? '').slice(0, 500),
+    model: (entry.model ?? '').slice(0, 100),
+    createdAt: now(),
+  }
+  return { ...data, research: [item, ...data.research] }
+}
+
+export const updateResearch = (data: Data, id: string, patch: Partial<Pick<Research, 'title' | 'body'>>): Data => ({
+  ...data,
+  research: data.research.map((r) => (r.id === id ? { ...r, ...patch } : r)),
+})
+
+export const deleteResearch = (data: Data, id: string): Data => ({
+  ...data,
+  research: data.research.filter((r) => r.id !== id),
+})
+
+// ---- integrations -----------------------------------------------------------
+
+export const updateIntegrations = (data: Data, projectId: string, patch: Partial<Integrations>): Data =>
+  updateProject(data, projectId, {
+    integrations: { ...(data.projects.find((p) => p.id === projectId)?.integrations ?? EMPTY_INTEGRATIONS), ...patch },
+  })

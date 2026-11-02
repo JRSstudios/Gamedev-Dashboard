@@ -2,13 +2,24 @@ import { z } from 'zod'
 
 export const CURRENT_VERSION = 1
 
-export const ASSET_CATEGORIES = ['concept', 'music', 'sfx', 'reference', 'other'] as const
-export const ASSET_KINDS = ['image', 'audio', 'model', 'doc', 'other'] as const
+export const ASSET_CATEGORIES = ['concept', 'inspiration', 'music', 'sfx', 'model', 'reference', 'other'] as const
+export const ASSET_KINDS = ['image', 'audio', 'model', 'doc', 'link', 'other'] as const
 
 const id = z.string().min(1).max(64)
 const iso = z.string().max(40)
 const text = (max: number) => z.string().max(max)
 const tags = z.array(text(40)).max(50)
+
+/** Only http(s) links are ever stored or opened. */
+export const isHttpUrl = (value: string): boolean => {
+  try {
+    const url = new URL(value)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+const httpUrl = z.string().max(2000).refine(isHttpUrl, 'Only http(s) URLs are allowed')
 
 export const StepSchema = z.object({
   id,
@@ -47,7 +58,32 @@ export const AssetSchema = z.object({
   category: z.enum(ASSET_CATEGORIES),
   tags,
   note: text(2000),
+  /** Inspiration links (kind 'link'); never fetched by the app. */
+  url: httpUrl.nullable().default(null),
   addedAt: iso,
+})
+
+export const ResearchSchema = z.object({
+  id,
+  projectId: id,
+  title: text(200),
+  body: text(40000),
+  sources: z.array(z.object({ title: text(300), url: httpUrl })).max(30),
+  /** The question that produced this entry (empty when written by hand). */
+  query: text(500),
+  /** Model that wrote it, empty when written by hand. */
+  model: text(100),
+  createdAt: iso,
+})
+
+export const IntegrationsSchema = z.object({
+  unityDir: text(2000).nullable().default(null),
+  unityExe: text(2000).nullable().default(null),
+  blenderDir: text(2000).nullable().default(null),
+  blenderExe: text(2000).nullable().default(null),
+  blenderExportDir: text(2000).nullable().default(null),
+  /** Category -> sub folder inside the Unity project; falls back to DEFAULT_UNITY_MAP. */
+  unityMap: z.record(z.string().max(40), text(300)).default({}),
 })
 
 export const ProjectSchema = z.object({
@@ -56,6 +92,7 @@ export const ProjectSchema = z.object({
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   archived: z.boolean(),
   createdAt: iso,
+  integrations: IntegrationsSchema.default({ unityDir: null, unityExe: null, blenderDir: null, blenderExe: null, blenderExportDir: null, unityMap: {} }),
 })
 
 export const SessionSchema = z.object({
@@ -86,6 +123,14 @@ export const SettingsSchema = z.object({
     baseUrl: text(300),
     model: text(200),
   }),
+  /** The API key lives in the OS credential store, never in this file. */
+  claude: z
+    .object({
+      enabled: z.boolean(),
+      model: text(100),
+      webSearch: z.boolean(),
+    })
+    .default({ enabled: false, model: 'claude-sonnet-5-5', webSearch: false }),
 })
 
 export const DataSchema = z.object({
@@ -94,6 +139,7 @@ export const DataSchema = z.object({
   goals: z.array(GoalSchema).max(5000),
   notes: z.array(NoteSchema).max(20000),
   assets: z.array(AssetSchema).max(20000),
+  research: z.array(ResearchSchema).max(5000).default([]),
   sessions: z.array(SessionSchema).max(50000),
   timer: TimerSchema.nullable().default(null),
   settings: SettingsSchema,
@@ -104,6 +150,8 @@ export type Goal = z.infer<typeof GoalSchema>
 export type Note = z.infer<typeof NoteSchema>
 export type Asset = z.infer<typeof AssetSchema>
 export type Project = z.infer<typeof ProjectSchema>
+export type Research = z.infer<typeof ResearchSchema>
+export type Integrations = z.infer<typeof IntegrationsSchema>
 export type Session = z.infer<typeof SessionSchema>
 export type Timer = z.infer<typeof TimerSchema>
 export type Settings = z.infer<typeof SettingsSchema>
@@ -118,12 +166,14 @@ export function emptyData(): Data {
     goals: [],
     notes: [],
     assets: [],
+    research: [],
     sessions: [],
     timer: null,
     settings: {
       language: 'auto',
-      theme: 'auto',
+      theme: 'light',
       ai: { enabled: false, baseUrl: '', model: '' },
+      claude: { enabled: false, model: 'claude-sonnet-5-5', webSearch: false },
     },
   }
 }

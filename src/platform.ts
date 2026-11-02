@@ -79,3 +79,21 @@ export async function confirmDialog(message: string): Promise<boolean> {
   const { ask } = await import('@tauri-apps/plugin-dialog')
   return ask(message, { kind: 'warning' })
 }
+
+/** Opens an http(s) link in the system browser. Anything else is refused. */
+export async function openLink(url: string): Promise<void> {
+  let ok = false
+  try {
+    const u = new URL(url)
+    ok = u.protocol === 'https:' || u.protocol === 'http:'
+  } catch {
+    /* invalid */
+  }
+  if (!ok) return
+  if (!IS_DESKTOP) {
+    window.open(url, '_blank', 'noopener,noreferrer')
+    return
+  }
+  const { openUrl } = await import('@tauri-apps/plugin-opener')
+  await openUrl(url)
+}

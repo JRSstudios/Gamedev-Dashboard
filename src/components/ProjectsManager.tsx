@@ -6,7 +6,7 @@ import { confirmDialog } from '../platform'
 import { mutate, setActiveProject, useStore } from '../store'
 import { ProgressBar } from './ProgressBar'
 
-export function Sidebar() {
+export function ProjectsManager() {
   const t = useT()
   const data = useStore((s) => s.data)
   const activeId = useStore((s) => s.activeProjectId)
@@ -32,8 +32,8 @@ export function Sidebar() {
   const hasArchived = data.projects.some((p) => p.archived)
 
   return (
-    <nav className="panel sidebar" aria-label={t('projects')}>
-      <h2>{t('projects')}</h2>
+    <section className="panel projects-manager" aria-label={t('projects')}>
+      <h2>{t('settingsProjects')}</h2>
       <ul className="project-list">
         {visible.map((p) => {
           const prog = projectProgress(data, p.id)
@@ -88,6 +88,6 @@ export function Sidebar() {
           {t('showArchived')}
         </label>
       )}
-    </nav>
+    </section>
   )
 }
