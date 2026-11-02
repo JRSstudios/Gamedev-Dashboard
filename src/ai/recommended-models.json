@@ -1,0 +1,5 @@
+[
+  { "name": "llama3.2:3b", "size": "2.0 GB", "ram": "4 GB", "note": "Small and fast, fine for tags and short lists" },
+  { "name": "qwen2.5:7b", "size": "4.7 GB", "ram": "8 GB", "note": "Better structured answers" },
+  { "name": "llama3.1:8b", "size": "4.9 GB", "ram": "8 GB", "note": "Good all-rounder" }
+]

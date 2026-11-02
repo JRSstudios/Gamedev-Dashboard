@@ -1,0 +1,30 @@
+import type { Data } from './schema'
+import { goalProgress, projectProgress } from './progress'
+
+/** Plain-Markdown snapshot of a project, handy for Claude Code, Obsidian or a devlog. */
+export function projectToMarkdown(data: Data, projectId: string): string {
+  const project = data.projects.find((p) => p.id === projectId)
+  if (!project) return ''
+  const p = projectProgress(data, projectId)
+  const lines: string[] = [`# ${project.name}`, '', `Progress: ${p.done}/${p.total} steps (${p.pct}%)`, '']
+
+  lines.push('## Goals', '')
+  for (const goal of data.goals.filter((g) => g.projectId === projectId && !g.archived)) {
+    const gp = goalProgress(goal)
+    lines.push(`### ${goal.title} (${gp.pct}%)${goal.deadline ? ` — due ${goal.deadline}` : ''}`)
+    for (const s of goal.steps) lines.push(`- [${s.done ? 'x' : ' '}] ${s.title}`)
+    lines.push('')
+  }
+
+  lines.push('## Assets', '', '| Category | Name | Tags | Path |', '|---|---|---|---|')
+  for (const a of data.assets.filter((x) => x.projectId === projectId)) {
+    const cell = (s: string) => s.replace(/\|/g, '\\|').replace(/\r?\n/g, ' ')
+    lines.push(`| ${a.category} | ${cell(a.name)} | ${a.tags.map((t) => `#${t}`).join(' ')} | ${cell(a.path ?? '(browser demo)')} |`)
+  }
+
+  lines.push('', '## Notes', '')
+  for (const n of data.notes.filter((x) => x.projectId === projectId)) {
+    lines.push(`- ${n.createdAt.slice(0, 10)}: ${n.text.replace(/\r?\n/g, ' ')}`)
+  }
+  return lines.join('\n') + '\n'
+}
