@@ -297,6 +297,7 @@ export const en = {
   confirmDeleteTable: 'Delete table “{name}” with all its rows?',
   confirmTypeChange: 'Values that do not fit the new type will be cleared. Continue?',
   rowsCount: '{n} rows',
+  rowsCountOne: '1 row',
   filterRows: 'Filter rows…',
   sortNone: 'Stored order',
   emptyTable: 'No rows yet.',

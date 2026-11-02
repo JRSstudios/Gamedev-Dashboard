@@ -47,7 +47,7 @@ export function NodeCard({ info, data }: { info: RefInfo; data: Data }) {
           <div className="node-cols">
             {table?.columns.slice(0, 4).map((c) => <span key={c.id}>{c.name}</span>)}
           </div>
-          <span className="small muted">{t('rowsCount', { n: table?.rows.length ?? 0 })}</span>
+          <span className="small muted">{t(table?.rows.length === 1 ? 'rowsCountOne' : 'rowsCount', { n: table?.rows.length ?? 0 })}</span>
         </>
       )
       break

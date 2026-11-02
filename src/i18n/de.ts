@@ -299,6 +299,7 @@ export const de: Dict = {
   confirmDeleteTable: 'Tabelle „{name}“ mit allen Zeilen löschen?',
   confirmTypeChange: 'Werte, die nicht zum neuen Typ passen, werden geleert. Fortfahren?',
   rowsCount: '{n} Zeilen',
+  rowsCountOne: '1 Zeile',
   filterRows: 'Zeilen filtern…',
   sortNone: 'Gespeicherte Reihenfolge',
   emptyTable: 'Noch keine Zeilen.',

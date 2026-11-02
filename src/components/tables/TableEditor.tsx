@@ -193,7 +193,7 @@ export function TableEditor({ table, embedded = false }: { table: Table; embedde
       {embedded ? (
         <div className="table-head">
           <strong>{table.name}</strong>
-          <span className="small muted">{t('rowsCount', { n: table.rows.length })}</span>
+          <span className="small muted">{t(table.rows.length === 1 ? 'rowsCountOne' : 'rowsCount', { n: table.rows.length })}</span>
           <button className="ghost small" onClick={() => openItem('table', table.id)}>{t('openTable')} ↗</button>
         </div>
       ) : (
@@ -205,7 +205,7 @@ export function TableEditor({ table, embedded = false }: { table: Table; embedde
           aria-label={t('rename')}
           onCommit={(v) => mutate((d) => renameTable(d, table.id, v))}
         />
-        <span className="small muted">{t('rowsCount', { n: table.rows.length })}</span>
+        <span className="small muted">{t(table.rows.length === 1 ? 'rowsCountOne' : 'rowsCount', { n: table.rows.length })}</span>
         <button
           className="icon"
           aria-label={t('deleteTable')}
