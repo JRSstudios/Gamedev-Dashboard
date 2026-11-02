@@ -154,7 +154,7 @@ pub fn list_folder(dir: String, exts: Vec<String>, limit: usize) -> Result<Vec<F
     let exts: Vec<String> = exts.iter().map(|e| e.trim_start_matches('.').to_lowercase()).collect();
     let mut out = Vec::new();
     walk(root, 0, &exts, &mut out);
-    out.sort_by(|a, b| b.modified.cmp(&a.modified));
+    out.sort_by_key(|f| std::cmp::Reverse(f.modified));
     out.truncate(limit.clamp(1, MAX_LIST_ENTRIES));
     Ok(out)
 }
