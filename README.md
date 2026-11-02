@@ -10,6 +10,10 @@ A calm, local-first overview for your game projects. Keep **goals with progress 
 - **Calendar**: month view with heat-map by learned minutes, deadline markers, click a day to see sessions, completed steps and notes
 - **Weekly Markdown export** for devlogs, plus a full project export
 - **Shortcuts**: `Ctrl+N` new note, `Ctrl+T` start/stop timer (`Cmd` on macOS)
+- **Pages** like a lightweight Notion: headings, text, lists, checklists, callouts, images from your assets and embedded tables; drag blocks to reorder, type `/` for the block menu, turn a quick note into a page
+- **Tables** with typed columns (text, number, checkbox, choice, date, progress, link), templates for asset lists, tasks, characters and levels, filter, sort and drag rows
+- **Nodes canvas** like Obsidian's graph, but with real cards: put goals, pages, tables, notes, research and assets on a canvas, connect them by dragging, and `[[Title]]` links in your text show up as dashed connections automatically; pan, zoom, tidy up
+- **Your own navigation**: show, hide, rename and reorder the sections of each project (Settings → Sections)
 - **Departments** per project: Overview, Goals, Concept art, Inspiration (images and links), Research, Audio, Notes, Planner. White design with a dark mode toggle, a real menu bar and a `Ctrl+K` command palette
 - **Unity & Blender (desktop)**: link your Unity project and Blender folders, drag an asset card onto the Unity/Blender target to copy the file (never overwritten), or drop files from the file manager onto the target tiles. A Blender export folder shows up as an inbox
 - **Claude (desktop, optional)**: add your API key (kept in the OS credential store) and use quick commands in the palette, e.g. `/research movement system for a 2D platformer`, `/suggest`, `/unity coyote time`. Results go to the Research panel or are applied as goals and notes after you confirm. Optional web search with sources

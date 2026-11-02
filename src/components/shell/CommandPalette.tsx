@@ -3,7 +3,7 @@ import { useT } from '../../i18n'
 import { parseSlash, type Preset } from '../../ai/prompts'
 import { updateSettings } from '../../model/ops'
 import { IS_DESKTOP } from '../../platform'
-import { mutate, notify, SECTIONS, setActiveProject, setSection, useStore } from '../../store'
+import { mutate, notify, openItem, SECTIONS, setActiveProject, setSection, useStore } from '../../store'
 import { toggleTimer } from '../../timerActions'
 import { sectionTitle } from '../../sections'
 
@@ -39,6 +39,10 @@ export function CommandPalette({
       keywords: s,
       run: () => setSection(s),
     }))
+    const items: PaletteCommand[] = [
+      ...data.pages.filter((p) => p.projectId === projectId).map((p) => ({ id: `page-${p.id}`, title: t('paletteOpen', { name: p.title }), keywords: 'page seite', run: () => openItem('page', p.id) })),
+      ...data.tables.filter((x) => x.projectId === projectId).map((x) => ({ id: `table-${x.id}`, title: t('paletteOpen', { name: x.name }), keywords: 'table tabelle', run: () => openItem('table', x.id) })),
+    ]
     const projects = data.projects
       .filter((p) => !p.archived && p.id !== projectId)
       .map((p) => ({ id: `project-${p.id}`, title: t('paletteSwitch', { name: p.name }), keywords: p.name, run: () => setActiveProject(p.id) }))
@@ -70,8 +74,8 @@ export function CommandPalette({
             { id: 'claude-unity', title: t('paletteClaudeUnity'), hint: '/unity', keywords: 'claude ai unity', run: () => onClaude('unity', '', false) },
           ]
         : []
-    return [...extra, ...claude, ...misc, ...nav, ...projects]
-  }, [data.projects, projectId, extra, onClaude, t])
+    return [...extra, ...claude, ...misc, ...nav, ...items, ...projects]
+  }, [data.projects, data.pages, data.tables, projectId, extra, onClaude, t])
 
   // "/research coyote time" becomes a ready-to-run command; everything else is a plain filter.
   const slash = onClaude && IS_DESKTOP && projectId ? parseSlash(query) : null

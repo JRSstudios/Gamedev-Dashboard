@@ -1,21 +1,23 @@
 import { useSyncExternalStore } from 'react'
 import { parseData } from './model/migrate'
+import { isSection, type Section } from './model/layout'
 import { emptyData, type Data } from './model/schema'
 import { createAdapter } from './storage'
+
+export { SECTIONS, type Section } from './model/layout'
 
 export type Status =
   | { phase: 'loading' }
   | { phase: 'ready' }
   | { phase: 'error'; message: string; raw: string | null }
 
-export const SECTIONS = ['overview', 'goals', 'concept', 'inspiration', 'research', 'audio', 'assets', 'notes', 'planner', 'integrations', 'settings'] as const
-export type Section = (typeof SECTIONS)[number]
-
 interface State {
   status: Status
   data: Data
   activeProjectId: string | null
   section: Section
+  /** Which page/table is open in the Pages/Tables sections, and the node to focus on the canvas. */
+  focus: { pageId: string | null; tableId: string | null }
   saveError: string | null
   notice: string | null
 }
@@ -26,7 +28,7 @@ const SECTION_KEY = 'gamedev-dashboard.section'
 function readSection(): Section {
   try {
     const stored = localStorage.getItem(SECTION_KEY)
-    return SECTIONS.find((s) => s === stored) ?? 'overview'
+    return isSection(stored) ? stored : 'overview'
   } catch {
     return 'overview'
   }
@@ -34,7 +36,7 @@ function readSection(): Section {
 const SAVE_DELAY_MS = 250
 
 const adapter = createAdapter()
-let state: State = { status: { phase: 'loading' }, data: emptyData(), activeProjectId: null, section: readSection(), saveError: null, notice: null }
+let state: State = { status: { phase: 'loading' }, data: emptyData(), activeProjectId: null, section: readSection(), focus: { pageId: null, tableId: null }, saveError: null, notice: null }
 const listeners = new Set<() => void>()
 
 function setState(patch: Partial<State>) {
@@ -129,6 +131,21 @@ export function setSection(section: Section) {
     /* ignore */
   }
 }
+
+/** Opens a page or table in its section. */
+export function openItem(kind: 'page' | 'table', id: string) {
+  setState({
+    focus: { ...state.focus, [kind === 'page' ? 'pageId' : 'tableId']: id },
+    section: kind === 'page' ? 'pages' : 'tables',
+  })
+  try {
+    localStorage.setItem(SECTION_KEY, state.section)
+  } catch {
+    /* ignore */
+  }
+}
+
+export const setFocus = (patch: Partial<State['focus']>) => setState({ focus: { ...state.focus, ...patch } })
 
 export function setActiveProject(id: string | null) {
   setState({ activeProjectId: id })

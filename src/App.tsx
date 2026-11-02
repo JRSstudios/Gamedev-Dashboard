@@ -11,11 +11,15 @@ import { Overview } from './components/Overview'
 import { ResearchPanel } from './components/ResearchPanel'
 import { SettingsPage } from './components/SettingsPage'
 import { TimerPanel } from './components/TimerPanel'
+import { NodesView } from './components/graph/NodesView'
+import { PagesView } from './components/pages/PagesView'
+import { TablesView } from './components/tables/TablesView'
 import { CommandPalette } from './components/shell/CommandPalette'
 import { NavRail } from './components/shell/NavRail'
 import { ShortcutsDialog } from './components/shell/ShortcutsDialog'
 import { TopBar } from './components/shell/TopBar'
 import { useT } from './i18n'
+import { resolveSections } from './model/layout'
 import { addProject } from './model/ops'
 import type { Project } from './model/schema'
 import { saveTextFile } from './platform'
@@ -84,6 +88,12 @@ function SectionView({ section, project, onOpenAi }: { section: Section; project
       return <AssetBoard projectId={id} />
     case 'notes':
       return <NotesPanel projectId={id} />
+    case 'pages':
+      return <PagesView projectId={id} />
+    case 'tables':
+      return <TablesView projectId={id} />
+    case 'nodes':
+      return <NodesView projectId={id} />
     case 'planner':
       return (
         <div className="planner">
@@ -160,7 +170,8 @@ export default function App() {
   if (status.phase === 'loading') return <main className="center-screen muted">{t('loading')}</main>
   if (status.phase === 'error') return <ErrorScreen message={status.message} raw={status.raw} />
 
-  const bare = section === 'overview' || section === 'settings' || section === 'planner' || section === 'integrations'
+  const bare = ['overview', 'settings', 'planner', 'integrations', 'pages', 'tables', 'nodes'].includes(section)
+  const sectionLabel = resolveSections(project).find((e) => e.id === section)?.label ?? ''
 
   return (
     <div className="app">
@@ -173,10 +184,10 @@ export default function App() {
           ) : project ? (
             <>
               <div className="page-head">
-                <h1>{sectionTitle(t, section)}</h1>
+                <h1>{sectionTitle(t, section, sectionLabel)}</h1>
                 <p className="muted">{sectionDescription(t, section)}</p>
               </div>
-              <div className={bare ? 'page-body' : 'page-body hide-h2'}>
+              <div className={`${bare ? 'page-body' : 'page-body hide-h2'} section-${section}`}>
                 <SectionView key={`${project.id}-${section}`} section={section} project={project} onOpenAi={() => setAiOpen(true)} />
               </div>
             </>

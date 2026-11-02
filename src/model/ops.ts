@@ -12,6 +12,7 @@ import type {
   Settings,
 } from './schema'
 import { isHttpUrl } from './schema'
+import { removeRefs } from './graph'
 
 /** Pure, immutable operations on `Data`. The store wraps these. */
 
@@ -87,6 +88,8 @@ export function addProject(data: Data, name: string): { data: Data; project: Pro
     archived: false,
     createdAt: now(),
     integrations: { ...EMPTY_INTEGRATIONS },
+    layout: { sections: [] },
+    graph: { nodes: [], edges: [] },
   }
   return { data: { ...data, projects: [...data.projects, project] }, project }
 }
@@ -105,6 +108,8 @@ export const deleteProject = (data: Data, id: string): Data => {
     notes: data.notes.filter((n) => n.projectId !== id),
     assets: data.assets.filter((a) => a.projectId !== id),
     research: data.research.filter((r) => r.projectId !== id),
+    tables: data.tables.filter((t) => t.projectId !== id),
+    pages: data.pages.filter((p) => p.projectId !== id),
     sessions: data.sessions.filter((s) => s.projectId !== id && !(s.goalId && goalIds.has(s.goalId))),
     timer: data.timer?.projectId === id ? null : data.timer,
   }
@@ -130,13 +135,18 @@ export const updateGoal = (data: Data, id: string, patch: Partial<Pick<Goal, 'ti
   goals: data.goals.map((g) => (g.id === id ? { ...g, ...patch } : g)),
 })
 
-export const deleteGoal = (data: Data, id: string): Data => ({
-  ...data,
-  goals: data.goals.filter((g) => g.id !== id),
-  notes: data.notes.map((n) => (n.goalId === id ? { ...n, goalId: null } : n)),
-  sessions: data.sessions.map((s) => (s.goalId === id ? { ...s, goalId: null } : s)),
-  timer: data.timer?.goalId === id ? { ...data.timer, goalId: null } : data.timer,
-})
+export const deleteGoal = (data: Data, id: string): Data =>
+  removeRefs(
+    {
+      ...data,
+      goals: data.goals.filter((g) => g.id !== id),
+      notes: data.notes.map((n) => (n.goalId === id ? { ...n, goalId: null } : n)),
+      sessions: data.sessions.map((s) => (s.goalId === id ? { ...s, goalId: null } : s)),
+      timer: data.timer?.goalId === id ? { ...data.timer, goalId: null } : data.timer,
+    },
+    'goal',
+    id,
+  )
 
 const mapGoal = (data: Data, id: string, fn: (g: Goal) => Goal): Data => ({
   ...data,
@@ -214,11 +224,16 @@ export const updateAsset = (data: Data, id: string, patch: Partial<Pick<Asset, '
   assets: data.assets.map((a) => (a.id === id ? { ...a, ...patch } : a)),
 })
 
-export const deleteAsset = (data: Data, id: string): Data => ({
-  ...data,
-  assets: data.assets.filter((a) => a.id !== id),
-  notes: data.notes.map((n) => (n.assetId === id ? { ...n, assetId: null } : n)),
-})
+export const deleteAsset = (data: Data, id: string): Data =>
+  removeRefs(
+    {
+      ...data,
+      assets: data.assets.filter((a) => a.id !== id),
+      notes: data.notes.map((n) => (n.assetId === id ? { ...n, assetId: null } : n)),
+    },
+    'asset',
+    id,
+  )
 
 /**
  * Drops `activeId` into `category`, before `beforeId` when given, otherwise at the end.
@@ -256,10 +271,8 @@ export const setNoteTags = (data: Data, id: string, tags: string[]): Data => ({
   notes: data.notes.map((n) => (n.id === id ? { ...n, tags: [...new Set(tags.map(sanitizeTag).filter(Boolean))].slice(0, 50) } : n)),
 })
 
-export const deleteNote = (data: Data, id: string): Data => ({
-  ...data,
-  notes: data.notes.filter((n) => n.id !== id),
-})
+export const deleteNote = (data: Data, id: string): Data =>
+  removeRefs({ ...data, notes: data.notes.filter((n) => n.id !== id) }, 'note', id)
 
 // ---- settings -------------------------------------------------------------
 
@@ -334,10 +347,8 @@ export const updateResearch = (data: Data, id: string, patch: Partial<Pick<Resea
   research: data.research.map((r) => (r.id === id ? { ...r, ...patch } : r)),
 })
 
-export const deleteResearch = (data: Data, id: string): Data => ({
-  ...data,
-  research: data.research.filter((r) => r.id !== id),
-})
+export const deleteResearch = (data: Data, id: string): Data =>
+  removeRefs({ ...data, research: data.research.filter((r) => r.id !== id) }, 'research', id)
 
 // ---- integrations -----------------------------------------------------------
 

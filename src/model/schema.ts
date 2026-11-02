@@ -86,6 +86,71 @@ export const IntegrationsSchema = z.object({
   unityMap: z.record(z.string().max(40), text(300)).default({}),
 })
 
+export const COLUMN_TYPES = ['text', 'number', 'checkbox', 'select', 'date', 'progress', 'url'] as const
+
+export const ColumnSchema = z.object({
+  id,
+  name: text(60),
+  type: z.enum(COLUMN_TYPES),
+  /** Choices of a `select` column. */
+  options: z.array(text(40)).max(30).default([]),
+})
+
+export const CellSchema = z.union([text(2000), z.number(), z.boolean(), z.null()])
+
+export const RowSchema = z.object({
+  id,
+  cells: z.record(id, CellSchema).default({}),
+})
+
+export const TableSchema = z.object({
+  id,
+  projectId: id,
+  name: text(100),
+  columns: z.array(ColumnSchema).max(30),
+  rows: z.array(RowSchema).max(2000),
+  createdAt: iso,
+})
+
+const blockText = text(5000)
+export const BlockSchema = z.discriminatedUnion('type', [
+  z.object({ id, type: z.literal('heading'), text: blockText, level: z.union([z.literal(1), z.literal(2)]).default(1) }),
+  z.object({ id, type: z.literal('paragraph'), text: blockText }),
+  z.object({ id, type: z.literal('callout'), text: blockText }),
+  z.object({ id, type: z.literal('list'), items: z.array(text(500)).max(200) }),
+  z.object({ id, type: z.literal('checklist'), items: z.array(z.object({ text: text(500), done: z.boolean() })).max(200) }),
+  z.object({ id, type: z.literal('image'), assetId: id.nullable() }),
+  z.object({ id, type: z.literal('table'), tableId: id.nullable() }),
+  z.object({ id, type: z.literal('divider') }),
+])
+
+export const PageSchema = z.object({
+  id,
+  projectId: id,
+  title: text(200),
+  /** A single emoji or short mark; plain text only. */
+  icon: text(8).default(''),
+  blocks: z.array(BlockSchema).max(500),
+  createdAt: iso,
+  updatedAt: iso,
+})
+
+export const REF_TYPES = ['goal', 'note', 'asset', 'research', 'table', 'page'] as const
+
+const coord = z.number().min(-100000).max(100000)
+export const GraphSchema = z.object({
+  nodes: z
+    .array(z.object({ id, ref: z.object({ type: z.enum(REF_TYPES), id }), x: coord, y: coord }))
+    .max(500),
+  /** Hand-drawn connections between nodes (links written as [[Title]] are derived, not stored). */
+  edges: z.array(z.object({ id, from: id, to: id })).max(2000),
+})
+
+export const LayoutSchema = z.object({
+  /** Order is the navigation order; sections missing here keep their default place. */
+  sections: z.array(z.object({ id: text(40), label: text(60).default(''), visible: z.boolean().default(true) })).max(60),
+})
+
 export const ProjectSchema = z.object({
   id,
   name: text(100),
@@ -93,6 +158,8 @@ export const ProjectSchema = z.object({
   archived: z.boolean(),
   createdAt: iso,
   integrations: IntegrationsSchema.default({ unityDir: null, unityExe: null, blenderDir: null, blenderExe: null, blenderExportDir: null, unityMap: {} }),
+  layout: LayoutSchema.default({ sections: [] }),
+  graph: GraphSchema.default({ nodes: [], edges: [] }),
 })
 
 export const SessionSchema = z.object({
@@ -140,6 +207,8 @@ export const DataSchema = z.object({
   notes: z.array(NoteSchema).max(20000),
   assets: z.array(AssetSchema).max(20000),
   research: z.array(ResearchSchema).max(5000).default([]),
+  tables: z.array(TableSchema).max(2000).default([]),
+  pages: z.array(PageSchema).max(5000).default([]),
   sessions: z.array(SessionSchema).max(50000),
   timer: TimerSchema.nullable().default(null),
   settings: SettingsSchema,
@@ -152,6 +221,16 @@ export type Asset = z.infer<typeof AssetSchema>
 export type Project = z.infer<typeof ProjectSchema>
 export type Research = z.infer<typeof ResearchSchema>
 export type Integrations = z.infer<typeof IntegrationsSchema>
+export type Column = z.infer<typeof ColumnSchema>
+export type ColumnType = (typeof COLUMN_TYPES)[number]
+export type Cell = z.infer<typeof CellSchema>
+export type Row = z.infer<typeof RowSchema>
+export type Table = z.infer<typeof TableSchema>
+export type Block = z.infer<typeof BlockSchema>
+export type Page = z.infer<typeof PageSchema>
+export type Graph = z.infer<typeof GraphSchema>
+export type RefType = (typeof REF_TYPES)[number]
+export type Layout = z.infer<typeof LayoutSchema>
 export type Session = z.infer<typeof SessionSchema>
 export type Timer = z.infer<typeof TimerSchema>
 export type Settings = z.infer<typeof SettingsSchema>
@@ -167,6 +246,8 @@ export function emptyData(): Data {
     notes: [],
     assets: [],
     research: [],
+    tables: [],
+    pages: [],
     sessions: [],
     timer: null,
     settings: {

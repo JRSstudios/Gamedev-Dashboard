@@ -1,5 +1,7 @@
 import type { Data } from './schema'
+import { pageToMarkdown } from './pages'
 import { goalProgress, projectProgress } from './progress'
+import { tableToMarkdown } from './tables'
 import { dayKey, dayOf, formatMinutes, startOfWeek } from './time'
 
 /** Plain-Markdown snapshot of a project, handy for Claude Code, Obsidian or a devlog. */
@@ -27,7 +29,18 @@ export function projectToMarkdown(data: Data, projectId: string): string {
   for (const n of data.notes.filter((x) => x.projectId === projectId)) {
     lines.push(`- ${n.createdAt.slice(0, 10)}: ${n.text.replace(/\r?\n/g, ' ')}`)
   }
-  return lines.join('\n') + '\n'
+
+  const pages = data.pages.filter((x) => x.projectId === projectId)
+  if (pages.length) {
+    lines.push('', '## Pages', '')
+    for (const page of pages) lines.push(pageToMarkdown(page, data), '')
+  }
+  const tables = data.tables.filter((x) => x.projectId === projectId)
+  if (tables.length) {
+    lines.push('', '## Tables', '')
+    for (const table of tables) lines.push(tableToMarkdown(table), '')
+  }
+  return lines.join('\n').trimEnd() + '\n'
 }
 
 /** Devlog-style summary of the week (Monday to Sunday) containing `now`. */

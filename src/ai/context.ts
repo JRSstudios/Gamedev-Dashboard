@@ -35,6 +35,12 @@ export function buildProjectContext(data: Data, projectId: string, maxChars = 60
     lines.push('', 'Existing research entries:', ...research.map((r) => `- ${r.title}`))
   }
 
+  // Only names of pages and tables, never their contents.
+  const pages = data.pages.filter((p) => p.projectId === projectId).slice(0, 15)
+  if (pages.length) lines.push('', 'Pages:', ...pages.map((p) => `- ${p.title}`))
+  const tables = data.tables.filter((x) => x.projectId === projectId).slice(0, 15)
+  if (tables.length) lines.push('', 'Tables:', ...tables.map((x) => `- ${x.name} (${x.rows.length} rows; columns: ${x.columns.map((c) => c.name).join(', ')})`))
+
   const notes = data.notes.filter((n) => n.projectId === projectId).slice(0, 10)
   if (notes.length) {
     lines.push('', 'Recent notes:', ...notes.map((n) => `- ${n.text.replace(/\s+/g, ' ').slice(0, 200)}`))

@@ -13,3 +13,8 @@
 - White design with dark mode, navigation with departments, menu bar, command palette, Inspiration and Research panels
 - Unity and Blender folder integration with drag and drop transfer and a Blender inbox
 - Claude integration (API key in the OS credential store, research / suggestions / Unity outline commands, optional web search)
+- Pages with simple blocks (text, headings, lists, checklists, callouts, images, embedded tables), `/` block menu, links and backlinks
+- Tables with typed columns, templates, filter, sort and drag-to-reorder rows
+- Nodes canvas: cards for goals, pages, tables, notes, research and assets; drawn connections plus automatic `[[Title]]` links; pan, zoom, tidy up
+- Sections per project can be shown, hidden, renamed and reordered
+- Markdown project export includes pages and tables; Claude context lists page and table names (no contents)

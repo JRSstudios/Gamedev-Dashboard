@@ -5,6 +5,7 @@ import { updateSettings } from '../model/ops'
 import { IS_DESKTOP } from '../platform'
 import { mutate, notify, useStore } from '../store'
 import { ProjectsManager } from './ProjectsManager'
+import { SectionsSettings } from './SectionsSettings'
 
 function ClaudeSettings() {
   const t = useT()
@@ -93,6 +94,7 @@ export function SettingsPage({ onOpenAi }: { onOpenAi: () => void }) {
   return (
     <div className="settings">
       <ProjectsManager />
+      <SectionsSettings />
 
       <section className="panel">
         <h2>{t('settingsAppearance')}</h2>

@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useT } from '../i18n'
 import { addNote, deleteNote } from '../model/ops'
-import { mutate, useStore } from '../store'
+import { noteToPage } from '../model/pages'
+import { getData, mutate, openItem, useStore } from '../store'
 
 export function NotesPanel({ projectId }: { projectId: string }) {
   const t = useT()
@@ -62,6 +63,18 @@ export function NotesPanel({ projectId }: { projectId: string }) {
             <div className="note-meta small muted">
               <time dateTime={n.createdAt}>{new Date(n.createdAt).toLocaleDateString()}</time>
               {goalTitle(n.goalId) && <span> · {goalTitle(n.goalId)}</span>}
+              <button
+                className="ghost small"
+                title={t('toPage')}
+                onClick={() => {
+                  const res = noteToPage(getData(), n.id)
+                  if (!res) return
+                  mutate(() => res.data)
+                  openItem('page', res.page.id)
+                }}
+              >
+                {t('toPage')}
+              </button>
               <button className="icon" aria-label={t('delete')} onClick={() => mutate((d) => deleteNote(d, n.id))}>×</button>
             </div>
             <p>{n.text}</p>

@@ -1,13 +1,10 @@
 import { useState } from 'react'
 import { useT } from '../../i18n'
 import { sectionTitle } from '../../sections'
+import { resolveSections, type SectionEntry } from '../../model/layout'
 import { addProject } from '../../model/ops'
-import { getData, mutate, setActiveProject, setSection, useStore, type Section } from '../../store'
-import { Icon, type IconName } from './Icon'
-
-const MAIN: Section[] = ['overview', 'goals', 'concept', 'inspiration', 'research', 'audio', 'assets', 'notes', 'planner']
-const TOOLS: Section[] = ['integrations', 'settings']
-
+import { getData, mutate, setActiveProject, setSection, useStore } from '../../store'
+import { Icon } from './Icon'
 
 export function NavRail() {
   const t = useT()
@@ -17,6 +14,9 @@ export function NavRail() {
   const [creating, setCreating] = useState(false)
   const [name, setName] = useState('')
   const active = projects.filter((p) => !p.archived)
+  const entries = resolveSections(active.find((p) => p.id === activeId)).filter((e) => e.visible)
+  const main = entries.filter((e) => e.id !== 'settings')
+  const tools = entries.filter((e) => e.id === 'settings')
 
   const create = () => {
     if (!name.trim()) return setCreating(false)
@@ -27,11 +27,11 @@ export function NavRail() {
     setCreating(false)
   }
 
-  const item = (s: Section) => (
+  const item = ({ id: s, label }: SectionEntry) => (
     <li key={s}>
       <button className={s === section ? 'nav-item active' : 'nav-item'} aria-current={s === section ? 'page' : undefined} onClick={() => setSection(s)}>
-        <Icon name={s as IconName} />
-        {sectionTitle(t, s)}
+        <Icon name={s} />
+        {sectionTitle(t, s, label)}
       </button>
     </li>
   )
@@ -73,9 +73,9 @@ export function NavRail() {
       </div>
 
       <nav aria-label={t('projects')}>
-        <ul className="nav-list">{MAIN.map(item)}</ul>
+        <ul className="nav-list">{main.map(item)}</ul>
         <hr />
-        <ul className="nav-list">{TOOLS.map(item)}</ul>
+        <ul className="nav-list">{tools.map(item)}</ul>
       </nav>
     </aside>
   )
