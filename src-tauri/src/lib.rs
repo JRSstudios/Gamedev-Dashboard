@@ -5,6 +5,9 @@ use std::{
 };
 use tauri::Manager;
 
+mod claude;
+mod transfer;
+
 const MAX_DATA_BYTES: usize = 64 * 1024 * 1024;
 const MAX_PREVIEW_BYTES: u64 = 25 * 1024 * 1024;
 const PREVIEW_EXTENSIONS: &[&str] = &[
@@ -115,7 +118,15 @@ pub fn run() {
             paths_exist,
             read_preview,
             write_text_file,
-            read_text_file
+            read_text_file,
+            claude::claude_set_key,
+            claude::claude_has_key,
+            claude::claude_clear_key,
+            claude::claude_request,
+            transfer::inspect_unity_project,
+            transfer::copy_into_folder,
+            transfer::list_folder,
+            transfer::open_in_app
         ])
         .run(tauri::generate_context!())
         .expect("error while running Gamedev Dashboard");

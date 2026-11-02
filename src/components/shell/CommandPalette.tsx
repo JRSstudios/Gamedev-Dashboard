@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useT } from '../../i18n'
+import { parseSlash, type Preset } from '../../ai/prompts'
 import { updateSettings } from '../../model/ops'
+import { IS_DESKTOP } from '../../platform'
 import { mutate, notify, SECTIONS, setActiveProject, setSection, useStore } from '../../store'
 import { toggleTimer } from '../../timerActions'
 import { sectionTitle } from '../../sections'
@@ -14,7 +16,15 @@ export interface PaletteCommand {
 }
 
 /** Ctrl+K palette. `extra` lets other features (AI quick commands) add entries. */
-export function CommandPalette({ onClose, extra = [] }: { onClose: () => void; extra?: PaletteCommand[] }) {
+export function CommandPalette({
+  onClose,
+  onClaude,
+  extra = [],
+}: {
+  onClose: () => void
+  onClaude?: (preset: Preset, topic: string, autorun: boolean) => void
+  extra?: PaletteCommand[]
+}) {
   const t = useT()
   const data = useStore((s) => s.data)
   const projectId = useStore((s) => s.activeProjectId)
@@ -52,10 +62,32 @@ export function CommandPalette({ onClose, extra = [] }: { onClose: () => void; e
         },
       })
     }
-    return [...extra, ...misc, ...nav, ...projects]
-  }, [data.projects, projectId, extra, t])
+    const claude: PaletteCommand[] =
+      IS_DESKTOP && onClaude && projectId
+        ? [
+            { id: 'claude-research', title: t('paletteClaudeResearch'), hint: '/research', keywords: 'claude ai recherche research', run: () => onClaude('research', '', false) },
+            { id: 'claude-suggest', title: t('paletteClaudeSuggest'), hint: '/suggest', keywords: 'claude ai suggest vorschläge', run: () => onClaude('suggest', '', true) },
+            { id: 'claude-unity', title: t('paletteClaudeUnity'), hint: '/unity', keywords: 'claude ai unity', run: () => onClaude('unity', '', false) },
+          ]
+        : []
+    return [...extra, ...claude, ...misc, ...nav, ...projects]
+  }, [data.projects, projectId, extra, onClaude, t])
 
-  const shown = commands.filter((c) => `${c.title} ${c.keywords ?? ''}`.toLowerCase().includes(query.trim().toLowerCase()))
+  // "/research coyote time" becomes a ready-to-run command; everything else is a plain filter.
+  const slash = onClaude && IS_DESKTOP && projectId ? parseSlash(query) : null
+  const slashCommand: PaletteCommand[] = slash
+    ? [
+        {
+          id: 'claude-slash',
+          title: slash.topic ? t('paletteClaudeRun', { preset: t(`preset_${slash.preset}`), topic: slash.topic }) : t(`preset_${slash.preset}`),
+          hint: '↵',
+          run: () => onClaude?.(slash.preset, slash.topic, Boolean(slash.topic) || slash.preset === 'suggest'),
+        },
+      ]
+    : []
+  const shown = slash
+    ? slashCommand
+    : commands.filter((c) => `${c.title} ${c.keywords ?? ''}`.toLowerCase().includes(query.trim().toLowerCase()))
   const at = Math.min(index, Math.max(0, shown.length - 1))
 
   useEffect(() => {

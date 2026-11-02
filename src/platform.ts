@@ -56,20 +56,27 @@ export async function pathsExist(paths: string[]): Promise<boolean[]> {
   return invoke<boolean[]>('paths_exist', { paths })
 }
 
+/** Position in CSS pixels, converted from the physical pixels the OS reports. */
+export interface DropPoint {
+  x: number
+  y: number
+}
+
 /** Desktop only: subscribe to files dropped onto the window from the OS file manager. */
 export async function onNativeFileDrop(
-  handler: (paths: string[]) => void,
-  onHover: (hovering: boolean) => void,
+  handler: (paths: string[], at: DropPoint) => void,
+  onHover: (hovering: boolean, at?: DropPoint) => void,
 ): Promise<() => void> {
   if (!IS_DESKTOP) return () => {}
   const { getCurrentWebview } = await import('@tauri-apps/api/webview')
+  const css = (pos: { x: number; y: number }): DropPoint => ({ x: pos.x / window.devicePixelRatio, y: pos.y / window.devicePixelRatio })
   return getCurrentWebview().onDragDropEvent((event) => {
     const p = event.payload
-    if (p.type === 'enter' || p.type === 'over') onHover(true)
+    if (p.type === 'enter' || p.type === 'over') onHover(true, css(p.position))
     else if (p.type === 'leave') onHover(false)
     else if (p.type === 'drop') {
       onHover(false)
-      handler(p.paths)
+      handler(p.paths, css(p.position))
     }
   })
 }
@@ -97,3 +104,38 @@ export async function openLink(url: string): Promise<void> {
   const { openUrl } = await import('@tauri-apps/plugin-opener')
   await openUrl(url)
 }
+
+// ---- Unity / Blender transfer (desktop only) ---------------------------------
+
+export interface FolderEntry {
+  path: string
+  name: string
+  size: number
+  /** Seconds since the Unix epoch. */
+  modified: number
+}
+
+export async function pickFolder(): Promise<string | null> {
+  if (!IS_DESKTOP) return null
+  const { open } = await import('@tauri-apps/plugin-dialog')
+  const picked = await open({ directory: true, multiple: false })
+  return typeof picked === 'string' ? picked : null
+}
+
+export async function pickProgram(): Promise<string | null> {
+  if (!IS_DESKTOP) return null
+  const { open } = await import('@tauri-apps/plugin-dialog')
+  const picked = await open({ multiple: false })
+  return typeof picked === 'string' ? picked : null
+}
+
+export const inspectUnityProject = (dir: string): Promise<boolean> => invoke<boolean>('inspect_unity_project', { dir })
+
+export const copyIntoFolder = (src: string, destDir: string, sub: string, kind: 'unity' | 'blender'): Promise<string> =>
+  invoke<string>('copy_into_folder', { src, destDir, sub, kind })
+
+export const listFolder = (dir: string, exts: string[], limit: number): Promise<FolderEntry[]> =>
+  invoke<FolderEntry[]>('list_folder', { dir, exts, limit })
+
+export const openInApp = (kind: 'unity' | 'blender', exe: string, target?: string): Promise<void> =>
+  invoke('open_in_app', { kind, exe, target: target ?? null })

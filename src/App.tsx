@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { AiDialog } from './components/AiDialog'
 import { AssetBoard } from './components/AssetBoard'
 import { CalendarPanel } from './components/CalendarPanel'
+import { ClaudeDialog, type ClaudeRequest } from './components/ClaudeDialog'
 import { GoalsPanel } from './components/GoalsPanel'
 import { IntegrationsPanel } from './components/IntegrationsPanel'
 import { LinkForm } from './components/LinkForm'
@@ -121,6 +122,7 @@ export default function App() {
   const [aiOpen, setAiOpen] = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  const [claudeRequest, setClaudeRequest] = useState<ClaudeRequest | null>(null)
   const theme = data.settings.theme
 
   useEffect(() => void init(), [])
@@ -183,7 +185,13 @@ export default function App() {
           )}
         </main>
       </div>
-      {paletteOpen && <CommandPalette onClose={() => setPaletteOpen(false)} />}
+      {paletteOpen && (
+        <CommandPalette
+          onClose={() => setPaletteOpen(false)}
+          onClaude={(preset, topic, autorun) => setClaudeRequest({ preset, topic, autorun })}
+        />
+      )}
+      {claudeRequest && projectId && <ClaudeDialog projectId={projectId} initial={claudeRequest} onClose={() => setClaudeRequest(null)} />}
       {shortcutsOpen && <ShortcutsDialog onClose={() => setShortcutsOpen(false)} />}
       {aiOpen && <AiDialog projectId={projectId} onClose={() => setAiOpen(false)} />}
       {(notice || saveError) && (

@@ -10,9 +10,12 @@ A calm, local-first overview for your game projects. Keep **goals with progress 
 - **Calendar**: month view with heat-map by learned minutes, deadline markers, click a day to see sessions, completed steps and notes
 - **Weekly Markdown export** for devlogs, plus a full project export
 - **Shortcuts**: `Ctrl+N` new note, `Ctrl+T` start/stop timer (`Cmd` on macOS)
+- **Departments** per project: Overview, Goals, Concept art, Inspiration (images and links), Research, Audio, Notes, Planner. White design with a dark mode toggle, a real menu bar and a `Ctrl+K` command palette
+- **Unity & Blender (desktop)**: link your Unity project and Blender folders, drag an asset card onto the Unity/Blender target to copy the file (never overwritten), or drop files from the file manager onto the target tiles. A Blender export folder shows up as an inbox
+- **Claude (desktop, optional)**: add your API key (kept in the OS credential store) and use quick commands in the palette, e.g. `/research movement system for a 2D platformer`, `/suggest`, `/unity coyote time`. Results go to the Research panel or are applied as goals and notes after you confirm. Optional web search with sources
 - **Optional local AI** (Ollama / LM Studio): suggests categories, tags and goal steps. Always suggestions, you confirm. The app is fully usable without it. Prefer Claude Code? See [docs/ai.md](docs/ai.md)
 - **German and English**, light and dark theme
-- **Private by design**: no account, no cloud, no telemetry
+- **Private by design**: no account, no cloud, no telemetry. Nothing leaves your computer unless you trigger a Claude command yourself
 
 > Desktop app: assets are *linked*, not copied — your files stay where they are.
 > Web demo: files are kept inside your browser (max 20 MB each).

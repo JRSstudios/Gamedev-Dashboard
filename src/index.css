@@ -306,3 +306,28 @@ pre { white-space: pre-wrap; word-break: break-word; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+
+/* ---------- unity / blender transfer ---------- */
+.dock { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 15; display: flex; gap: 12px; padding: 10px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: 16px; box-shadow: var(--shadow-lg); }
+.dock-target { display: flex; flex-direction: column; gap: 2px; align-items: center; justify-content: center; min-width: 190px; padding: 14px 18px; border: 2px dashed var(--border-strong); border-radius: 12px; color: var(--muted); text-align: center; }
+.dock-target.over { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.dock-target.unlinked { opacity: 0.55; }
+.integrations { display: flex; flex-direction: column; gap: 16px; }
+.two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: start; }
+.drop-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.drop-tile { align-items: center; justify-content: center; min-height: 110px; border-style: dashed; border-width: 2px; border-color: var(--border-strong); text-align: center; }
+.drop-tile.over { border-color: var(--accent); background: var(--accent-soft); }
+.path-row { display: flex; flex-direction: column; gap: 4px; }
+.path-line { display: flex; align-items: center; gap: 6px; }
+.path-line code { flex: 1; padding: 6px 8px; background: var(--surface-2); border-radius: 6px; font-size: 0.8rem; }
+.map-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+.map-grid .field { max-width: none; }
+.inbox { display: flex; flex-direction: column; gap: 6px; }
+.inbox li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; align-items: center; gap: 8px; }
+.ok { color: #067647; }
+:root[data-theme='dark'] .ok { color: #47cd89; }
+.claude-result { white-space: pre-wrap; word-break: break-word; max-height: 46vh; overflow: auto; padding: 12px; background: var(--surface-2); border-radius: var(--radius-sm); }
+.preset-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.preset-tabs button.on { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+.modal.wide { width: min(720px, 100%); }
+.key-form { display: flex; gap: 6px; flex-wrap: wrap; max-width: 560px; } .key-form input { flex: 1; min-width: 220px; }

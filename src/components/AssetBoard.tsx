@@ -3,9 +3,11 @@ import {
   KeyboardSensor,
   PointerSensor,
   closestCorners,
+  pointerWithin,
   useDroppable,
   useSensor,
   useSensors,
+  type CollisionDetection,
   type DragEndEvent,
 } from '@dnd-kit/core'
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
@@ -24,7 +26,8 @@ import {
   sanitizeTag,
   updateAsset,
 } from '../model/ops'
-import { ASSET_CATEGORIES, type Asset, type AssetCategory } from '../model/schema'
+import { sendToBlender, sendToUnity } from '../features/transfer'
+import { ASSET_CATEGORIES, type Asset, type AssetCategory, type Integrations } from '../model/schema'
 import { IS_DESKTOP, onNativeFileDrop, openLink, pathsExist, pickAssetPaths } from '../platform'
 import { deleteBlob, MAX_DEMO_FILE_BYTES, putBlob } from '../storage/indexedDb'
 import { mutate, notify, useStore } from '../store'
@@ -142,6 +145,37 @@ function Column({ category, assets, missing, hideTitle }: { category: AssetCateg
   )
 }
 
+/** Pointer position decides first (so the dock is easy to hit); corners handle card sorting. */
+const collide: CollisionDetection = (args) => {
+  const hits = pointerWithin(args)
+  return hits.length > 0 ? hits : closestCorners(args)
+}
+
+/** Appears while a card is dragged: drop on a target to copy the file into Unity or Blender. */
+function TransferDock({ integrations }: { integrations: Integrations }) {
+  const t = useT()
+  const targets = [
+    { id: 'unity', label: 'Unity', linked: Boolean(integrations.unityDir) },
+    { id: 'blender', label: 'Blender', linked: Boolean(integrations.blenderDir) },
+  ] as const
+  return (
+    <div className="dock" role="group" aria-label={t('integDock')}>
+      {targets.map((x) => <DockTarget key={x.id} id={x.id} label={x.label} linked={x.linked} />)}
+    </div>
+  )
+}
+
+function DockTarget({ id, label, linked }: { id: 'unity' | 'blender'; label: string; linked: boolean }) {
+  const t = useT()
+  const { setNodeRef, isOver } = useDroppable({ id: `dock:${id}` })
+  return (
+    <div ref={setNodeRef} className={`dock-target${isOver ? ' over' : ''}${linked ? '' : ' unlinked'}`}>
+      <strong>{label}</strong>
+      <span className="small">{linked ? t('integDock') : t('integNotLinked')}</span>
+    </div>
+  )
+}
+
 interface BoardProps {
   projectId: string
   /** Categories shown (and used for newly added files). */
@@ -157,6 +191,8 @@ interface BoardProps {
 export function AssetBoard({ projectId, categories = ASSET_CATEGORIES, layout = 'columns', title, hint, actions }: BoardProps) {
   const t = useT()
   const allAssets = useStore((s) => s.data.assets)
+  const project = useStore((s) => s.data.projects.find((p) => p.id === projectId))
+  const [dragging, setDragging] = useState(false)
   const [query, setQuery] = useState('')
   const [hovering, setHovering] = useState(false)
   const [missing, setMissing] = useState<Set<string>>(new Set())
@@ -229,10 +265,26 @@ export function AssetBoard({ projectId, categories = ASSET_CATEGORIES, layout = 
   }
   const shown = assets.filter(matches)
 
+  const transfer = async (assetId: string, target: 'unity' | 'blender') => {
+    const asset = allAssets.find((a) => a.id === assetId)
+    if (!asset || !project) return
+    const result = target === 'unity' ? await sendToUnity(project, asset.path, asset.category) : await sendToBlender(project, asset.path)
+    const where = target === 'unity' ? 'Unity' : 'Blender'
+    if (result.ok) notify(t('integCopied', { where, name: result.name }))
+    else if (result.reason === 'notLinked') notify(t('integNotLinked'))
+    else if (result.reason === 'browserFile') notify(t('integBrowserFile'))
+    else notify(t('integCopyFailed', { reason: result.detail ?? '' }))
+  }
+
   const onDragEnd = ({ active, over }: DragEndEvent) => {
+    setDragging(false)
     if (!over || active.id === over.id) return
     const activeId = String(active.id)
     const overId = String(over.id)
+    if (overId === 'dock:unity' || overId === 'dock:blender') {
+      void transfer(activeId, overId === 'dock:unity' ? 'unity' : 'blender')
+      return
+    }
     if (overId.startsWith('col:')) {
       mutate((d) => moveAsset(d, activeId, overId.slice(4) as AssetCategory, null))
       return
@@ -296,12 +348,19 @@ export function AssetBoard({ projectId, categories = ASSET_CATEGORIES, layout = 
       </div>
       {!IS_DESKTOP && <p className="muted small">{t('demoNote')}</p>}
       {assets.length === 0 && <p className="muted empty">{hint ?? t('noAssets')}</p>}
-      <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={onDragEnd}>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={collide}
+        onDragStart={() => setDragging(true)}
+        onDragCancel={() => setDragging(false)}
+        onDragEnd={onDragEnd}
+      >
         <div className={layout === 'grid' ? 'board grid' : 'board'}>
           {categories.map((c) => (
             <Column key={c} category={c} hideTitle={layout === 'grid'} assets={shown.filter((a) => a.category === c)} missing={missing} />
           ))}
         </div>
+        {dragging && IS_DESKTOP && project && <TransferDock integrations={project.integrations} />}
       </DndContext>
       {hovering && <div className="drop-overlay">{t('dropActive')}</div>}
     </section>
