@@ -83,7 +83,7 @@ export const CAMERA: CheatEntry[] = [
         text: `using UnityEngine;
 using Unity.Cinemachine;
 
-// Dreht den Spielerkörper auf den horizontalen Blickwinkel der Cinemachine-Kamera (Pan Tilt).
+// Turns the player's body to the horizontal look direction of the Cinemachine camera (Pan Tilt).
 public class FirstPersonBodyYaw : MonoBehaviour
 {
     [SerializeField] private CinemachineCamera firstPersonCamera;
@@ -117,8 +117,8 @@ public class FirstPersonBodyYaw : MonoBehaviour
         text: `using UnityEngine;
 using Unity.Cinemachine;
 
-// Aktiviert eine Kamera, solange der Spieler in diesem Trigger steht (3D).
-// Für 2D: OnTriggerEnter2D/OnTriggerExit2D mit Collider2D verwenden.
+// Activates a camera while the player stands in this trigger (3D).
+// For 2D: use OnTriggerEnter2D/OnTriggerExit2D with Collider2D.
 public class CameraZone : MonoBehaviour
 {
     [SerializeField] private CinemachineCamera zoneCamera;
@@ -164,7 +164,7 @@ public class CameraZone : MonoBehaviour
         text: `using UnityEngine;
 using Unity.Cinemachine;
 
-// Löst einen Kamerastoß aus, z. B. aus Health.onHealthChanged heraus.
+// Triggers a camera shake, e.g. from Health.onHealthChanged.
 [RequireComponent(typeof(CinemachineImpulseSource))]
 public class ShakeOnHit : MonoBehaviour
 {

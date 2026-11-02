@@ -3,7 +3,7 @@ import { PlanSchema, validActions, type Plan } from '../../ai/actions'
 import { claudeHasKey } from '../../ai/claude'
 import { extractJson } from '../../ai/client'
 import { LimitReachedError, runClaude } from '../../ai/run'
-import { useT } from '../../i18n'
+import { ENGLISH_NAMES, resolveLanguage, useT } from '../../i18n'
 import type { AssetCategory } from '../../model/schema'
 import { IS_DESKTOP } from '../../platform'
 import { getData, useStore } from '../../store'
@@ -34,7 +34,7 @@ export function ClaudeSortButton({ projectId, categories }: { projectId: string;
       const result = await runClaude({
         command: 'sort',
         maxTokens: 4000,
-        system: `Task: sort the user's assets. For each asset that is in the wrong category or lacks useful tags, propose one "asset" action (allowed categories here: ${categories.join(', ')}). Tags are short lowercase words (character, enemy, ui, forest, loop, ...). Skip assets that are already fine. Reply with the JSON object only.`,
+        system: `Task: sort the user's assets. For each asset that is in the wrong category or lacks useful tags, propose one "asset" action (allowed categories here: ${categories.join(', ')}). Tags are short lowercase words (character, enemy, ui, forest, loop, ...). Skip assets that are already fine. Write any summary text in ${ENGLISH_NAMES[resolveLanguage(getData().settings.language)]}; keep tags in English. Reply with the JSON object only.`,
         user: `Assets (id | name | kind | category | tags):\n${assets.join('\n')}`,
       })
       const parsed = PlanSchema.safeParse(extractJson(result.text))

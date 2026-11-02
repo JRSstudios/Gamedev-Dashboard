@@ -1,0 +1,49 @@
+/* Clearer shell: grouped navigation, compact top bar, gear menu, settings tabs. Loaded after index.css. */
+
+/* ---------- navigation groups ---------- */
+.navrail { gap: 14px; }
+.nav-groups { display: flex; flex-direction: column; gap: 6px; }
+.nav-group { display: flex; flex-direction: column; gap: 2px; }
+.nav-group-head {
+  display: flex; align-items: center; justify-content: space-between; width: 100%;
+  padding: 6px 10px 4px; border: 0; background: transparent; border-radius: 6px;
+  font-size: 0.7rem; font-weight: 650; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
+}
+.nav-group-head:hover:not(:disabled) { background: transparent; color: var(--text); }
+.nav-group-head svg { transition: transform 0.15s; }
+.nav-group-head[aria-expanded='false'] svg { transform: rotate(-90deg); }
+.nav-item { padding: 7px 10px; font-size: 0.93rem; }
+
+/* ---------- top bar ---------- */
+.topbar { gap: 12px; padding: 8px 20px; }
+.palette-trigger { white-space: nowrap; overflow: hidden; min-width: 160px; }
+.palette-trigger span { overflow: hidden; text-overflow: ellipsis; }
+.status-pill {
+  display: flex; align-items: center; gap: 6px; margin-left: auto; white-space: nowrap;
+  padding: 5px 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-2);
+}
+.status-sep { width: 1px; height: 14px; background: var(--border-strong); margin: 0 4px; }
+.status-progress { display: inline-flex; align-items: center; gap: 6px; width: 120px; }
+.status-progress .bar { flex: 1; }
+.topbar-actions { display: flex; align-items: center; gap: 2px; }
+.menu-body.align-right { left: auto; right: 0; }
+
+/* ---------- page head ---------- */
+.page { gap: 18px; padding-top: 24px; }
+.page-head h1 { font-size: 1.6rem; }
+.page-head p { max-width: 70ch; }
+
+/* ---------- settings tabs ---------- */
+.settings { max-width: 860px; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 4px; flex-wrap: wrap; }
+.tab {
+  border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent;
+  padding: 8px 14px; color: var(--muted); font-weight: 550; margin-bottom: -1px;
+}
+.tab:hover:not(:disabled) { background: transparent; color: var(--text); }
+.tab.on { color: var(--accent); border-bottom-color: var(--accent); }
+
+@media (max-width: 960px) {
+  .status-pill { margin-left: 0; }
+  .status-progress { width: 80px; }
+}

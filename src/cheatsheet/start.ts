@@ -79,24 +79,24 @@ export const START: CheatEntry[] = [
         file: 'Spinner.cs',
         text: `using UnityEngine;
 
-// Dreht das Objekt gleichmäßig. Gut zum Testen, ob dein Skript läuft.
+// Rotates the object at a steady speed. Handy to check that your script runs.
 public class Spinner : MonoBehaviour
 {
-    [SerializeField] private float degreesPerSecond = 90f; // im Inspector einstellbar
+    [SerializeField] private float degreesPerSecond = 90f; // adjustable in the Inspector
 
     private void Awake()
     {
-        // Wird einmal beim Laden aufgerufen (vor Start). Gut für GetComponent.
+        // Called once when loading (before Start). A good place for GetComponent.
     }
 
     private void Start()
     {
-        Debug.Log("Spinner läuft auf " + name);
+        Debug.Log("Spinner running on " + name);
     }
 
     private void Update()
     {
-        // Time.deltaTime = Sekunden seit dem letzten Bild -> gleiche Geschwindigkeit bei 30 oder 144 FPS
+        // Time.deltaTime = seconds since the last frame -> same speed at 30 or 144 FPS
         transform.Rotate(0f, degreesPerSecond * Time.deltaTime, 0f);
     }
 }`,
@@ -128,11 +128,11 @@ public class Spinner : MonoBehaviour
         text: `using UnityEngine;
 using UnityEngine.Events;
 
-// Lebenspunkte für Spieler oder Gegner. Andere Skripte rufen TakeDamage auf.
+// Health for the player or enemies. Other scripts call TakeDamage.
 public class Health : MonoBehaviour
 {
     [SerializeField] private int maxHealth = 5;
-    public UnityEvent<int> onHealthChanged; // im Inspector mit z. B. dem Lebensbalken verbinden
+    public UnityEvent<int> onHealthChanged; // connect in the Inspector, e.g. to the health bar
     public UnityEvent onDied;
 
     public int Current { get; private set; }
@@ -180,7 +180,7 @@ public class Health : MonoBehaviour
         text: `using System.Collections;
 using UnityEngine;
 
-// Lässt einen Sprite nach einem Treffer kurz blinken (Unverwundbarkeits-Feedback).
+// Makes a sprite blink briefly after a hit (invincibility feedback).
 public class Blinker : MonoBehaviour
 {
     [SerializeField] private SpriteRenderer spriteRenderer;

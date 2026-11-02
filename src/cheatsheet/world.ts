@@ -23,7 +23,7 @@ export const WORLD: CheatEntry[] = [
         file: 'Pickup2D.cs',
         text: `using UnityEngine;
 
-// Münze/Herz in 2D: Collider2D mit "Is Trigger" an diesem Objekt.
+// Coin/heart in 2D: Collider2D with "Is Trigger" on this object.
 public class Pickup2D : MonoBehaviour
 {
     [SerializeField] private int healAmount = 1;
@@ -42,7 +42,7 @@ public class Pickup2D : MonoBehaviour
         file: 'DamageOnTouch.cs',
         text: `using UnityEngine;
 
-// Stacheln/Gegner in 3D: fügt bei Berührung Schaden zu.
+// Spikes/enemies in 3D: deal damage on contact.
 public class DamageOnTouch : MonoBehaviour
 {
     [SerializeField] private int damage = 1;
@@ -79,7 +79,7 @@ public class DamageOnTouch : MonoBehaviour
         file: 'LineOfSight.cs',
         text: `using UnityEngine;
 
-// Prüft, ob dieses Objekt das Ziel sehen kann (keine Wand dazwischen).
+// Checks whether this object can see the target (no wall in between).
 public class LineOfSight : MonoBehaviour
 {
     [SerializeField] private Transform target;
@@ -90,7 +90,7 @@ public class LineOfSight : MonoBehaviour
     {
         Vector3 toTarget = target.position - transform.position;
         if (toTarget.magnitude > viewDistance) return false;
-        // Trifft der Strahl ein Hindernis, bevor er das Ziel erreicht?
+        // Does the ray hit an obstacle before it reaches the target?
         return !Physics.Raycast(transform.position, toTarget.normalized, toTarget.magnitude, obstacles);
     }
 
@@ -125,7 +125,7 @@ public class LineOfSight : MonoBehaviour
         file: 'AnimatorBridge.cs',
         text: `using UnityEngine;
 
-// Übergibt Bewegungswerte an den Animator. Funktioniert für 2D (Rigidbody2D) und 3D (CharacterController).
+// Passes movement values to the Animator. Works for 2D (Rigidbody2D) and 3D (CharacterController).
 public class AnimatorBridge : MonoBehaviour
 {
     private static readonly int SpeedId = Animator.StringToHash("Speed");

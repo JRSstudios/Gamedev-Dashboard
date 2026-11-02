@@ -1,4 +1,5 @@
 import { CHEATS, cheatText, getCheat } from '../cheatsheet'
+import { resolveLanguage } from '../i18n/languages'
 import type { Data, Graph, Project, RefType } from './schema'
 
 const CHEAT_IDS = CHEATS.map((c) => c.id)
@@ -62,7 +63,7 @@ export function describeRef(data: Data, type: RefType, id: string): RefInfo | nu
       return { type, id, title: p.title, subtitle: p.icon, text }
     }
     case 'cheat': {
-      const builtIn = getCheat(id)
+      const builtIn = getCheat(id, resolveLanguage(data.settings.language))
       if (builtIn) return { type, id, title: builtIn.title, subtitle: builtIn.category, text: cheatText(builtIn) }
       const own = data.cheats.find((x) => x.id === id)
       return own ? { type, id, title: own.title, subtitle: own.category, text: own.body } : null

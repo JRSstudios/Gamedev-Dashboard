@@ -22,7 +22,7 @@ export const MOVEMENT: CheatEntry[] = [
         file: 'PlatformerController2D.cs',
         text: `using UnityEngine;
 
-// Seitenansicht: laufen, springen, variable Sprunghöhe, Coyote Time und Jump Buffer.
+// Side view: run, jump, variable jump height, coyote time and jump buffer.
 [RequireComponent(typeof(Rigidbody2D), typeof(PlayerInputReader))]
 public class PlatformerController2D : MonoBehaviour
 {
@@ -32,9 +32,9 @@ public class PlatformerController2D : MonoBehaviour
 
     [Header("Springen")]
     [SerializeField] private float jumpVelocity = 14f;
-    [SerializeField] private float coyoteTime = 0.1f;   // Sekunden nach Verlassen der Kante
-    [SerializeField] private float jumpBuffer = 0.12f;  // Sekunden vor der Landung
-    [SerializeField] private float jumpCutMultiplier = 0.5f; // Taste früh losgelassen = kleiner Sprung
+    [SerializeField] private float coyoteTime = 0.1f;   // seconds after leaving the edge
+    [SerializeField] private float jumpBuffer = 0.12f;  // seconds before landing
+    [SerializeField] private float jumpCutMultiplier = 0.5f; // button released early = smaller jump
 
     [Header("Boden")]
     [SerializeField] private Transform groundCheck;
@@ -71,7 +71,7 @@ public class PlatformerController2D : MonoBehaviour
             lastGroundedTime = -10f;
         }
 
-        // Taste früh losgelassen: Sprung abschneiden
+        // Button released early: cut the jump short
         if (!input.JumpHeld && body.linearVelocity.y > 0f)
         {
             body.linearVelocity = new Vector2(body.linearVelocity.x, body.linearVelocity.y * jumpCutMultiplier);
@@ -121,7 +121,7 @@ public class PlatformerController2D : MonoBehaviour
         file: 'TopDownController2D.cs',
         text: `using UnityEngine;
 
-// Ansicht von oben: Bewegung in alle Richtungen, Blickrichtung für Animationen.
+// Top-down view: movement in all directions, facing direction for animations.
 [RequireComponent(typeof(Rigidbody2D), typeof(PlayerInputReader))]
 public class TopDownController2D : MonoBehaviour
 {
@@ -153,7 +153,7 @@ public class TopDownController2D : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // ClampMagnitude: diagonal nicht schneller als geradeaus
+        // ClampMagnitude: diagonal is not faster than straight
         Vector2 move = Vector2.ClampMagnitude(input.Move, 1f);
         float speed = moveSpeed * (input.SprintHeld ? sprintMultiplier : 1f);
         body.linearVelocity = move * speed;
@@ -182,13 +182,13 @@ public class TopDownController2D : MonoBehaviour
         file: 'ThirdPersonController.cs',
         text: `using UnityEngine;
 
-// Third Person mit CharacterController: Bewegung relativ zur Kamera, Sprung, Schwerkraft.
+// Third person with CharacterController: camera-relative movement, jump, gravity.
 [RequireComponent(typeof(CharacterController), typeof(PlayerInputReader))]
 public class ThirdPersonController : MonoBehaviour
 {
     [SerializeField] private float walkSpeed = 4f;
     [SerializeField] private float sprintSpeed = 7f;
-    [SerializeField] private float turnSpeed = 720f;   // Grad pro Sekunde
+    [SerializeField] private float turnSpeed = 720f;   // degrees per second
     [SerializeField] private float jumpHeight = 1.2f;
     [SerializeField] private float gravity = -20f;
     [SerializeField] private Transform cameraTransform;
@@ -206,7 +206,7 @@ public class ThirdPersonController : MonoBehaviour
 
     private void Update()
     {
-        // Richtung der Kamera auf den Boden projizieren
+        // Project the camera direction onto the ground
         Vector3 forward = Vector3.ProjectOnPlane(cameraTransform.forward, Vector3.up).normalized;
         Vector3 right = Vector3.ProjectOnPlane(cameraTransform.right, Vector3.up).normalized;
         Vector3 move = forward * input.Move.y + right * input.Move.x;
@@ -218,7 +218,7 @@ public class ThirdPersonController : MonoBehaviour
             transform.rotation = Quaternion.RotateTowards(transform.rotation, target, turnSpeed * Time.deltaTime);
         }
 
-        if (controller.isGrounded && verticalVelocity < 0f) verticalVelocity = -2f; // am Boden halten
+        if (controller.isGrounded && verticalVelocity < 0f) verticalVelocity = -2f; // keep grounded
         if (controller.isGrounded && input.JumpPressed) verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
         verticalVelocity += gravity * Time.deltaTime;
 
@@ -255,15 +255,15 @@ public class ThirdPersonController : MonoBehaviour
         text: `using UnityEngine;
 using UnityEngine.InputSystem;
 
-// Ego-Perspektive: Körper dreht horizontal, CameraPivot vertikal.
+// First person: the body turns horizontally, CameraPivot vertically.
 [RequireComponent(typeof(CharacterController), typeof(PlayerInputReader))]
 public class FirstPersonController : MonoBehaviour
 {
     [SerializeField] private Transform cameraPivot;
     [SerializeField] private float walkSpeed = 4.5f;
     [SerializeField] private float sprintSpeed = 7f;
-    [SerializeField] private float mouseSensitivity = 0.1f;   // Grad pro Pixel Mausbewegung
-    [SerializeField] private float gamepadSensitivity = 180f; // Grad pro Sekunde bei vollem Stick
+    [SerializeField] private float mouseSensitivity = 0.1f;   // degrees per pixel of mouse movement
+    [SerializeField] private float gamepadSensitivity = 180f; // degrees per second bei vollem Stick
     [SerializeField] private float jumpHeight = 1.1f;
     [SerializeField] private float gravity = -20f;
 
@@ -286,7 +286,7 @@ public class FirstPersonController : MonoBehaviour
 
     private void Update()
     {
-        // Maus liefert Pixel pro Bild, der Stick -1..1 -> unterschiedlich skalieren
+        // The mouse gives pixels per frame, the stick -1..1 -> scale them differently
         bool usingMouse = Mouse.current != null && Mouse.current.delta.ReadValue().sqrMagnitude > 0f;
         Vector2 look = usingMouse ? input.Look * mouseSensitivity : input.Look * gamepadSensitivity * Time.deltaTime;
 
@@ -332,7 +332,7 @@ public class FirstPersonController : MonoBehaviour
         file: 'RigidbodyMover.cs',
         text: `using UnityEngine;
 
-// Physikbasierte Bewegung mit Kräften, kamerarelativ.
+// Physics-based movement with forces, relative to the camera.
 [RequireComponent(typeof(Rigidbody), typeof(PlayerInputReader))]
 public class RigidbodyMover : MonoBehaviour
 {
@@ -393,7 +393,7 @@ public class RigidbodyMover : MonoBehaviour
         file: 'IsometricController.cs',
         text: `using UnityEngine;
 
-// Schräg von oben: Eingabe wird um den Kamerawinkel gedreht.
+// Angled top-down view: input is rotated by the camera angle.
 [RequireComponent(typeof(CharacterController), typeof(PlayerInputReader))]
 public class IsometricController : MonoBehaviour
 {
@@ -451,7 +451,7 @@ public class IsometricController : MonoBehaviour
 using UnityEngine.AI;
 using UnityEngine.InputSystem;
 
-// Linksklick auf den Boden -> Figur läuft per NavMesh dorthin.
+// Left-click on the ground -> the character walks there using the NavMesh.
 [RequireComponent(typeof(NavMeshAgent))]
 public class ClickToMove : MonoBehaviour
 {

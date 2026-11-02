@@ -23,7 +23,7 @@ import { CommandPalette } from './components/shell/CommandPalette'
 import { NavRail } from './components/shell/NavRail'
 import { ShortcutsDialog } from './components/shell/ShortcutsDialog'
 import { TopBar } from './components/shell/TopBar'
-import { useT } from './i18n'
+import { useLang, useT } from './i18n'
 import { resolveSections } from './model/layout'
 import type { Project } from './model/schema'
 import { saveTextFile } from './platform'
@@ -124,6 +124,11 @@ export default function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = theme === 'auto' ? '' : theme
   }, [theme])
+  const lang = useLang()
+  useEffect(() => {
+    // lets the browser pick Japanese or Chinese glyph forms and read the page in the right language
+    document.documentElement.lang = lang === 'zh' ? 'zh-Hans' : lang
+  }, [lang])
 
   const project = data.projects.find((p) => p.id === activeId && !p.archived) ?? null
   const projectId = project?.id ?? null

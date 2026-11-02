@@ -5,7 +5,7 @@ import { extractJson } from '../../ai/client'
 import { buildProjectContext } from '../../ai/context'
 import { LimitReachedError, runClaude } from '../../ai/run'
 import { getCheat, PERSPECTIVES, type Perspective } from '../../cheatsheet'
-import { resolveLanguage, useT } from '../../i18n'
+import { ENGLISH_NAMES, resolveLanguage, useT, type Lang } from '../../i18n'
 import { newId } from '../../model/ops'
 import type { Idea } from '../../model/schema'
 import { search, snippet, type SearchHit } from '../../model/search'
@@ -18,10 +18,10 @@ import { ActionsPreview } from './ActionsPreview'
 const MAX_CHEAT_CONTEXT = 7000
 
 /** Cheat sheet excerpts for the prompt: ids, titles, summaries and steps of the best matches only. */
-function cheatContext(hits: SearchHit[]): string {
+function cheatContext(hits: SearchHit[], lang: Lang): string {
   let out = ''
   for (const h of hits) {
-    const c = getCheat(h.doc.id)
+    const c = getCheat(h.doc.id, lang)
     const entry = c
       ? `[${c.id}] ${c.title}\n${c.summary}\nSteps: ${c.steps.join(' | ')}${c.code.length ? `\nScripts: ${c.code.map((x) => x.file).join(', ')}` : ''}\n\n`
       : `[${h.doc.id}] ${h.doc.title}\n${h.doc.text.slice(0, 600)}\n\n`
@@ -60,13 +60,14 @@ export function BrainstormView({ projectId }: { projectId: string }) {
     if (!text.trim()) return
     setPhase({ kind: 'working' })
     try {
-      const lang = resolveLanguage(getData().settings.language) === 'de' ? 'German' : 'English'
+      const code = resolveLanguage(getData().settings.language)
+      const lang = ENGLISH_NAMES[code]
       const persp = perspective ? t(`persp_${perspective}`) : 'not decided yet'
       const result = await runClaude({
         command: 'plan',
         maxTokens: 6000,
         system: `Task: turn the user's game idea into a concrete plan for this project, as JSON actions (see the action format above). Reply in ${lang}. Use the cheat sheet excerpts: link the matching entries with "cheat" actions tied to the goals they help with. Include: 3 to 6 goals with steps in a sensible order (setup first), one page "Game Design" with the core loop, controls and art style, and a table only if it really helps (e.g. a level or asset list). Perspective: ${persp}.`,
-        user: `Idea:\n${text.trim()}\n\nProject context:\n${buildProjectContext(getData(), projectId)}\n\nCheat sheet excerpts (id in brackets):\n${cheatContext(search(projectIndex(getData(), projectId), query, 12, ['cheat']))}`,
+        user: `Idea:\n${text.trim()}\n\nProject context:\n${buildProjectContext(getData(), projectId)}\n\nCheat sheet excerpts (id in brackets):\n${cheatContext(search(projectIndex(getData(), projectId), query, 12, ['cheat']), code)}`,
       })
       const parsed = PlanSchema.safeParse(extractJson(result.text))
       if (!parsed.success) throw new Error(t('claudeBadJson'))

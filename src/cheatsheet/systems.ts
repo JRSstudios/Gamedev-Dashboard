@@ -25,7 +25,7 @@ export const SYSTEMS: CheatEntry[] = [
 using UnityEngine;
 using UnityEngine.UI;
 
-// Zeigt Lebenspunkte als Balken und Text an.
+// Shows health as a bar and as text.
 public class HealthBar : MonoBehaviour
 {
     [SerializeField] private Health health;
@@ -67,7 +67,7 @@ public class HealthBar : MonoBehaviour
         text: `using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// Für Buttons im Hauptmenü.
+// For the buttons in the main menu.
 public class MenuActions : MonoBehaviour
 {
     [SerializeField] private string gameScene = "Game";
@@ -92,7 +92,7 @@ public class MenuActions : MonoBehaviour
         text: `using UnityEngine;
 using UnityEngine.InputSystem;
 
-// Escape (Tastatur) oder Start (Gamepad) pausiert das Spiel.
+// Escape (keyboard) or Start (gamepad) pauses the game.
 public class PauseMenu : MonoBehaviour
 {
     [SerializeField] private GameObject panel;
@@ -139,7 +139,7 @@ public class PauseMenu : MonoBehaviour
         text: `using UnityEngine;
 using UnityEngine.Audio;
 
-// Wandelt einen Slider-Wert (0..1) in Dezibel um und speichert ihn.
+// Converts a slider value (0..1) to decibels and saves it.
 public class VolumeSlider : MonoBehaviour
 {
     [SerializeField] private AudioMixer mixer;
@@ -189,7 +189,7 @@ public class SaveData
     public int coins;
 }
 
-// Speichert SaveData als JSON-Datei.
+// Saves SaveData as a JSON file.
 public static class SaveSystem
 {
     private static string FilePath => Path.Combine(Application.persistentDataPath, "save.json");
@@ -235,7 +235,7 @@ public static class SaveSystem
 [CreateAssetMenu(menuName = "Game/Weapon Data", fileName = "NewWeapon")]
 public class WeaponData : ScriptableObject
 {
-    public string displayName = "Schwert";
+    public string displayName = "Sword";
     public int damage = 2;
     public float cooldown = 0.4f;
     public float range = 1.5f;
@@ -265,7 +265,7 @@ public class WeaponData : ScriptableObject
         text: `using UnityEngine;
 using UnityEngine.Pool;
 
-// Fliegt geradeaus und kehrt nach Ablauf oder Treffer in den Pool zurück.
+// Flies straight and returns to the pool when it expires or hits something.
 public class Bullet : MonoBehaviour
 {
     [SerializeField] private float speed = 20f;
@@ -296,7 +296,7 @@ public class Bullet : MonoBehaviour
         ReturnToPool();
     }
 
-    // Nur einmal zurückgeben, auch wenn Treffer und Zeitablauf im selben Bild passieren.
+    // Return only once, even if a hit and the timeout happen in the same frame.
     private void ReturnToPool()
     {
         if (released) return;
@@ -310,7 +310,7 @@ public class Bullet : MonoBehaviour
         text: `using UnityEngine;
 using UnityEngine.Pool;
 
-// Schießt beim Drücken von "Attack" eine Kugel aus dem Pool ab.
+// Fires a bullet from the pool when "Attack" is pressed.
 public class BulletSpawner : MonoBehaviour
 {
     [SerializeField] private Bullet bulletPrefab;
@@ -366,7 +366,7 @@ public class BulletSpawner : MonoBehaviour
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
-// Hält Punkte und Spielzustand. Genau einer pro Szene.
+// Holds the score and game state. Exactly one per scene.
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
@@ -426,7 +426,7 @@ public class GameManager : MonoBehaviour
         text: `using UnityEngine;
 using UnityEngine.AI;
 
-// Patrouille zwischen Wegpunkten, Verfolgung in Sichtweite.
+// Patrols between waypoints, chases the player when in range.
 [RequireComponent(typeof(NavMeshAgent))]
 public class EnemyChase : MonoBehaviour
 {
@@ -485,7 +485,7 @@ public class EnemyChase : MonoBehaviour
         file: 'Patrol2D.cs',
         text: `using UnityEngine;
 
-// Läuft hin und her, dreht an Wänden und Abgründen um.
+// Walks back and forth, turns around at walls and ledges.
 [RequireComponent(typeof(Rigidbody2D))]
 public class Patrol2D : MonoBehaviour
 {
@@ -515,7 +515,7 @@ public class Patrol2D : MonoBehaviour
         direction = -direction;
         Vector3 scale = transform.localScale;
         scale.x = Mathf.Abs(scale.x) * direction;
-        transform.localScale = scale; // spiegelt auch die Check-Punkte
+        transform.localScale = scale; // also mirrors the check points
     }
 }`,
       },

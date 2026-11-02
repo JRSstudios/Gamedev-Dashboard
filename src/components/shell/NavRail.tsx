@@ -1,12 +1,23 @@
 import { useState } from 'react'
 import { useT } from '../../i18n'
-import { sectionTitle } from '../../sections'
+import { SECTION_GROUPS, sectionTitle, type SectionGroupId } from '../../sections'
 import { resolveSections, type SectionEntry } from '../../model/layout'
 import { addProject } from '../../model/ops'
 import { getData, mutate, setActiveProject, setSection, useStore } from '../../store'
 import { Icon } from './Icon'
 import { openUnityProject } from '../../features/onboarding'
 import { IS_DESKTOP } from '../../platform'
+
+const COLLAPSED_KEY = 'gamedev-dashboard.navCollapsed'
+
+function readCollapsed(): Set<SectionGroupId> {
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem(COLLAPSED_KEY) ?? '[]')
+    return new Set(Array.isArray(parsed) ? parsed.filter((x): x is SectionGroupId => SECTION_GROUPS.some((g) => g.id === x)) : [])
+  } catch {
+    return new Set()
+  }
+}
 
 export function NavRail() {
   const t = useT()
@@ -17,8 +28,18 @@ export function NavRail() {
   const [name, setName] = useState('')
   const active = projects.filter((p) => !p.archived)
   const entries = resolveSections(active.find((p) => p.id === activeId)).filter((e) => e.visible)
-  const main = entries.filter((e) => e.id !== 'settings')
-  const tools = entries.filter((e) => e.id === 'settings')
+  const [collapsed, setCollapsed] = useState<Set<SectionGroupId>>(readCollapsed)
+  const toggleGroup = (id: SectionGroupId) => {
+    const next = new Set(collapsed)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    setCollapsed(next)
+    try {
+      localStorage.setItem(COLLAPSED_KEY, JSON.stringify([...next]))
+    } catch {
+      /* ignore */
+    }
+  }
 
   const create = () => {
     if (!name.trim()) return setCreating(false)
@@ -80,10 +101,22 @@ export function NavRail() {
         )}
       </div>
 
-      <nav aria-label={t('projects')}>
-        <ul className="nav-list">{main.map(item)}</ul>
-        <hr />
-        <ul className="nav-list">{tools.map(item)}</ul>
+      <nav aria-label={t('projects')} className="nav-groups">
+        {SECTION_GROUPS.map((g) => {
+          const items = entries.filter((e) => (g.sections as readonly string[]).includes(e.id))
+          if (items.length === 0) return null
+          // The group with the open section never collapses, so the current place stays visible.
+          const open = !collapsed.has(g.id) || items.some((e) => e.id === section)
+          return (
+            <div key={g.id} className="nav-group">
+              <button className="nav-group-head" aria-expanded={open} onClick={() => toggleGroup(g.id)}>
+                <span>{t(`group_${g.id}`)}</span>
+                <Icon name="chevron" size={12} />
+              </button>
+              {open && <ul className="nav-list">{items.map(item)}</ul>}
+            </div>
+          )
+        })}
       </nav>
     </aside>
   )

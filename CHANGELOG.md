@@ -25,3 +25,7 @@
 - Brainstorm section: local full-text search over cheat sheet and project, plan generation with Claude
 - 3D model preview (GLB/glTF/FBX/OBJ, .blend through Blender) with orbit controls and concept-art comparison
 - Krita integration (.kra thumbnails, art-folder inbox, open in Krita) and drop-anywhere import
+- Interface and cheat sheet in 7 languages (English, German, Italian, Chinese, Japanese, Spanish, Russian), "Auto" follows the system language; Claude answers in the chosen language
+- Clearer layout: collapsible navigation groups, compact header with a status pill and a gear menu (language, theme, all settings), settings split into tabs, CJK fonts
+### Changed
+- Cheat sheet scripts use English comments and log texts

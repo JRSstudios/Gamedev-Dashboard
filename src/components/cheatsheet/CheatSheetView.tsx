@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
-import { CHEAT_CATEGORIES, CHEATS, PERSPECTIVES, getCheat, type CheatCategory, type CheatEntry, type Perspective } from '../../cheatsheet'
-import { useT } from '../../i18n'
+import { CHEAT_CATEGORIES, PERSPECTIVES, cheatsIn, getCheat, type CheatCategory, type CheatEntry, type Perspective } from '../../cheatsheet'
+import { useLang, useT } from '../../i18n'
 import { addNode } from '../../model/graph'
 import { addGoal, addSteps, newId } from '../../model/ops'
 import { search } from '../../model/search'
@@ -147,6 +147,7 @@ function OwnEntry({ entry }: { entry: Cheat }) {
 
 export function CheatSheetView({ projectId }: { projectId: string }) {
   const t = useT()
+  const lang = useLang()
   const data = useStore((s) => s.data)
   const focusId = useStore((s) => s.focus.cheatId)
   const [query, setQuery] = useState('')
@@ -159,7 +160,7 @@ export function CheatSheetView({ projectId }: { projectId: string }) {
     return new Set(search(projectIndex(data, projectId), query, 40, ['cheat']).map((h) => h.doc.id))
   }, [data, projectId, query])
 
-  const builtIn = CHEATS.filter(
+  const builtIn = cheatsIn(lang).filter(
     (c) =>
       (!hits || hits.has(c.id)) &&
       (!category || category === c.category) &&
@@ -168,7 +169,7 @@ export function CheatSheetView({ projectId }: { projectId: string }) {
   const ownShown = own.filter((c) => (!hits || hits.has(c.id)) && (!category || category === 'own') && !perspective)
   if (hits) builtIn.sort((a, b) => [...hits].indexOf(a.id) - [...hits].indexOf(b.id))
 
-  const selectedBuiltIn = focusId ? getCheat(focusId) : undefined
+  const selectedBuiltIn = focusId ? getCheat(focusId, lang) : undefined
   const selectedOwn = focusId ? own.find((c) => c.id === focusId) : undefined
   const fallback = builtIn[0] ?? null
   const showBuiltIn = selectedBuiltIn ?? (selectedOwn ? undefined : fallback ?? undefined)

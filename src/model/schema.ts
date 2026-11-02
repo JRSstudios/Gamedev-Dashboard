@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { LANGUAGES } from '../i18n/languages'
 
 export const CURRENT_VERSION = 1
 
@@ -218,7 +219,7 @@ export const TimerSchema = z.object({
 })
 
 export const SettingsSchema = z.object({
-  language: z.enum(['auto', 'de', 'en']),
+  language: z.enum(['auto', ...LANGUAGES]),
   theme: z.enum(['auto', 'light', 'dark']),
   ai: z.object({
     enabled: z.boolean(),

@@ -43,8 +43,8 @@ export const INPUT: CheatEntry[] = [
         text: `using UnityEngine;
 using UnityEngine.InputSystem;
 
-// Liest die projektweiten Aktionen (Edit > Project Settings > Input System Package).
-// Andere Skripte nutzen nur die Eigenschaften unten.
+// Reads the project-wide actions (Edit > Project Settings > Input System Package).
+// Other scripts only use the properties below.
 public class PlayerInputReader : MonoBehaviour
 {
     private InputAction moveAction;
@@ -110,7 +110,7 @@ public class PlayerInputReader : MonoBehaviour
         text: `using UnityEngine;
 using UnityEngine.InputSystem;
 
-// Kurzer Sprint-Stoß in Blickrichtung (2D). Benötigt eine Aktion "Dash" in der Action Map "Player".
+// Short burst of speed in the facing direction (2D). Needs an action "Dash" in the "Player" action map.
 [RequireComponent(typeof(Rigidbody2D))]
 public class DashAbility : MonoBehaviour
 {
@@ -174,7 +174,7 @@ public class DashAbility : MonoBehaviour
         text: `using UnityEngine;
 using UnityEngine.InputSystem;
 
-// Empfängt Nachrichten der Player Input-Komponente (Behavior: Send Messages).
+// Receives messages from the Player Input component (Behavior: Send Messages).
 public class PlayerInputMessages : MonoBehaviour
 {
     public Vector2 Move { get; private set; }
@@ -213,7 +213,7 @@ public class PlayerInputMessages : MonoBehaviour
         text: `using UnityEngine;
 using UnityEngine.InputSystem;
 
-// Belegt die Aktion "Jump" neu und merkt sich die Belegung.
+// Rebinds the "Jump" action and remembers the new binding.
 public class RebindJump : MonoBehaviour
 {
     private const string SaveKey = "rebinds";

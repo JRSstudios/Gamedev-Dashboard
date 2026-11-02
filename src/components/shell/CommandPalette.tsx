@@ -6,6 +6,9 @@ import { IS_DESKTOP } from '../../platform'
 import { mutate, notify, openItem, SECTIONS, setActiveProject, setSection, useStore } from '../../store'
 import { toggleTimer } from '../../timerActions'
 import { sectionTitle } from '../../sections'
+import { search } from '../../model/search'
+import { projectIndex } from '../../model/searchDocs'
+import type { RefType } from '../../model/schema'
 
 export interface PaletteCommand {
   id: string
@@ -89,9 +92,26 @@ export function CommandPalette({
         },
       ]
     : []
+  const isSlash = Boolean(slash)
+  // full-text hits (cheat sheet in the current language, goals, notes, research, assets) below the commands
+  const hits = useMemo<PaletteCommand[]>(() => {
+    if (isSlash || query.trim().length < 3) return []
+    return search(projectIndex(data, projectId), query, 8)
+      .filter((h) => h.doc.type !== 'page' && h.doc.type !== 'table')
+      .map((h) => ({
+        id: `hit-${h.doc.type}-${h.doc.id}`,
+        title: h.doc.title,
+        hint: t(`ref_${h.doc.type as RefType}`),
+        run: () => {
+          const type = h.doc.type
+          if (type === 'cheat') openItem('cheat', h.doc.id)
+          else setSection(type === 'goal' ? 'goals' : type === 'note' ? 'notes' : type === 'research' ? 'research' : 'assets')
+        },
+      }))
+  }, [data, projectId, query, isSlash, t])
   const shown = slash
     ? slashCommand
-    : commands.filter((c) => `${c.title} ${c.keywords ?? ''}`.toLowerCase().includes(query.trim().toLowerCase()))
+    : [...commands.filter((c) => `${c.title} ${c.keywords ?? ''}`.toLowerCase().includes(query.trim().toLowerCase())), ...hits]
   const at = Math.min(index, Math.max(0, shown.length - 1))
 
   useEffect(() => {

@@ -1,19 +1,28 @@
+import { useStore } from '../store'
 import { de } from './de'
 import { en, type Dict } from './en'
-import { useStore } from '../store'
+import { es } from './es'
+import { it } from './it'
+import { ja } from './ja'
+import { resolveLanguage, type Lang } from './languages'
+import { ru } from './ru'
+import { zh } from './zh'
 
-const dicts = { en, de }
+export { ENGLISH_NAMES, LANGUAGES, NATIVE_NAMES, resolveLanguage, type Lang } from './languages'
+
+export const DICTS: Record<Lang, Dict> = { en, de, it, zh, ja, es, ru }
 
 export type TFn = (key: keyof Dict, params?: Record<string, string | number>) => string
 
-export function resolveLanguage(setting: 'auto' | 'de' | 'en'): 'de' | 'en' {
-  if (setting !== 'auto') return setting
-  return typeof navigator !== 'undefined' && navigator.language.toLowerCase().startsWith('de') ? 'de' : 'en'
+export function translate(lang: Lang, key: keyof Dict, params?: Record<string, string | number>): string {
+  return DICTS[lang][key].replace(/\{(\w+)\}/g, (_, name: string) => String(params?.[name] ?? `{${name}}`))
+}
+
+export function useLang(): Lang {
+  return resolveLanguage(useStore((s) => s.data.settings.language))
 }
 
 export function useT(): TFn {
-  const setting = useStore((s) => s.data.settings.language)
-  const dict = dicts[resolveLanguage(setting)]
-  return (key, params) =>
-    dict[key].replace(/\{(\w+)\}/g, (_, name: string) => String(params?.[name] ?? `{${name}}`))
+  const lang = useLang()
+  return (key, params) => translate(lang, key, params)
 }

@@ -1,12 +1,15 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 export type MenuItem =
   | { kind: 'item'; label: string; onSelect: () => void; checked?: boolean; disabled?: boolean }
   | { kind: 'separator' }
   | { kind: 'heading'; label: string }
 
-/** Accessible dropdown menu: arrow keys, Home/End, Esc, click outside. */
-export function MenuButton({ label, items }: { label: string; items: MenuItem[] }) {
+/**
+ * Accessible dropdown menu: arrow keys, Home/End, Esc, click outside.
+ * With `icon`, the trigger shows only the icon (label becomes its accessible name) and the menu opens to the left.
+ */
+export function MenuButton({ label, items, icon }: { label: string; items: MenuItem[]; icon?: ReactNode }) {
   const [open, setOpen] = useState(false)
   const root = useRef<HTMLDivElement>(null)
   const trigger = useRef<HTMLButtonElement>(null)
@@ -56,7 +59,9 @@ export function MenuButton({ label, items }: { label: string; items: MenuItem[] 
     <div className="menu" ref={root} onKeyDown={onKeyDown}>
       <button
         ref={trigger}
-        className="menu-trigger"
+        className={icon ? 'icon-button' : 'menu-trigger'}
+        aria-label={icon ? label : undefined}
+        title={icon ? label : undefined}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
@@ -67,10 +72,10 @@ export function MenuButton({ label, items }: { label: string; items: MenuItem[] 
           }
         }}
       >
-        {label}
+        {icon ?? label}
       </button>
       {open && (
-        <div className="menu-body" role="menu" aria-label={label}>
+        <div className={icon ? 'menu-body align-right' : 'menu-body'} role="menu" aria-label={label}>
           {items.map((item, i) => {
             if (item.kind === 'separator') return <hr key={i} role="separator" />
             if (item.kind === 'heading') return <div key={i} className="menu-heading">{item.label}</div>

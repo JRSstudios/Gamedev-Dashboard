@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { useT } from '../../i18n'
+import { LANGUAGES, NATIVE_NAMES, useT } from '../../i18n'
 import { projectToMarkdown, weekToMarkdown } from '../../model/markdown'
 import { updateSettings } from '../../model/ops'
 import { projectProgress, totalProgress } from '../../model/progress'
 import { dayKey, formatMinutes, minutesOnDay, minutesThisWeek } from '../../model/time'
 import { confirmDialog, pickTextFile, saveTextFile } from '../../platform'
-import { mutate, notify, replaceData, useStore } from '../../store'
+import { mutate, notify, replaceData, setSection, useStore } from '../../store'
 import { ProgressBar } from '../ProgressBar'
 import { Icon } from './Icon'
 import { MenuButton, type MenuItem } from './MenuButton'
@@ -70,11 +70,18 @@ export function TopBar({ onOpenPalette, onOpenAi, onOpenShortcuts }: Props) {
     { kind: 'item', label: t('themeLight'), checked: theme === 'light', onSelect: () => setTheme('light') },
     { kind: 'item', label: t('themeDark'), checked: theme === 'dark', onSelect: () => setTheme('dark') },
     { kind: 'item', label: t('themeAuto'), checked: theme === 'auto', onSelect: () => setTheme('auto') },
-    { kind: 'separator' },
+  ]
+  const settingsMenu: MenuItem[] = [
     { kind: 'heading', label: t('language') },
-    { kind: 'item', label: 'Deutsch', checked: language === 'de', onSelect: () => setLanguage('de') },
-    { kind: 'item', label: 'English', checked: language === 'en', onSelect: () => setLanguage('en') },
-    { kind: 'item', label: 'Auto', checked: language === 'auto', onSelect: () => setLanguage('auto') },
+    { kind: 'item', label: t('languageAuto'), checked: language === 'auto', onSelect: () => setLanguage('auto') },
+    ...LANGUAGES.map((l): MenuItem => ({ kind: 'item', label: NATIVE_NAMES[l], checked: language === l, onSelect: () => setLanguage(l) })),
+    { kind: 'separator' },
+    { kind: 'heading', label: t('theme') },
+    { kind: 'item', label: t('themeLight'), checked: theme === 'light', onSelect: () => setTheme('light') },
+    { kind: 'item', label: t('themeDark'), checked: theme === 'dark', onSelect: () => setTheme('dark') },
+    { kind: 'item', label: t('themeAuto'), checked: theme === 'auto', onSelect: () => setTheme('auto') },
+    { kind: 'separator' },
+    { kind: 'item', label: t('allSettings'), onSelect: () => setSection('settings') },
   ]
   const help: MenuItem[] = [{ kind: 'item', label: t('shortcutsTitle'), onSelect: onOpenShortcuts }]
 
@@ -92,26 +99,30 @@ export function TopBar({ onOpenPalette, onOpenAi, onOpenShortcuts }: Props) {
         <kbd>Ctrl K</kbd>
       </button>
 
-      <div className="stats small" title={t('shortcutTimer')}>
+      <div
+        className="status-pill small"
+        title={`${t('today')} ${formatMinutes(minutesOnDay(data, dayKey(clock)))} · ${t('thisWeek')} ${formatMinutes(minutesThisWeek(data, clock))} · ${t('overall')} ${total.pct}%`}
+      >
         <span className="muted">{t('today')}</span> <strong>{formatMinutes(minutesOnDay(data, dayKey(clock)))}</strong>
-        <span className="muted">{t('thisWeek')}</span> <strong>{formatMinutes(minutesThisWeek(data, clock))}</strong>
+        <span className="status-sep" aria-hidden="true" />
+        <span className="muted hide-narrow">{t('thisWeek')}</span> <strong className="hide-narrow">{formatMinutes(minutesThisWeek(data, clock))}</strong>
+        {project && current && (
+          <>
+            <span className="status-sep" aria-hidden="true" />
+            <span className="status-progress" aria-label={project.name}>
+              <ProgressBar pct={current.pct} color={project.color} label={project.name} thin />
+              <strong>{current.pct}%</strong>
+            </span>
+          </>
+        )}
       </div>
-      <div className="overall" aria-label={t('overall')}>
-        <span className="small muted">{t('overall')}</span>
-        <ProgressBar pct={total.pct} label={t('overall')} />
-        <strong>{total.pct}%</strong>
+      <div className="topbar-actions">
+        <button className="icon-button" onClick={onOpenAi} aria-label={t('ai')} title={t('ai')}><Icon name="spark" /></button>
+        <button className="icon-button" onClick={() => setTheme(dark ? 'light' : 'dark')} aria-label={t('themeToggle')} title={t('themeToggle')}>
+          <Icon name={dark ? 'sun' : 'moon'} />
+        </button>
+        <MenuButton label={t('settingsGear')} icon={<Icon name="settings" />} items={settingsMenu} />
       </div>
-      {project && current && (
-        <div className="overall hide-narrow">
-          <span className="small muted">{project.name}</span>
-          <ProgressBar pct={current.pct} color={project.color} label={project.name} />
-          <strong>{current.pct}%</strong>
-        </div>
-      )}
-      <button className="icon-button" onClick={onOpenAi} aria-label={t('ai')} title={t('ai')}><Icon name="spark" /></button>
-      <button className="icon-button" onClick={() => setTheme(dark ? 'light' : 'dark')} aria-label={t('themeToggle')} title={t('themeToggle')}>
-        <Icon name={dark ? 'sun' : 'moon'} />
-      </button>
     </header>
   )
 }
