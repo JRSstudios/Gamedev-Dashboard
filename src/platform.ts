@@ -134,8 +134,20 @@ export const inspectUnityProject = (dir: string): Promise<boolean> => invoke<boo
 export const copyIntoFolder = (src: string, destDir: string, sub: string, kind: 'unity' | 'blender'): Promise<string> =>
   invoke<string>('copy_into_folder', { src, destDir, sub, kind })
 
-export const listFolder = (dir: string, exts: string[], limit: number): Promise<FolderEntry[]> =>
-  invoke<FolderEntry[]>('list_folder', { dir, exts, limit })
+export const listFolder = (dir: string, exts: string[], limit: number, depth?: number): Promise<FolderEntry[]> =>
+  invoke<FolderEntry[]>('list_folder', { dir, exts, limit, depth: depth ?? null })
 
-export const openInApp = (kind: 'unity' | 'blender', exe: string, target?: string): Promise<void> =>
+export type ExternalApp = 'unity' | 'blender' | 'krita'
+
+export const openInApp = (kind: ExternalApp, exe: string, target?: string): Promise<void> =>
   invoke('open_in_app', { kind, exe, target: target ?? null })
+
+/** Bytes of a model file (or a texture/buffer next to `base`), restricted by type, size and folder in Rust. */
+export const readModelFile = (path: string, base?: string): Promise<ArrayBuffer> =>
+  invoke<ArrayBuffer>('read_model_file', { path, base: base ?? null })
+
+/** Converts a .blend to .glb with the user's Blender; returns the cached .glb path. */
+export const blendToGlb = (blend: string, exe: string): Promise<string> => invoke<string>('blend_to_glb', { blend, exe })
+
+/** Last path segment without the extension (folder or file name). */
+export const baseName = (path: string): string => (path.split(/[\\/]/).filter(Boolean).pop() ?? path).replace(/\.[^.]+$/, '')

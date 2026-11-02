@@ -1,4 +1,7 @@
+import { CHEATS, cheatText, getCheat } from '../cheatsheet'
 import type { Data, Graph, Project, RefType } from './schema'
+
+const CHEAT_IDS = CHEATS.map((c) => c.id)
 
 const uid = (): string => crypto.randomUUID()
 
@@ -58,6 +61,12 @@ export function describeRef(data: Data, type: RefType, id: string): RefInfo | nu
         .join('\n')
       return { type, id, title: p.title, subtitle: p.icon, text }
     }
+    case 'cheat': {
+      const builtIn = getCheat(id)
+      if (builtIn) return { type, id, title: builtIn.title, subtitle: builtIn.category, text: cheatText(builtIn) }
+      const own = data.cheats.find((x) => x.id === id)
+      return own ? { type, id, title: own.title, subtitle: own.category, text: own.body } : null
+    }
   }
 }
 
@@ -77,6 +86,16 @@ export function listRefs(data: Data, projectId: string): RefInfo[] {
   add('note', mine(data.notes))
   add('research', mine(data.research))
   add('asset', mine(data.assets))
+  return out
+}
+
+/** Built-in and own cheat sheet entries (not tied to a project). */
+export function listCheatRefs(data: Data): RefInfo[] {
+  const out: RefInfo[] = []
+  for (const id of [...CHEAT_IDS, ...data.cheats.map((c) => c.id)]) {
+    const info = describeRef(data, 'cheat', id)
+    if (info) out.push(info)
+  }
   return out
 }
 
@@ -148,7 +167,7 @@ export function removeRefs(data: Data, type: RefType, refId: string): Data {
 export const NODE_W = 220
 export const NODE_H = 120
 
-const TYPE_ORDER: RefType[] = ['goal', 'page', 'table', 'note', 'research', 'asset']
+const TYPE_ORDER: RefType[] = ['goal', 'page', 'table', 'note', 'research', 'asset', 'cheat']
 
 /** Simple tidy-up: one column per type, in a fixed order, keeping the current top-to-bottom order. */
 export function autoLayout(data: Data, projectId: string): Data {

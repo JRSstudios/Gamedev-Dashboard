@@ -18,3 +18,10 @@
 - Nodes canvas: cards for goals, pages, tables, notes, research and assets; drawn connections plus automatic `[[Title]]` links; pan, zoom, tidy up
 - Sections per project can be shown, hidden, renamed and reordered
 - Markdown project export includes pages and tables; Claude context lists page and table names (no contents)
+- Unity 6.6 cheat sheet (German) with ~40 step-by-step entries and 30+ scripts that compile in Unity 6000.6; own entries; add as goal or put on the canvas
+- Start from an existing Unity project (links the folder, optionally takes over files from Assets/), then an optional "Connect Claude?" step
+- Claude knows the app (cached built-in guide), proposes actions (goals, pages, tables, notes, canvas links, asset sorting) that are applied only after confirmation
+- Claude token and cost overview with monthly limit
+- Brainstorm section: local full-text search over cheat sheet and project, plan generation with Claude
+- 3D model preview (GLB/glTF/FBX/OBJ, .blend through Blender) with orbit controls and concept-art comparison
+- Krita integration (.kra thumbnails, art-folder inbox, open in Krita) and drop-anywhere import

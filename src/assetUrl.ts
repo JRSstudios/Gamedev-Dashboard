@@ -19,6 +19,8 @@ const MIME: Record<string, string> = {
   flac: 'audio/flac',
   m4a: 'audio/mp4',
   aac: 'audio/aac',
+  // Krita: Rust returns the flattened PNG from inside the .kra archive.
+  kra: 'image/png',
 }
 
 /** Loads the bytes of an asset as a Blob (desktop: via Rust, which restricts type and size). */

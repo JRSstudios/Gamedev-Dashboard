@@ -27,6 +27,8 @@ export interface ClaudeResult {
   model: string
   inputTokens: number
   outputTokens: number
+  cacheReadTokens: number
+  cacheWriteTokens: number
 }
 
 export class ClaudeError extends Error {}
@@ -46,11 +48,19 @@ export function buildRequest(opts: {
   messages: Message[]
   webSearch: boolean
   maxTokens?: number
+  /** Long, unchanging instructions sent first and cached (APP_GUIDE). */
+  guide?: string
 }) {
   return {
     model: opts.model,
     max_tokens: opts.maxTokens ?? 6000,
-    system: opts.system,
+    // The guide is identical on every request, so it is cached; the task-specific part follows it.
+    system: opts.guide
+      ? [
+          { type: 'text', text: opts.guide, cache_control: { type: 'ephemeral' } },
+          { type: 'text', text: opts.system },
+        ]
+      : opts.system,
     messages: opts.messages,
     // No temperature/top_p: the 5.x models reject non-default sampling values.
     output_config: { effort: 'medium' },
@@ -64,7 +74,15 @@ const ApiResponse = z
     content: z.array(Block),
     stop_reason: z.string().nullable().optional(),
     model: z.string().optional(),
-    usage: z.object({ input_tokens: z.number(), output_tokens: z.number() }).passthrough().optional(),
+    usage: z
+      .object({
+        input_tokens: z.number(),
+        output_tokens: z.number(),
+        cache_read_input_tokens: z.number().nullish(),
+        cache_creation_input_tokens: z.number().nullish(),
+      })
+      .passthrough()
+      .optional(),
   })
   .passthrough()
 
@@ -102,6 +120,8 @@ export function parseResponse(raw: unknown): Parsed {
     model: res.model ?? '',
     inputTokens: res.usage?.input_tokens ?? 0,
     outputTokens: res.usage?.output_tokens ?? 0,
+    cacheReadTokens: res.usage?.cache_read_input_tokens ?? 0,
+    cacheWriteTokens: res.usage?.cache_creation_input_tokens ?? 0,
     stopReason: res.stop_reason ?? null,
     blocks: res.content,
   }
@@ -125,13 +145,15 @@ const sendViaTauri: Sender = (body) => invoke<string>('claude_request', { body }
 const MAX_CONTINUATIONS = 3
 
 export async function askClaude(
-  opts: { model: string; system: string; user: string; webSearch: boolean; maxTokens?: number },
+  opts: { model: string; system: string; user: string; webSearch: boolean; maxTokens?: number; guide?: string },
   send: Sender = sendViaTauri,
 ): Promise<ClaudeResult> {
   if (!IS_DESKTOP && send === sendViaTauri) throw new ClaudeError('Claude is only available in the desktop app.')
   const messages: Message[] = [{ role: 'user', content: opts.user }]
   let inputTokens = 0
   let outputTokens = 0
+  let cacheReadTokens = 0
+  let cacheWriteTokens = 0
   const sources = new Map<string, Source>()
   let text = ''
   for (let turn = 0; turn <= MAX_CONTINUATIONS; turn++) {
@@ -143,18 +165,20 @@ export async function askClaude(
     }
     inputTokens += parsed.inputTokens
     outputTokens += parsed.outputTokens
+    cacheReadTokens += parsed.cacheReadTokens
+    cacheWriteTokens += parsed.cacheWriteTokens
     for (const s of parsed.sources) sources.set(s.url, s)
     text += parsed.text
     if (parsed.stopReason === 'refusal') throw new ClaudeError('Claude declined this request.')
     if (parsed.stopReason !== 'pause_turn') {
       if (!text) throw new ClaudeError('Claude returned no text.')
-      return { text, sources: [...sources.values()], model: parsed.model, inputTokens, outputTokens }
+      return { text, sources: [...sources.values()], model: parsed.model, inputTokens, outputTokens, cacheReadTokens, cacheWriteTokens }
     }
     // A long server-side search turn pauses; send it back unchanged so Claude can continue.
     messages.push({ role: 'assistant', content: parsed.blocks })
   }
   if (!text) throw new ClaudeError('Claude took too long.')
-  return { text, sources: [...sources.values()], model: opts.model, inputTokens, outputTokens }
+  return { text, sources: [...sources.values()], model: opts.model, inputTokens, outputTokens, cacheReadTokens, cacheWriteTokens }
 }
 
 // ---- key management (desktop only) ----------------------------------------

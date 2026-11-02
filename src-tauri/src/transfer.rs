@@ -10,7 +10,7 @@ use std::{
 };
 
 const MAX_LIST_ENTRIES: usize = 500;
-const MAX_LIST_DEPTH: usize = 2;
+const MAX_LIST_DEPTH: usize = 6;
 
 /// A Unity project has both `Assets` and `ProjectSettings` next to each other.
 pub(crate) fn is_unity_project(dir: &Path) -> bool {
@@ -113,7 +113,7 @@ pub struct FileEntry {
     modified: u64,
 }
 
-fn walk(dir: &Path, depth: usize, exts: &[String], out: &mut Vec<FileEntry>) {
+fn walk(dir: &Path, depth: usize, max_depth: usize, exts: &[String], out: &mut Vec<FileEntry>) {
     let Ok(read) = fs::read_dir(dir) else { return };
     for item in read.flatten() {
         if out.len() >= MAX_LIST_ENTRIES * 4 {
@@ -122,8 +122,8 @@ fn walk(dir: &Path, depth: usize, exts: &[String], out: &mut Vec<FileEntry>) {
         let path = item.path();
         let Ok(meta) = item.metadata() else { continue };
         if meta.is_dir() {
-            if depth < MAX_LIST_DEPTH {
-                walk(&path, depth + 1, exts, out);
+            if depth < max_depth {
+                walk(&path, depth + 1, max_depth, exts, out);
             }
         } else if meta.is_file() {
             let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
@@ -144,16 +144,17 @@ fn walk(dir: &Path, depth: usize, exts: &[String], out: &mut Vec<FileEntry>) {
     }
 }
 
-/// Newest files first, at most `limit` (capped at 500). Used for the Blender export inbox.
+/// Newest files first, at most `limit` (capped at 500), `depth` folders deep (default 2, max 6).
+/// Used for the Blender/Krita inboxes and for importing an existing Unity project.
 #[tauri::command]
-pub fn list_folder(dir: String, exts: Vec<String>, limit: usize) -> Result<Vec<FileEntry>, String> {
+pub fn list_folder(dir: String, exts: Vec<String>, limit: usize, depth: Option<usize>) -> Result<Vec<FileEntry>, String> {
     let root = Path::new(&dir);
     if !root.is_dir() {
         return Err("folder does not exist".into());
     }
     let exts: Vec<String> = exts.iter().map(|e| e.trim_start_matches('.').to_lowercase()).collect();
     let mut out = Vec::new();
-    walk(root, 0, &exts, &mut out);
+    walk(root, 0, depth.unwrap_or(2).min(MAX_LIST_DEPTH), &exts, &mut out);
     out.sort_by_key(|f| std::cmp::Reverse(f.modified));
     out.truncate(limit.clamp(1, MAX_LIST_ENTRIES));
     Ok(out)
@@ -187,6 +188,16 @@ pub fn open_in_app(kind: String, exe: String, target: Option<String>) -> Result<
                 let ext = p.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
                 if !p.is_file() || ext != "blend" {
                     return Err("not a .blend file".into());
+                }
+                cmd.arg(p);
+            }
+        }
+        ("krita", "krita") => {
+            if let Some(file) = target {
+                let p = Path::new(&file);
+                let ext = p.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
+                if !p.is_file() || !["kra", "png", "jpg", "jpeg", "psd", "ora"].contains(&ext.as_str()) {
+                    return Err("not an image Krita can open".into());
                 }
                 cmd.arg(p);
             }
@@ -254,11 +265,11 @@ mod tests {
         fs::write(dir.join("b.txt"), b"2").unwrap();
         fs::create_dir_all(dir.join("sub")).unwrap();
         fs::write(dir.join("sub").join("c.FBX"), b"3").unwrap();
-        let found = list_folder(dir.to_string_lossy().into(), vec![".fbx".into()], 10).unwrap();
+        let found = list_folder(dir.to_string_lossy().into(), vec![".fbx".into()], 10, None).unwrap();
         let mut names: Vec<_> = found.iter().map(|f| f.name.clone()).collect();
         names.sort();
         assert_eq!(names, vec!["a.fbx", "c.FBX"]);
-        assert!(list_folder("Z:/does/not/exist".into(), vec![], 10).is_err());
+        assert!(list_folder("Z:/does/not/exist".into(), vec![], 10, None).is_err());
         let _ = fs::remove_dir_all(dir);
     }
 

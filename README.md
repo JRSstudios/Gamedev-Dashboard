@@ -2,6 +2,11 @@
 
 A calm, local-first overview for your game projects. Keep **goals with progress bars**, **assets** (concept art, music, sound effects) and **quick notes** together, per project — without OneNote chaos, Notion setup work or an Obsidian maze.
 
+- **Start with your Unity project**: pick your Unity project folder and the dashboard links it and takes over your existing art, audio and models. Afterwards it offers to connect Claude
+- **Unity 6.6 cheat sheet** (German, offline): step-by-step entries for movement in every perspective (2D side/top-down, 3D third/first person, isometric, click-to-move), the new Input System, Cinemachine 3, physics, animation, tilemaps, UI, audio, saving, enemy AI, importing from Blender and Krita, and building. Every script compiles in Unity 6000.6 (see CONTRIBUTING). Add a goal with all steps in one click, add your own entries
+- **Brainstorm**: describe an idea; the app finds matching cheat sheet entries and project items, and with Claude turns it into a plan (goals with steps, a design page, tables, canvas links) that you apply item by item
+- **3D models**: preview GLB/glTF/FBX/OBJ (and .blend through your own Blender) with rotate, zoom and pan; compare a model with your concept art side by side or as an overlay
+- **Krita**: .kra thumbnails, an art-folder inbox, "Open in Krita" on concept art; drop files anywhere in the window and they are sorted into the project by type
 - **Projects** as the top level; everything else belongs to one
 - **Goals & steps** with progress bars per goal, project and overall; drag to reorder
 - **Asset board**: drop files from your file manager, drag cards between columns (Concept art, Music, Sound FX, Reference, Other), image thumbnails, audio preview, tags, search, "file moved" warnings
@@ -16,7 +21,7 @@ A calm, local-first overview for your game projects. Keep **goals with progress 
 - **Your own navigation**: show, hide, rename and reorder the sections of each project (Settings → Sections)
 - **Departments** per project: Overview, Goals, Concept art, Inspiration (images and links), Research, Audio, Notes, Planner. White design with a dark mode toggle, a real menu bar and a `Ctrl+K` command palette
 - **Unity & Blender (desktop)**: link your Unity project and Blender folders, drag an asset card onto the Unity/Blender target to copy the file (never overwritten), or drop files from the file manager onto the target tiles. A Blender export folder shows up as an inbox
-- **Claude (desktop, optional)**: add your API key (kept in the OS credential store) and use quick commands in the palette, e.g. `/research movement system for a 2D platformer`, `/suggest`, `/unity coyote time`. Results go to the Research panel or are applied as goals and notes after you confirm. Optional web search with sources
+- **Claude (desktop, optional)**: add your API key (kept in the OS credential store) and use quick commands in the palette, e.g. `/research movement system for a 2D platformer`, `/suggest`, `/unity coyote time`. Results go to the Research panel or are applied as goals and notes after you confirm. Optional web search with sources. Claude always knows how the app works (built-in guide, cached to save tokens), can sort assets and plan ideas, and only proposes changes you confirm. A token and cost overview with an optional monthly limit is in Settings
 - **Optional local AI** (Ollama / LM Studio): suggests categories, tags and goal steps. Always suggestions, you confirm. The app is fully usable without it. Prefer Claude Code? See [docs/ai.md](docs/ai.md)
 - **German and English**, light and dark theme
 - **Private by design**: no account, no cloud, no telemetry. Nothing leaves your computer unless you trigger a Claude command yourself

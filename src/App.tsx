@@ -11,7 +11,12 @@ import { Overview } from './components/Overview'
 import { ResearchPanel } from './components/ResearchPanel'
 import { SettingsPage } from './components/SettingsPage'
 import { TimerPanel } from './components/TimerPanel'
+import { BrainstormView } from './components/brainstorm/BrainstormView'
+import { CheatSheetView } from './components/cheatsheet/CheatSheetView'
 import { NodesView } from './components/graph/NodesView'
+import { ModelsView } from './components/models/ModelsView'
+import { ConnectClaudeDialog, Welcome } from './components/onboarding/Onboarding'
+import { useGlobalDrop } from './globalDrop'
 import { PagesView } from './components/pages/PagesView'
 import { TablesView } from './components/tables/TablesView'
 import { CommandPalette } from './components/shell/CommandPalette'
@@ -20,11 +25,10 @@ import { ShortcutsDialog } from './components/shell/ShortcutsDialog'
 import { TopBar } from './components/shell/TopBar'
 import { useT } from './i18n'
 import { resolveSections } from './model/layout'
-import { addProject } from './model/ops'
 import type { Project } from './model/schema'
 import { saveTextFile } from './platform'
 import { sectionDescription, sectionTitle } from './sections'
-import { init, mutate, notify, setActiveProject, setSection, startFresh, useStore, type Section } from './store'
+import { init, notify, setSection, startFresh, useStore, type Section } from './store'
 import { toggleTimer } from './timerActions'
 
 function ErrorScreen({ message, raw }: { message: string; raw: string | null }) {
@@ -38,33 +42,6 @@ function ErrorScreen({ message, raw }: { message: string; raw: string | null }) 
         {raw && <button onClick={() => void saveTextFile('data-unreadable.json', raw)}>{t('downloadRaw')}</button>}
         <button className="primary" onClick={startFresh}>{t('startFresh')}</button>
       </div>
-    </main>
-  )
-}
-
-function Welcome() {
-  const t = useT()
-  const data = useStore((s) => s.data)
-  const [name, setName] = useState('')
-  const create = () => {
-    if (!name.trim()) return
-    const { data: next, project } = addProject(data, name)
-    mutate(() => next)
-    setActiveProject(project.id)
-  }
-  return (
-    <main className="center-screen">
-      <h2>{t('noProjectsTitle')}</h2>
-      <p className="muted">{t('noProjectsBody')}</p>
-      <input
-        autoFocus
-        value={name}
-        maxLength={100}
-        placeholder={t('projectNamePlaceholder')}
-        onChange={(e) => setName(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && create()}
-      />
-      <button className="primary" onClick={create}>+ {t('newProject')}</button>
     </main>
   )
 }
@@ -88,6 +65,12 @@ function SectionView({ section, project, onOpenAi }: { section: Section; project
       return <AssetBoard projectId={id} />
     case 'notes':
       return <NotesPanel projectId={id} />
+    case 'brainstorm':
+      return <BrainstormView projectId={id} />
+    case 'cheats':
+      return <CheatSheetView projectId={id} />
+    case 'models':
+      return <ModelsView projectId={id} />
     case 'pages':
       return <PagesView projectId={id} />
     case 'tables':
@@ -128,6 +111,7 @@ export default function App() {
   const activeId = useStore((s) => s.activeProjectId)
   const section = useStore((s) => s.section)
   const notice = useStore((s) => s.notice)
+  const noticeAction = useStore((s) => s.noticeAction)
   const saveError = useStore((s) => s.saveError)
   const [aiOpen, setAiOpen] = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
@@ -136,6 +120,7 @@ export default function App() {
   const theme = data.settings.theme
 
   useEffect(() => void init(), [])
+  useGlobalDrop(status.phase === 'ready' ? (data.projects.find((p) => p.id === activeId && !p.archived)?.id ?? null) : null)
   useEffect(() => {
     document.documentElement.dataset.theme = theme === 'auto' ? '' : theme
   }, [theme])
@@ -170,7 +155,7 @@ export default function App() {
   if (status.phase === 'loading') return <main className="center-screen muted">{t('loading')}</main>
   if (status.phase === 'error') return <ErrorScreen message={status.message} raw={status.raw} />
 
-  const bare = ['overview', 'settings', 'planner', 'integrations', 'pages', 'tables', 'nodes'].includes(section)
+  const bare = ['overview', 'settings', 'planner', 'integrations', 'pages', 'tables', 'nodes', 'cheats', 'brainstorm', 'models'].includes(section)
   const sectionLabel = resolveSections(project).find((e) => e.id === section)?.label ?? ''
 
   return (
@@ -205,9 +190,21 @@ export default function App() {
       {claudeRequest && projectId && <ClaudeDialog projectId={projectId} initial={claudeRequest} onClose={() => setClaudeRequest(null)} />}
       {shortcutsOpen && <ShortcutsDialog onClose={() => setShortcutsOpen(false)} />}
       {aiOpen && <AiDialog projectId={projectId} onClose={() => setAiOpen(false)} />}
+      <ConnectClaudeDialog />
       {(notice || saveError) && (
         <div className="toast" role="status">
           {notice ?? t('saveFailed', { reason: saveError ?? '' })}
+          {notice && noticeAction && (
+            <button
+              className="toast-action"
+              onClick={() => {
+                noticeAction.run()
+                notify('')
+              }}
+            >
+              {noticeAction.label}
+            </button>
+          )}
         </div>
       )}
     </div>

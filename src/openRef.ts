@@ -14,6 +14,8 @@ export function openRef(type: RefType, id: string) {
       return openItem('table', id)
     case 'page':
       return openItem('page', id)
+    case 'cheat':
+      return openItem('cheat', id)
     case 'asset': {
       const category = getData().assets.find((a) => a.id === id)?.category
       if (category === 'concept' || category === 'inspiration') return setSection(category)

@@ -5,6 +5,8 @@ import { resolveSections, type SectionEntry } from '../../model/layout'
 import { addProject } from '../../model/ops'
 import { getData, mutate, setActiveProject, setSection, useStore } from '../../store'
 import { Icon } from './Icon'
+import { openUnityProject } from '../../features/onboarding'
+import { IS_DESKTOP } from '../../platform'
 
 export function NavRail() {
   const t = useT()
@@ -49,10 +51,16 @@ export function NavRail() {
           <select
             id="project-select"
             value={activeId ?? ''}
-            onChange={(e) => (e.target.value === '__new' ? setCreating(true) : setActiveProject(e.target.value))}
+            onChange={(e) => {
+              const v = e.target.value
+              if (v === '__new') setCreating(true)
+              else if (v === '__unity') void openUnityProject(t, true)
+              else setActiveProject(v)
+            }}
           >
             {active.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             <option value="__new">+ {t('newProjectEllipsis')}</option>
+            {IS_DESKTOP && <option value="__unity">+ {t('onbUnityButton')}…</option>}
           </select>
           <Icon name="chevron" size={14} />
         </div>

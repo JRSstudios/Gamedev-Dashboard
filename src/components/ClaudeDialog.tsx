@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { askClaude, claudeHasKey, ClaudeError, DEFAULT_CLAUDE_MODEL, type ClaudeResult } from '../ai/claude'
+import { claudeHasKey, ClaudeError, type ClaudeResult } from '../ai/claude'
+import { LimitReachedError, runClaude } from '../ai/run'
 import { buildProjectContext } from '../ai/context'
 import { buildPrompt, PRESETS, splitTitle, SuggestionsSchema, type Preset, type Suggestion } from '../ai/prompts'
 import { extractJson } from '../ai/client'
@@ -27,7 +28,6 @@ export function ClaudeDialog({ projectId, initial, onClose }: { projectId: strin
   const [skipped, setSkipped] = useState<Set<number>>(new Set())
   const started = useRef(false)
   const lang = resolveLanguage(settings.language)
-  const model = settings.claude.model || DEFAULT_CLAUDE_MODEL
   const ready = settings.claude.enabled && hasKey === true
 
   const context = buildProjectContext(useStore((s) => s.data), projectId)
@@ -38,8 +38,8 @@ export function ClaudeDialog({ projectId, initial, onClose }: { projectId: strin
     setSkipped(new Set())
     try {
       const prompt = buildPrompt(p, subject.trim(), buildProjectContext(getData(), projectId), lang, webSearch)
-      const result = await askClaude({
-        model,
+      const result = await runClaude({
+        command: p,
         system: prompt.system,
         user: prompt.user,
         webSearch: prompt.search && webSearch,
@@ -53,7 +53,7 @@ export function ClaudeDialog({ projectId, initial, onClose }: { projectId: strin
         setPhase({ kind: 'text', result, topic: subject.trim() })
       }
     } catch (e) {
-      setPhase({ kind: 'error', message: e instanceof Error ? e.message : String(e) })
+      setPhase({ kind: 'error', message: e instanceof LimitReachedError ? t('claudeLimitReached') : e instanceof Error ? e.message : String(e) })
     }
   }
 

@@ -28,9 +28,15 @@ import {
 } from '../model/ops'
 import { sendToBlender, sendToUnity } from '../features/transfer'
 import { ASSET_CATEGORIES, type Asset, type AssetCategory, type Integrations } from '../model/schema'
-import { IS_DESKTOP, onNativeFileDrop, openLink, pathsExist, pickAssetPaths } from '../platform'
+import { IS_DESKTOP, onNativeFileDrop, openInApp, openLink, pathsExist, pickAssetPaths } from '../platform'
+import { ClaudeSortButton } from './brainstorm/ClaudeSort'
+
+const KRITA_EXTS = ['kra', 'png', 'jpg', 'jpeg', 'psd']
+
+/** Opens the 3D preview with this model selected. */
+const openModel = (id: string) => openItem('model', id)
 import { deleteBlob, MAX_DEMO_FILE_BYTES, putBlob } from '../storage/indexedDb'
-import { mutate, notify, useStore } from '../store'
+import { mutate, notify, openItem, useStore } from '../store'
 
 function AssetCard({ asset, missing }: { asset: Asset; missing: boolean }) {
   const t = useT()
@@ -39,6 +45,7 @@ function AssetCard({ asset, missing }: { asset: Asset; missing: boolean }) {
   const audio = useRef<HTMLAudioElement | null>(null)
   const audioUrl = useRef<string | null>(null)
   const thumb = useImageUrl(asset)
+  const kritaExe = useStore((s) => (IS_DESKTOP ? s.data.projects.find((p) => p.id === asset.projectId)?.integrations.kritaExe : null) ?? null)
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: asset.id })
 
   useEffect(
@@ -97,6 +104,21 @@ function AssetCard({ asset, missing }: { asset: Asset; missing: boolean }) {
           </button>
         ) : (
           <span className="asset-name" title={asset.path ?? asset.name}>{asset.name}</span>
+        )}
+        {kritaExe && asset.path && KRITA_EXTS.includes(asset.path.split('.').pop()?.toLowerCase() ?? '') && (
+          <button
+            className="icon small"
+            title={t('kritaOpen')}
+            aria-label={t('kritaOpen')}
+            onClick={() => void openInApp('krita', kritaExe, asset.path as string).catch((e: unknown) => notify(t('integCopyFailed', { reason: String(e) })))}
+          >
+            ✎
+          </button>
+        )}
+        {asset.kind === 'model' && (
+          <button className="icon small" title={t('modelsOpen')} aria-label={t('modelsOpen')} onClick={() => openModel(asset.id)}>
+            ◆
+          </button>
         )}
         <button className="icon" aria-label={t('remove')} onClick={remove}>×</button>
       </div>
@@ -302,6 +324,7 @@ export function AssetBoard({ projectId, categories = ASSET_CATEGORIES, layout = 
 
   return (
     <section
+      data-own-drop
       className={hovering ? 'panel assets drop-active' : 'panel assets'}
       aria-label={t('assets')}
       onDragOver={(e) => {
@@ -329,6 +352,7 @@ export function AssetBoard({ projectId, categories = ASSET_CATEGORIES, layout = 
           onChange={(e) => setQuery(e.target.value)}
         />
         {actions}
+        <ClaudeSortButton projectId={projectId} categories={categories} />
         {IS_DESKTOP ? (
           <button onClick={() => void pickAssetPaths().then(addPaths)}>{t('addFiles')}</button>
         ) : (

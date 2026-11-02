@@ -82,6 +82,9 @@ export const IntegrationsSchema = z.object({
   blenderDir: text(2000).nullable().default(null),
   blenderExe: text(2000).nullable().default(null),
   blenderExportDir: text(2000).nullable().default(null),
+  kritaExe: text(2000).nullable().default(null),
+  /** Folder with Krita files, shown as an inbox like the Blender export folder. */
+  kritaDir: text(2000).nullable().default(null),
   /** Category -> sub folder inside the Unity project; falls back to DEFAULT_UNITY_MAP. */
   unityMap: z.record(z.string().max(40), text(300)).default({}),
 })
@@ -135,7 +138,7 @@ export const PageSchema = z.object({
   updatedAt: iso,
 })
 
-export const REF_TYPES = ['goal', 'note', 'asset', 'research', 'table', 'page'] as const
+export const REF_TYPES = ['goal', 'note', 'asset', 'research', 'table', 'page', 'cheat'] as const
 
 const coord = z.number().min(-100000).max(100000)
 export const GraphSchema = z.object({
@@ -144,6 +147,38 @@ export const GraphSchema = z.object({
     .max(500),
   /** Hand-drawn connections between nodes (links written as [[Title]] are derived, not stored). */
   edges: z.array(z.object({ id, from: id, to: id })).max(2000),
+})
+
+/** A cheat sheet entry written by the user (the built-in ones live in src/cheatsheet). */
+export const CheatSchema = z.object({
+  id,
+  title: text(200),
+  category: text(60),
+  tags: z.array(text(40)).max(20),
+  body: text(20000),
+  code: text(20000),
+  createdAt: iso,
+})
+
+/** An idea from the Brainstorm section and, once planned, the plan Claude wrote for it. */
+export const IdeaSchema = z.object({
+  id,
+  projectId: id,
+  text: text(4000),
+  perspective: text(40),
+  plan: text(40000),
+  createdAt: iso,
+})
+
+/** One Claude request, for the token and cost overview. Never contains prompt text. */
+export const UsageSchema = z.object({
+  at: iso,
+  model: text(100),
+  command: text(40),
+  input: z.number().int().min(0),
+  output: z.number().int().min(0),
+  cacheRead: z.number().int().min(0).default(0),
+  cacheWrite: z.number().int().min(0).default(0),
 })
 
 export const LayoutSchema = z.object({
@@ -157,7 +192,7 @@ export const ProjectSchema = z.object({
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   archived: z.boolean(),
   createdAt: iso,
-  integrations: IntegrationsSchema.default({ unityDir: null, unityExe: null, blenderDir: null, blenderExe: null, blenderExportDir: null, unityMap: {} }),
+  integrations: IntegrationsSchema.default({ unityDir: null, unityExe: null, blenderDir: null, blenderExe: null, blenderExportDir: null, kritaExe: null, kritaDir: null, unityMap: {} }),
   layout: LayoutSchema.default({ sections: [] }),
   graph: GraphSchema.default({ nodes: [], edges: [] }),
 })
@@ -196,8 +231,12 @@ export const SettingsSchema = z.object({
       enabled: z.boolean(),
       model: text(100),
       webSearch: z.boolean(),
+      /** Warn before sending when the estimated spend this month would pass this many dollars. */
+      monthlyLimitUsd: z.number().min(0).max(100000).nullable().default(null),
+      /** The "connect Claude?" question was answered once. */
+      asked: z.boolean().default(false),
     })
-    .default({ enabled: false, model: 'claude-sonnet-5-5', webSearch: false }),
+    .default({ enabled: false, model: 'claude-sonnet-5-5', webSearch: false, monthlyLimitUsd: null, asked: false }),
 })
 
 export const DataSchema = z.object({
@@ -207,6 +246,9 @@ export const DataSchema = z.object({
   notes: z.array(NoteSchema).max(20000),
   assets: z.array(AssetSchema).max(20000),
   research: z.array(ResearchSchema).max(5000).default([]),
+  cheats: z.array(CheatSchema).max(2000).default([]),
+  ideas: z.array(IdeaSchema).max(2000).default([]),
+  usage: z.array(UsageSchema).max(6000).default([]),
   tables: z.array(TableSchema).max(2000).default([]),
   pages: z.array(PageSchema).max(5000).default([]),
   sessions: z.array(SessionSchema).max(50000),
@@ -231,6 +273,9 @@ export type Page = z.infer<typeof PageSchema>
 export type Graph = z.infer<typeof GraphSchema>
 export type RefType = (typeof REF_TYPES)[number]
 export type Layout = z.infer<typeof LayoutSchema>
+export type Cheat = z.infer<typeof CheatSchema>
+export type Idea = z.infer<typeof IdeaSchema>
+export type Usage = z.infer<typeof UsageSchema>
 export type Session = z.infer<typeof SessionSchema>
 export type Timer = z.infer<typeof TimerSchema>
 export type Settings = z.infer<typeof SettingsSchema>
@@ -246,6 +291,9 @@ export function emptyData(): Data {
     notes: [],
     assets: [],
     research: [],
+    cheats: [],
+    ideas: [],
+    usage: [],
     tables: [],
     pages: [],
     sessions: [],
@@ -254,7 +302,7 @@ export function emptyData(): Data {
       language: 'auto',
       theme: 'light',
       ai: { enabled: false, baseUrl: '', model: '' },
-      claude: { enabled: false, model: 'claude-sonnet-5-5', webSearch: false },
+      claude: { enabled: false, model: 'claude-sonnet-5-5', webSearch: false, monthlyLimitUsd: null, asked: false },
     },
   }
 }

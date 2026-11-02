@@ -6,13 +6,14 @@ use std::{
 use tauri::Manager;
 
 mod claude;
+mod models;
 mod transfer;
 
 const MAX_DATA_BYTES: usize = 64 * 1024 * 1024;
 const MAX_PREVIEW_BYTES: u64 = 25 * 1024 * 1024;
 const PREVIEW_EXTENSIONS: &[&str] = &[
     "png", "jpg", "jpeg", "gif", "webp", "bmp", "svg", "mp3", "wav", "ogg", "opus", "flac", "m4a",
-    "aac",
+    "aac", "kra",
 ];
 const EXPORT_EXTENSIONS: &[&str] = &["json", "md"];
 
@@ -78,7 +79,8 @@ fn read_preview(path: String) -> Result<tauri::ipc::Response, String> {
     if !meta.is_file() || meta.len() > MAX_PREVIEW_BYTES {
         return Err("not a readable file or too large".into());
     }
-    let bytes = fs::read(p).map_err(|e| e.to_string())?;
+    // Krita files are ZIP archives; the preview is the flattened image inside.
+    let bytes = if extension(p) == "kra" { models::kra_preview(p)? } else { fs::read(p).map_err(|e| e.to_string())? };
     Ok(tauri::ipc::Response::new(bytes))
 }
 
@@ -126,7 +128,9 @@ pub fn run() {
             transfer::inspect_unity_project,
             transfer::copy_into_folder,
             transfer::list_folder,
-            transfer::open_in_app
+            transfer::open_in_app,
+            models::read_model_file,
+            models::blend_to_glb
         ])
         .run(tauri::generate_context!())
         .expect("error while running Gamedev Dashboard");

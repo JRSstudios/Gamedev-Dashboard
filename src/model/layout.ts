@@ -3,8 +3,11 @@ import type { Data, Layout, Project } from './schema'
 export const SECTIONS = [
   'overview',
   'goals',
+  'brainstorm',
+  'cheats',
   'concept',
   'inspiration',
+  'models',
   'research',
   'audio',
   'assets',

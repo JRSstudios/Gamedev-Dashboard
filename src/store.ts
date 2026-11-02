@@ -17,9 +17,13 @@ interface State {
   activeProjectId: string | null
   section: Section
   /** Which page/table is open in the Pages/Tables sections, and the node to focus on the canvas. */
-  focus: { pageId: string | null; tableId: string | null }
+  focus: { pageId: string | null; tableId: string | null; cheatId: string | null; modelId: string | null }
   saveError: string | null
   notice: string | null
+  /** Optional button in the toast, e.g. "Undo". */
+  noticeAction: { label: string; run: () => void } | null
+  /** App-wide dialog opened from anywhere (onboarding). */
+  dialog: 'connectClaude' | null
 }
 
 const ACTIVE_KEY = 'gamedev-dashboard.activeProject'
@@ -36,7 +40,7 @@ function readSection(): Section {
 const SAVE_DELAY_MS = 250
 
 const adapter = createAdapter()
-let state: State = { status: { phase: 'loading' }, data: emptyData(), activeProjectId: null, section: readSection(), focus: { pageId: null, tableId: null }, saveError: null, notice: null }
+let state: State = { status: { phase: 'loading' }, data: emptyData(), activeProjectId: null, section: readSection(), focus: { pageId: null, tableId: null, cheatId: null, modelId: null }, saveError: null, notice: null, noticeAction: null, dialog: null }
 const listeners = new Set<() => void>()
 
 function setState(patch: Partial<State>) {
@@ -133,17 +137,24 @@ export function setSection(section: Section) {
 }
 
 /** Opens a page or table in its section. */
-export function openItem(kind: 'page' | 'table', id: string) {
-  setState({
-    focus: { ...state.focus, [kind === 'page' ? 'pageId' : 'tableId']: id },
-    section: kind === 'page' ? 'pages' : 'tables',
-  })
+const OPEN_TARGETS = {
+  page: ['pageId', 'pages'],
+  table: ['tableId', 'tables'],
+  cheat: ['cheatId', 'cheats'],
+  model: ['modelId', 'models'],
+} as const
+
+export function openItem(kind: keyof typeof OPEN_TARGETS, id: string) {
+  const [field, section] = OPEN_TARGETS[kind]
+  setState({ focus: { ...state.focus, [field]: id }, section })
   try {
     localStorage.setItem(SECTION_KEY, state.section)
   } catch {
     /* ignore */
   }
 }
+
+export const openDialog = (dialog: State['dialog']) => setState({ dialog })
 
 export const setFocus = (patch: Partial<State['focus']>) => setState({ focus: { ...state.focus, ...patch } })
 
@@ -158,10 +169,10 @@ export function setActiveProject(id: string | null) {
 
 let noticeTimer: ReturnType<typeof setTimeout> | undefined
 /** Shows a transient message in the toast. */
-export function notify(message: string) {
+export function notify(message: string, action: { label: string; run: () => void } | null = null) {
   clearTimeout(noticeTimer)
-  setState({ notice: message })
-  noticeTimer = setTimeout(() => setState({ notice: null }), 6000)
+  setState({ notice: message, noticeAction: action })
+  noticeTimer = setTimeout(() => setState({ notice: null, noticeAction: null }), action ? 9000 : 6000)
 }
 
 export const getData =(): Data => state.data

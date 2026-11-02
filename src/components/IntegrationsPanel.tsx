@@ -11,13 +11,16 @@ import {
   openInApp,
   pickFolder,
   pickProgram,
+  type ExternalApp,
   type FolderEntry,
 } from '../platform'
 import { mutate, notify, useStore } from '../store'
 
 const INBOX_EXTS = ['blend', 'fbx', 'obj', 'glb', 'gltf', 'png', 'jpg', 'jpeg', 'wav', 'mp3', 'ogg']
 
-type PathField = 'unityDir' | 'unityExe' | 'blenderDir' | 'blenderExe' | 'blenderExportDir'
+type PathField = 'unityDir' | 'unityExe' | 'blenderDir' | 'blenderExe' | 'blenderExportDir' | 'kritaExe' | 'kritaDir'
+
+const KRITA_EXTS = ['kra', 'png', 'jpg', 'jpeg', 'psd']
 
 function PathRow({ label, value, buttonLabel, onPick, onClear }: { label: string; value: string | null; buttonLabel: string; onPick: () => void; onClear: () => void }) {
   return (
@@ -37,12 +40,14 @@ export function IntegrationsPanel({ projectId }: { projectId: string }) {
   const project = useStore((s) => s.data.projects.find((p) => p.id === projectId))
   const [unityValid, setUnityValid] = useState<boolean | null>(null)
   const [inbox, setInbox] = useState<FolderEntry[]>([])
+  const [kritaInbox, setKritaInbox] = useState<FolderEntry[]>([])
   const [hover, setHover] = useState<'unity' | 'blender' | null>(null)
   const projectRef = useRef(project)
   projectRef.current = project
 
   const unityDir = project?.integrations.unityDir ?? null
   const exportDir = project?.integrations.blenderExportDir ?? null
+  const kritaDir = project?.integrations.kritaDir ?? null
 
   useEffect(() => {
     if (!IS_DESKTOP || !unityDir) return void setUnityValid(null)
@@ -54,13 +59,9 @@ export function IntegrationsPanel({ projectId }: { projectId: string }) {
   }, [unityDir])
 
   const refreshInbox = useCallback(async () => {
-    if (!IS_DESKTOP || !exportDir) return setInbox([])
-    try {
-      setInbox(await listFolder(exportDir, INBOX_EXTS, 60))
-    } catch {
-      setInbox([])
-    }
-  }, [exportDir])
+    setInbox(IS_DESKTOP && exportDir ? await listFolder(exportDir, INBOX_EXTS, 60).catch(() => []) : [])
+    setKritaInbox(IS_DESKTOP && kritaDir ? await listFolder(kritaDir, KRITA_EXTS, 60).catch(() => []) : [])
+  }, [exportDir, kritaDir])
 
   useEffect(() => {
     void refreshInbox()
@@ -114,11 +115,11 @@ export function IntegrationsPanel({ projectId }: { projectId: string }) {
     const exe = await pickProgram()
     if (exe) set({ [field]: exe })
   }
-  const launch = async (kind: 'unity' | 'blender') => {
-    const exe = kind === 'unity' ? project.integrations.unityExe : project.integrations.blenderExe
+  const launch = async (kind: ExternalApp, file?: string) => {
+    const exe = kind === 'unity' ? project.integrations.unityExe : kind === 'blender' ? project.integrations.blenderExe : project.integrations.kritaExe
     if (!exe) return notify(t('integNotLinked'))
     try {
-      await openInApp(kind, exe, kind === 'unity' ? (unityDir ?? undefined) : undefined)
+      await openInApp(kind, exe, kind === 'unity' ? (unityDir ?? undefined) : file)
     } catch (e) {
       notify(t('integCopyFailed', { reason: e instanceof Error ? e.message : String(e) }))
     }
@@ -128,7 +129,7 @@ export function IntegrationsPanel({ projectId }: { projectId: string }) {
     mutate((d) => addAssets(d, [newAsset(project.id, entry.name, entry.path, guessCategory(guessKind(entry.name)))]))
 
   return (
-    <div className="integrations">
+    <div className="integrations" data-own-drop>
       <p className="muted small">{t('integIntro')}</p>
 
       <div className="drop-tiles">
@@ -186,6 +187,32 @@ export function IntegrationsPanel({ projectId }: { projectId: string }) {
                 <span className="small muted">{new Date(f.modified * 1000).toLocaleString()}</span>
                 <button className="link" onClick={() => addToProject(f)}>{t('integToProject')}</button>
                 <button className="link" onClick={async () => report('Unity', await sendToUnity(project, f.path))}>{t('integToUnity')}</button>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="panel">
+          <h2>Krita</h2>
+          <p className="small muted">{t('kritaIntro')}</p>
+          <PathRow label={t('kritaDir')} value={kritaDir} buttonLabel={t('integPick')} onPick={() => void pickDir('kritaDir')} onClear={() => set({ kritaDir: null })} />
+          <PathRow label={t('kritaExe')} value={project.integrations.kritaExe} buttonLabel={t('integPickExe')} onPick={() => void pickExe('kritaExe')} onClear={() => set({ kritaExe: null })} />
+          <div>
+            <button disabled={!project.integrations.kritaExe} onClick={() => void launch('krita')}>{t('kritaStart')}</button>
+          </div>
+          <div className="panel-head">
+            <h3>{t('kritaInbox')}</h3>
+            <button className="link" onClick={() => void refreshInbox()}>{t('integRefresh')}</button>
+          </div>
+          {kritaInbox.length === 0 && <p className="muted small">{kritaDir ? t('integInboxEmpty') : t('kritaNoDir')}</p>}
+          <ul className="inbox">
+            {kritaInbox.map((f) => (
+              <li key={f.path}>
+                <span className="clip" title={f.path}>{fileName(f.path)}</span>
+                <span className="small muted">{new Date(f.modified * 1000).toLocaleString()}</span>
+                <button className="link" onClick={() => mutate((d) => addAssets(d, [newAsset(project.id, f.name, f.path, 'concept')]))}>{t('integToProject')}</button>
+                <button className="link" onClick={async () => report('Unity', await sendToUnity(project, f.path, 'concept'))}>{t('integToUnity')}</button>
+                {project.integrations.kritaExe && <button className="link" onClick={() => void launch('krita', f.path)}>{t('kritaOpen')}</button>}
               </li>
             ))}
           </ul>

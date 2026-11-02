@@ -6,6 +6,7 @@ import { IS_DESKTOP } from '../platform'
 import { mutate, notify, useStore } from '../store'
 import { ProjectsManager } from './ProjectsManager'
 import { SectionsSettings } from './SectionsSettings'
+import { UsagePanel } from './UsagePanel'
 
 function ClaudeSettings() {
   const t = useT()
@@ -125,6 +126,7 @@ export function SettingsPage({ onOpenAi }: { onOpenAi: () => void }) {
       </section>
 
       <ClaudeSettings />
+      {IS_DESKTOP && <UsagePanel />}
 
       <section className="panel">
         <h2>{t('settingsData')}</h2>

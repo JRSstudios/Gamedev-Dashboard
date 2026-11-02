@@ -3,11 +3,13 @@ import { useT } from '../i18n'
 import { goalProgress, projectProgress } from '../model/progress'
 import { dayKey, formatMinutes, minutesOnDay, minutesThisWeek } from '../model/time'
 import { setSection, useStore, type Section } from '../store'
+import { CHEATS } from '../cheatsheet'
+import { UsagePanel } from './UsagePanel'
 import { ProgressBar } from './ProgressBar'
 import { Icon, type IconName } from './shell/Icon'
 import { sectionTitle } from '../sections'
 
-const TILES: Section[] = ['goals', 'concept', 'inspiration', 'research', 'audio', 'notes']
+const TILES: Section[] = ['brainstorm', 'cheats', 'goals', 'concept', 'inspiration', 'models', 'research', 'audio', 'notes']
 
 export function Overview({ projectId }: { projectId: string }) {
   const t = useT()
@@ -32,6 +34,9 @@ export function Overview({ projectId }: { projectId: string }) {
     research: data.research.filter((r) => r.projectId === projectId).length,
     audio: assets.filter((a) => a.category === 'music' || a.category === 'sfx').length,
     notes: notes.length,
+    brainstorm: data.ideas.filter((i) => i.projectId === projectId).length,
+    cheats: CHEATS.length + data.cheats.length,
+    models: assets.filter((a) => a.kind === 'model').length,
   }
 
   return (
@@ -87,6 +92,8 @@ export function Overview({ projectId }: { projectId: string }) {
             ))}
           </ul>
         </section>
+
+        {data.usage.length > 0 && <UsagePanel compact />}
 
         <section className="panel">
           <h2>{t('ovRecentAssets')}</h2>
