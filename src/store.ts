@@ -186,3 +186,8 @@ export function useStore<T>(selector: (s: State) => T): T {
     () => selector(state),
   )
 }
+
+// Dev builds only: lets the scripted desktop tests set up data through the normal store path.
+if (import.meta.env.DEV && typeof window !== 'undefined') {
+  ;(window as unknown as { __gdTest: unknown }).__gdTest = { mutate, getData }
+}

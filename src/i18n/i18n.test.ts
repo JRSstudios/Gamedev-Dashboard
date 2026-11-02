@@ -20,7 +20,7 @@ describe('translations', () => {
 
   it('non-English dictionaries are really translated', () => {
     // Product and program names stay the same in every language.
-    const NAMES = new Set(['appName', 'paletteClaudeRun', 'nav_integrations', 'integExeUnity', 'integExeBlender', 'integUnity', 'kritaExe'])
+    const NAMES = new Set(['appName', 'paletteClaudeRun', 'nav_integrations', 'integExeUnity', 'integExeBlender', 'integUnity', 'kritaExe', 'nav_unity', 'nav_blender', 'nav_krita'])
     for (const lang of LANGUAGES.filter((l) => l !== 'en')) {
       const same = (Object.keys(DICTS.en) as (keyof typeof DICTS.en)[]).filter((k) => !NAMES.has(k) && DICTS[lang][k] === DICTS.en[k] && DICTS.en[k].length > 12)
       // Brand names and short technical terms may stay the same; long sentences must not.

@@ -196,6 +196,8 @@ export const ProjectSchema = z.object({
   integrations: IntegrationsSchema.default({ unityDir: null, unityExe: null, blenderDir: null, blenderExe: null, blenderExportDir: null, kritaExe: null, kritaDir: null, unityMap: {} }),
   layout: LayoutSchema.default({ sections: [] }),
   graph: GraphSchema.default({ nodes: [], edges: [] }),
+  /** Files the user dismissed from the hub inbox, so they do not come back. */
+  inboxDismissed: z.array(text(1000)).max(2000).default([]),
 })
 
 export const SessionSchema = z.object({

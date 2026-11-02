@@ -4,7 +4,7 @@ import { AssetBoard } from './components/AssetBoard'
 import { CalendarPanel } from './components/CalendarPanel'
 import { ClaudeDialog, type ClaudeRequest } from './components/ClaudeDialog'
 import { GoalsPanel } from './components/GoalsPanel'
-import { IntegrationsPanel } from './components/IntegrationsPanel'
+import { BlenderPage, KritaPage, UnityPage } from './components/hub/AppPages'
 import { LinkForm } from './components/LinkForm'
 import { NotesPanel } from './components/NotesPanel'
 import { Overview } from './components/Overview'
@@ -27,7 +27,7 @@ import { useLang, useT } from './i18n'
 import { resolveSections } from './model/layout'
 import type { Project } from './model/schema'
 import { saveTextFile } from './platform'
-import { sectionDescription, sectionTitle } from './sections'
+import { groupOf, sectionDescription, sectionTitle } from './sections'
 import { init, notify, setSection, startFresh, useStore, type Section } from './store'
 import { toggleTimer } from './timerActions'
 
@@ -84,8 +84,12 @@ function SectionView({ section, project, onOpenAi }: { section: Section; project
           <CalendarPanel projectId={id} />
         </div>
       )
-    case 'integrations':
-      return <IntegrationsPanel projectId={id} />
+    case 'unity':
+      return <UnityPage projectId={id} />
+    case 'blender':
+      return <BlenderPage projectId={id} />
+    case 'krita':
+      return <KritaPage projectId={id} />
     case 'settings':
       return <SettingsPage onOpenAi={onOpenAi} />
   }
@@ -160,7 +164,7 @@ export default function App() {
   if (status.phase === 'loading') return <main className="center-screen muted">{t('loading')}</main>
   if (status.phase === 'error') return <ErrorScreen message={status.message} raw={status.raw} />
 
-  const bare = ['overview', 'settings', 'planner', 'integrations', 'pages', 'tables', 'nodes', 'cheats', 'brainstorm', 'models'].includes(section)
+  const bare = ['overview', 'settings', 'planner', 'unity', 'blender', 'krita', 'pages', 'tables', 'nodes', 'cheats', 'brainstorm', 'models'].includes(section)
   const sectionLabel = resolveSections(project).find((e) => e.id === section)?.label ?? ''
 
   return (
@@ -174,6 +178,10 @@ export default function App() {
           ) : project ? (
             <>
               <div className="page-head">
+                <nav className="crumbs small muted" aria-label={t('breadcrumbs')}>
+                  <span>{project.name}</span>
+                  {groupOf(section) && <span>{t(`group_${groupOf(section)!}`)}</span>}
+                </nav>
                 <h1>{sectionTitle(t, section, sectionLabel)}</h1>
                 <p className="muted">{sectionDescription(t, section)}</p>
               </div>

@@ -92,6 +92,7 @@ export function addProject(data: Data, name: string): { data: Data; project: Pro
     integrations: { ...EMPTY_INTEGRATIONS },
     layout: { sections: [] },
     graph: { nodes: [], edges: [] },
+    inboxDismissed: [],
   }
   return { data: { ...data, projects: [...data.projects, project] }, project }
 }
@@ -354,6 +355,13 @@ export const deleteResearch = (data: Data, id: string): Data =>
   removeRefs({ ...data, research: data.research.filter((r) => r.id !== id) }, 'research', id)
 
 // ---- integrations -----------------------------------------------------------
+
+/** Hides a file from the hub inbox for good (the oldest entries drop out first). */
+export const dismissInbox = (data: Data, projectId: string, path: string): Data => {
+  const p = data.projects.find((x) => x.id === projectId)
+  if (!p || p.inboxDismissed.includes(path)) return data
+  return updateProject(data, projectId, { inboxDismissed: [...p.inboxDismissed, path].slice(-2000) })
+}
 
 export const updateIntegrations = (data: Data, projectId: string, patch: Partial<Integrations>): Data =>
   updateProject(data, projectId, {
