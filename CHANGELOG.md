@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-03
+### Fixed
+- Starting the app a second time no longer crashes; it brings the open window to the front
+- A quick-note shortcut taken by another program no longer stops the app
+### Changed
+- Faster start: languages and rarely used sections load on demand (start bundle 1.4 MB -> about 410 kB)
+
 ## [0.1.0] - 2026-11-03
 First public beta. Installers are unsigned (see README).
 ### Added

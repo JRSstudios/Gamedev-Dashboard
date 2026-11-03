@@ -1,6 +1,6 @@
 [package]
 name = "gamedev-dashboard"
-version = "0.1.0"
+version = "0.1.1"
 description = "Local-first overview for game projects: goals, assets, notes"
 license = "MIT"
 edition = "2021"
