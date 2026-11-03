@@ -27,5 +27,8 @@
 - Krita integration (.kra thumbnails, art-folder inbox, open in Krita) and drop-anywhere import
 - Interface and cheat sheet in 7 languages (English, German, Italian, Chinese, Japanese, Spanish, Russian), "Auto" follows the system language; Claude answers in the chosen language
 - Clearer layout: collapsible navigation groups, compact header with a status pill and a gear menu (language, theme, all settings), settings split into tabs, CJK fonts
+- Hub start page with program tiles and an inbox for new Blender/Krita exports; separate Unity, Blender and Krita pages; breadcrumbs
+- Plugin bridge with one-click install of a Unity editor package, a Blender add-on and a Krita plugin: export on save, model checks, Unity import presets, console errors in the dashboard, prefab/open scene/export jobs
+- Auto import of new exports into the project (optionally straight into Unity)
 ### Changed
 - Cheat sheet scripts use English comments and log texts
