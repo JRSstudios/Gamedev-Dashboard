@@ -72,7 +72,8 @@ describe('search', () => {
   })
 
   it('describes built-in and own cheat entries', () => {
-    const d = { ...emptyData(), cheats: [{ id: 'own-1', title: 'Mein Trick', category: 'eigene', tags: [], body: 'Text', code: '', createdAt: '' }] }
+    // A fixed language: "auto" would follow the machine (German here, English on CI).
+    const d = { ...emptyData(), settings: { ...emptyData().settings, language: 'de' as const }, cheats: [{ id: 'own-1', title: 'Mein Trick', category: 'eigene', tags: [], body: 'Text', code: '', createdAt: '' }] }
     expect(describeRef(d, 'cheat', 'cam-2d')?.title).toContain('2D-Kamera')
     expect(describeRef(d, 'cheat', 'own-1')?.title).toBe('Mein Trick')
     expect(describeRef(d, 'cheat', 'missing')).toBeNull()
