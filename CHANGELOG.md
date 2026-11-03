@@ -30,5 +30,17 @@
 - Hub start page with program tiles and an inbox for new Blender/Krita exports; separate Unity, Blender and Krita pages; breadcrumbs
 - Plugin bridge with one-click install of a Unity editor package, a Blender add-on and a Krita plugin: export on save, model checks, Unity import presets, console errors in the dashboard, prefab/open scene/export jobs
 - Auto import of new exports into the project (optionally straight into Unity)
+- Local asset sorting without AI (file type, words in file and folder names in several languages, audio length) that learns from your corrections; hub suggestions (deadline at risk, goals without steps or estimate, stalled goals, wrong category, missing files, Unity errors, failed model checks); Claude sorting in batches
+- Planner with Week and Month tabs: working/school times and gamedev times per weekday, single days changed or off, templates; available, logged and free hours
+- Time per section: planned hours per goal and section, time logged on them (timer with section choice), warnings when deadlines do not fit; "3 h of 8 h" on goal cards
+- Templates: five bundled templates (2D platformer, top-down RPG, 3D third person, 48 h game jam, pixel art workflow), a community catalog in `templates/` on GitHub, import/export as `.gdtemplate.json`, install into the current or a new project and remove again; C# scripts are shown first and copied into Unity only on click
+- Tutorial section with 12 lessons and a guided tour in all 7 languages, plus a "first game" course built from the cheat sheet
+- Claude through your own Claude Code subscription (`claude -p`, no tools) as an alternative to an API key; assistant side panel (`Ctrl+J`) with project context, Unity errors, reviewable actions and "save script in Unity"
+- `Ctrl+Z` / `Ctrl+Y` undo and redo for all data changes; daily snapshots (last 14) with restore and an optional backup folder
+- Quick note from anywhere with `Ctrl+Shift+Space`
+- Import from Obsidian vaults and Notion exports (Markdown pages with their folder tree, CSV as tables)
+- Pages: formatted text (**bold**, *italic*, `code`, links, clickable `[[links]]`), sub-pages, daily devlog page, page templates (design document, character, level, postmortem)
+- Table views: kanban board, calendar and gallery
+- Unity build with scene check from the dashboard; Blender helpers (apply rotation/scale, origin to floor, LODs, export each collection); Krita sprite sheet export
 ### Changed
 - Cheat sheet scripts use English comments and log texts
