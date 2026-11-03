@@ -26,14 +26,23 @@ export function ResearchPanel({ projectId }: { projectId: string }) {
     <section className="research" aria-label={t('nav_research')}>
       <div className="panel">
         <h2>{t('researchNew')}</h2>
-        <input value={title} maxLength={200} placeholder={t('researchTitle')} onChange={(e) => setTitle(e.target.value)} />
-        <textarea value={body} rows={5} maxLength={40000} placeholder={t('researchBody')} onChange={(e) => setBody(e.target.value)} />
+        <label className="field">
+          <span className="field-label">{t('researchTitle')}</span>
+          <input value={title} maxLength={200} onChange={(e) => setTitle(e.target.value)} />
+        </label>
+        <label className="field">
+          <span className="field-label">{t('researchBody')}</span>
+          <textarea value={body} rows={5} maxLength={40000} onChange={(e) => setBody(e.target.value)} />
+        </label>
         <div>
           <button className="primary" onClick={save}>{t('researchSave')}</button>
         </div>
       </div>
 
-      <input type="search" value={query} placeholder={t('researchSearch')} onChange={(e) => setQuery(e.target.value)} />
+      <label className="field">
+        <span className="field-label">{t('researchSearch')}</span>
+        <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} />
+      </label>
       {shown.length === 0 && <p className="muted empty">{t('researchEmpty')}</p>}
       <ul className="research-list">
         {shown.map((r) => (

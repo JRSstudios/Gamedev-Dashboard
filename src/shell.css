@@ -196,3 +196,5 @@ code { background: var(--surface-3); border-radius: 4px; padding: 0 4px; font-si
 .page-meta select { width: auto; }
 .auto-text.rendered { cursor: text; white-space: normal; min-height: 1.6em; }
 .quick-note textarea { width: 100%; }
+
+.field-label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 2px; }

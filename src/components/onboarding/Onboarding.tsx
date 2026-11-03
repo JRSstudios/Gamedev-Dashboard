@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { DesktopOnly } from '../DesktopOnly'
 import { claudeSetKey, friendlyError } from '../../ai/claude'
 import { useT } from '../../i18n'
 import { askForClaude, openUnityProject } from '../../features/onboarding'
@@ -30,7 +31,7 @@ export function Welcome() {
         <section className="panel welcome-card primary-card">
           <Icon name="integrations" size={28} />
           <h2>{t('onbUnityTitle')}</h2>
-          <p className="small muted">{IS_DESKTOP ? t('onbUnityBody') : t('integDesktopOnly')}</p>
+          {IS_DESKTOP ? <p className="small muted">{t('onbUnityBody')}</p> : <DesktopOnly reason={t('integDesktopOnly')} />}
           <label className="check small">
             <input type="checkbox" checked={importFiles} disabled={!IS_DESKTOP} onChange={(e) => setImportFiles(e.target.checked)} />
             {t('onbImport')}
@@ -43,7 +44,10 @@ export function Welcome() {
           <Icon name="plus" size={28} />
           <h2>{t('onbEmptyTitle')}</h2>
           <p className="small muted">{t('noProjectsBody')}</p>
-          <input value={name} maxLength={100} placeholder={t('projectNamePlaceholder')} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && createEmpty()} />
+          <label className="field">
+            <span className="field-label">{t('projectNamePlaceholder')}</span>
+            <input value={name} maxLength={100} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && createEmpty()} />
+          </label>
           <button onClick={createEmpty} disabled={!name.trim()}>+ {t('newProject')}</button>
         </section>
       </div>
@@ -93,7 +97,7 @@ export function ConnectClaudeDialog() {
             void save()
           }}
         >
-          <input type="password" autoFocus autoComplete="off" spellCheck={false} value={key} placeholder="sk-ant-…" aria-label={t('claudeKey')} onChange={(e) => setKey(e.target.value)} />
+          <input type="password" autoFocus autoComplete="off" spellCheck={false} value={key} aria-label={t('claudeKey')} onChange={(e) => setKey(e.target.value)} />
           <button className="primary" type="submit" disabled={!key.trim() || busy}>{t('onbClaudeConnect')}</button>
         </form>
         <div className="row-actions">

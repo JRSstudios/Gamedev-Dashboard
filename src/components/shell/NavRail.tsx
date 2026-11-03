@@ -86,18 +86,20 @@ export function NavRail() {
           <Icon name="chevron" size={14} />
         </div>
         {creating && (
-          <input
-            autoFocus
-            value={name}
-            maxLength={100}
-            placeholder={t('projectNamePlaceholder')}
-            onChange={(e) => setName(e.target.value)}
-            onBlur={create}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') create()
-              if (e.key === 'Escape') setCreating(false)
-            }}
-          />
+          <label className="field">
+            <span className="field-label">{t('projectNamePlaceholder')}</span>
+            <input
+              autoFocus
+              value={name}
+              maxLength={100}
+              onChange={(e) => setName(e.target.value)}
+              onBlur={create}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') create()
+                if (e.key === 'Escape') setCreating(false)
+              }}
+            />
+          </label>
         )}
       </div>
 

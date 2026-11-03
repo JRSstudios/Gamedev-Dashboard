@@ -23,11 +23,10 @@ import { TableEditor } from '../tables/TableEditor'
 import { Inline } from '../RichText'
 
 /** Textarea that grows with its content, so a page reads like a document instead of a form. */
-function AutoText({ value, onChange, className, placeholder, onKeyDown, autoFocus, onBlur }: {
+function AutoText({ value, onChange, className, onKeyDown, autoFocus, onBlur }: {
   value: string
   onChange: (v: string) => void
   className?: string
-  placeholder?: string
   onKeyDown?: (e: KeyboardEvent<HTMLTextAreaElement>) => void
   autoFocus?: boolean
   onBlur?: () => void
@@ -47,7 +46,7 @@ function AutoText({ value, onChange, className, placeholder, onKeyDown, autoFocu
       className={`auto-text ${className ?? ''}`}
       value={value}
       maxLength={5000}
-      placeholder={placeholder}
+     
       onChange={(e) => onChange(e.target.value)}
       onKeyDown={onKeyDown}
       onBlur={onBlur}
@@ -56,17 +55,16 @@ function AutoText({ value, onChange, className, placeholder, onKeyDown, autoFocu
 }
 
 /** Shows **bold**, *italic*, `code`, links and [[Title]] formatted; a click switches to editing. */
-function RichText({ value, onChange, className, placeholder, autoFocus, projectId }: {
+function RichText({ value, onChange, className, autoFocus, projectId }: {
   value: string
   onChange: (v: string) => void
   className?: string
-  placeholder?: string
   autoFocus?: boolean
   projectId: string
 }) {
   const [editing, setEditing] = useState(Boolean(autoFocus) || !value.trim())
   if (editing)
-    return <AutoText autoFocus={autoFocus || Boolean(value)} className={className} value={value} placeholder={placeholder} onChange={onChange} onBlur={() => value.trim() && setEditing(false)} />
+    return <AutoText autoFocus={autoFocus || Boolean(value)} className={className} value={value} onChange={onChange} onBlur={() => value.trim() && setEditing(false)} />
   const openTitle = (title: string) => {
     const hit = listRefs(getData(), projectId).find((r) => r.title.trim().toLowerCase() === title.trim().toLowerCase())
     if (hit) openRef(hit.type, hit.id)
@@ -122,14 +120,13 @@ function BlockBody({ page, block, isNew }: { page: Page; block: Block; isNew: bo
           projectId={page.projectId}
           className={block.type}
           value={block.text}
-          placeholder={t('blockPlaceholder')}
           onChange={(text) => set({ ...block, text })}
         />
       )
     case 'heading':
       return (
         <div className="heading-block">
-          <AutoText autoFocus={isNew} className={`h${block.level}`} value={block.text} placeholder={t('block_heading')} onChange={(text) => set({ ...block, text })} />
+          <AutoText autoFocus={isNew} className={`h${block.level}`} value={block.text} onChange={(text) => set({ ...block, text })} />
           <button className="icon small" title={block.level === 1 ? t('headingSmall') : t('headingLarge')} onClick={() => set({ ...block, level: block.level === 1 ? 2 : 1 })}>
             H{block.level}
           </button>
@@ -154,7 +151,6 @@ function BlockBody({ page, block, isNew }: { page: Page; block: Block; isNew: bo
                 value={item.text}
                 maxLength={500}
                 className={item.done ? 'done' : undefined}
-                placeholder={t('listItemPlaceholder')}
                 onChange={(e) => write(items.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)))}
                 onKeyDown={(e) => {
                   const li = e.currentTarget.closest('li')
@@ -294,7 +290,6 @@ export function PageEditor({ page }: { page: Page }) {
           className="page-icon"
           value={page.icon}
           maxLength={8}
-          placeholder="📄"
           aria-label={t('pageIcon')}
           onChange={(e) => mutate((d) => updatePage(d, page.id, { icon: e.target.value }))}
         />
@@ -302,7 +297,6 @@ export function PageEditor({ page }: { page: Page }) {
           className="title-input big"
           value={page.title}
           maxLength={200}
-          placeholder={t('pageTitlePlaceholder')}
           aria-label={t('rename')}
           onChange={(e) => mutate((d) => updatePage(d, page.id, { title: e.target.value }))}
         />

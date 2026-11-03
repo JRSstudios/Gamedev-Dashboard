@@ -62,7 +62,7 @@
       {
         "title": "Game design",
         "icon": "🎮",
-        "markdown": "# Pitch\nWho do you play and what is the goal?\n\n## Camera and controls\n- Mouse / right stick turns the camera\n- WASD / left stick moves relative to the camera\n\n## Scale\nOne Blender unit is one meter. The player is about 1.8 m tall.\n\n## Demo scope\n- [ ] One area, 5 minutes of play\n- [ ] One enemy type\n- [ ] A goal at the end"
+        "markdown": "# Pitch\nYou play a courier robot climbing a tower of floating islands to deliver the last package before the storm.\n\n## Camera and controls\n- Mouse / right stick turns the camera\n- WASD / left stick moves relative to the camera\n\n## Scale\nOne Blender unit is one meter. The robot is 1.8 m tall.\n\n## Demo scope\n- [ ] One island, 5 minutes of play\n- [ ] One enemy type (drone)\n- [ ] The delivery point at the top"
       },
       {
         "title": "Blender to Unity checklist",

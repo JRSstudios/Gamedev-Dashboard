@@ -73,14 +73,16 @@ export function ProjectsManager() {
           )
         })}
       </ul>
-      <input
-        value={name}
-        maxLength={100}
-        placeholder={t('projectNamePlaceholder')}
-        aria-label={t('newProject')}
-        onChange={(e) => setName(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && create()}
-      />
+      <label className="field">
+        <span className="field-label">{t('projectNamePlaceholder')}</span>
+        <input
+          value={name}
+          maxLength={100}
+          aria-label={t('newProject')}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && create()}
+        />
+      </label>
       <button className="primary" onClick={create}>+ {t('newProject')}</button>
       {hasArchived && (
         <label className="check small muted">

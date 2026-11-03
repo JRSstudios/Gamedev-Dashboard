@@ -33,9 +33,9 @@ export function ViewSwitch({ table }: { table: Table }) {
 }
 
 /** Title of a row: its first text column, else its first non-empty cell. */
-function rowTitle(table: Table, row: Row): string {
+function rowTitle(table: Table, row: Row, untitled: string): string {
   const text = table.columns.find((c) => c.type === 'text')
-  return cellText(text ? row.cells[text.id] : undefined) || table.columns.map((c) => cellText(row.cells[c.id])).find(Boolean) || '—'
+  return cellText(text ? row.cells[text.id] : undefined) || table.columns.map((c) => cellText(row.cells[c.id])).find(Boolean) || untitled
 }
 
 function Fields({ table, row, skip }: { table: Table; row: Row; skip: (c: Column) => boolean }) {
@@ -48,7 +48,7 @@ function Fields({ table, row, skip }: { table: Table; row: Row; skip: (c: Column
         .map((c) => (
           <div key={c.id}>
             <dt className="muted">{c.name}</dt>
-            <dd>{c.type === 'checkbox' ? (row.cells[c.id] ? '✓' : '–') : c.type === 'progress' ? `${cellText(row.cells[c.id])}%` : cellText(row.cells[c.id])}</dd>
+            <dd>{c.type === 'checkbox' ? (row.cells[c.id] ? '✓' : '○') : c.type === 'progress' ? `${cellText(row.cells[c.id])}%` : cellText(row.cells[c.id])}</dd>
           </div>
         ))}
     </dl>
@@ -78,7 +78,7 @@ function Kanban({ table, column }: { table: Table; column: Column }) {
             </h3>
             {rows.map((r) => (
               <article key={r.id} className="kcard">
-                <strong>{rowTitle(table, r)}</strong>
+                <strong>{rowTitle(table, r, t('untitledRow'))}</strong>
                 <Fields table={table} row={r} skip={(c) => c.id === column.id} />
                 <select value={(r.cells[column.id] as string | null) ?? ''} aria-label={column.name} onChange={(e) => move(r, e.target.value || null)}>
                   <option value="">{t('viewNoValue')}</option>
@@ -118,7 +118,7 @@ function Calendar({ table, column }: { table: Table; column: Column }) {
           return (
             <div key={key} className={`cal-cell${date.getMonth() !== cursor.month ? ' outside' : ''}`}>
               <span className="small muted">{date.getDate()}</span>
-              {(byDay.get(key) ?? []).map((r) => <span key={r.id} className="cal-entry small clip">{rowTitle(table, r)}</span>)}
+              {(byDay.get(key) ?? []).map((r) => <span key={r.id} className="cal-entry small clip">{rowTitle(table, r, t('untitledRow'))}</span>)}
             </div>
           )
         })}
@@ -129,11 +129,12 @@ function Calendar({ table, column }: { table: Table; column: Column }) {
 }
 
 function Gallery({ table }: { table: Table }) {
+  const t = useT()
   return (
     <div className="gallery">
       {table.rows.map((r) => (
         <article key={r.id} className="panel kcard">
-          <strong>{rowTitle(table, r)}</strong>
+          <strong>{rowTitle(table, r, t('untitledRow'))}</strong>
           <Fields table={table} row={r} skip={() => false} />
         </article>
       ))}

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useT } from '../i18n'
 import { addNote, deleteNote } from '../model/ops'
 import { noteToPage } from '../model/pages'
+import { suggestTags } from '../model/smart'
 import { getData, mutate, openItem, useStore } from '../store'
 
 export function NotesPanel({ projectId }: { projectId: string }) {
@@ -18,6 +19,8 @@ export function NotesPanel({ projectId }: { projectId: string }) {
   const tags = [...new Set(notes.flatMap((n) => n.tags))].sort()
   const q = query.trim().toLowerCase()
   const shown = notes.filter((n) => (!tag || n.tags.includes(tag)) && (!q || n.text.toLowerCase().includes(q)))
+  const data = useStore((s) => s.data)
+  const suggestedTags = text.trim().length > 8 ? suggestTags(data, projectId, text) : []
   const goalTitle = (id: string | null) => allGoals.find((g) => g.id === id)?.title
 
   const save = () => {
@@ -29,25 +32,38 @@ export function NotesPanel({ projectId }: { projectId: string }) {
   return (
     <section className="panel notes" aria-label={t('notes')}>
       <h2>{t('notes')}</h2>
-      <textarea
-        id="quick-note"
-        value={text}
-        rows={3}
-        maxLength={20000}
-        placeholder={t('quickNote')}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
-            e.preventDefault()
-            save()
-          }
-        }}
-      />
+      <label className="field">
+        <span className="field-label">{t('quickNote')}</span>
+        <textarea
+          id="quick-note"
+          value={text}
+          rows={3}
+          maxLength={20000}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+              e.preventDefault()
+              save()
+            }
+          }}
+        />
+      </label>
+      {suggestedTags.length > 0 && (
+        <div className="chips autofill" aria-label={t('smartTagHint')}>
+          <span className="small muted">{t('smartTagHint')}</span>
+          {suggestedTags.map((x) => (
+            <button key={x} className="chip" onClick={() => setText((v) => `${v.trimEnd()} #${x}`)}>#{x}</button>
+          ))}
+        </div>
+      )}
       <select value={goalId} onChange={(e) => setGoalId(e.target.value)} aria-label={t('linkedGoal')}>
         <option value="">{t('noGoal')}</option>
         {goals.map((g) => <option key={g.id} value={g.id}>{g.title}</option>)}
       </select>
-      <input type="search" value={query} placeholder={t('searchNotes')} onChange={(e) => setQuery(e.target.value)} />
+      <label className="field">
+        <span className="field-label">{t('searchNotes')}</span>
+        <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} />
+      </label>
       {tags.length > 0 && (
         <div className="tags">
           <button className={tag === null ? 'tag active' : 'tag'} onClick={() => setTag(null)}>{t('allTags')}</button>

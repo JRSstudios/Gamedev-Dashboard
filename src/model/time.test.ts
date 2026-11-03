@@ -60,7 +60,7 @@ describe('timer', () => {
 describe('time helpers', () => {
   it('formats durations and clocks', () => {
     expect(formatMinutes(100)).toBe('1h40')
-    expect(formatMinutes(5)).toBe('5m')
+    expect(formatMinutes(5)).toBe('5 min')
     expect(formatClock(25 * 60)).toBe('25:00')
     expect(formatClock(3725)).toBe('1:02:05')
   })
@@ -99,6 +99,6 @@ describe('weekly markdown', () => {
     const md = weekToMarkdown(d, id)
     expect(md).toContain('# Game — week of')
     expect(md).toContain('- [x] Jump (Move)')
-    expect(md).toContain('## Time (10m)')
+    expect(md).toContain('## Time (10 min)')
   })
 })

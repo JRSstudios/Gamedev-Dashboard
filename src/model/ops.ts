@@ -120,6 +120,8 @@ export const deleteProject = (data: Data, id: string): Data => {
     tables: data.tables.filter((t) => t.projectId !== id),
     pages: data.pages.filter((p) => p.projectId !== id),
     ideas: data.ideas.filter((x) => x.projectId !== id),
+    showcases: data.showcases.filter((x) => x.projectId !== id),
+    chats: data.chats.filter((x) => x.projectId !== id),
     sessions: data.sessions.filter((s) => s.projectId !== id && !(s.goalId && goalIds.has(s.goalId))),
     timer: data.timer?.projectId === id ? null : data.timer,
   }

@@ -11,7 +11,8 @@ import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalList
 import { CSS } from '@dnd-kit/utilities'
 import { useState } from 'react'
 import { splitGoal } from '../ai/client'
-import { useT } from '../i18n'
+import { useLang, useT } from '../i18n'
+import { suggestSteps } from '../model/smart'
 import { addGoal, addSteps, deleteGoal, deleteStep, reorderGoals, toggleStep, updateGoal } from '../model/ops'
 import { spentOnGoal } from '../model/availability'
 import { goalProgress } from '../model/progress'
@@ -29,6 +30,9 @@ function GoalCard({ goal, color }: { goal: Goal; color: string }) {
   const [busy, setBusy] = useState(false)
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: goal.id })
   const prog = goalProgress(goal)
+  const lang = useLang()
+  const data = useStore((s) => s.data)
+  const fromCheat = goal.steps.length === 0 ? suggestSteps(data, goal.projectId, goal.title, lang) : null
 
   const askAi = async () => {
     setBusy(true)
@@ -104,18 +108,26 @@ function GoalCard({ goal, color }: { goal: Goal; color: string }) {
           <button onClick={() => setSuggested(null)}>{t('cancel')}</button>
         </div>
       )}
-      <input
-        value={step}
-        maxLength={300}
-        placeholder={t('addStepPlaceholder')}
-        onChange={(e) => setStep(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && step.trim()) {
-            mutate((d) => addSteps(d, goal.id, [step]))
-            setStep('')
-          }
-        }}
-      />
+      {fromCheat && (
+        <div className="callout small autofill">
+          {t('smartStepsHint', { title: fromCheat.title, n: fromCheat.steps.length })}{' '}
+          <button className="link-btn" onClick={() => mutate((d) => addSteps(d, goal.id, fromCheat.steps))}>{t('sugApply')}</button>
+        </div>
+      )}
+      <label className="field">
+        <span className="field-label">{t('addStepPlaceholder')}</span>
+        <input
+          value={step}
+          maxLength={300}
+          onChange={(e) => setStep(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && step.trim()) {
+              mutate((d) => addSteps(d, goal.id, [step]))
+              setStep('')
+            }
+          }}
+        />
+      </label>
       <div className="row-actions">
         {ai.enabled && <button className="link" disabled={busy} onClick={() => void askAi()}>{busy ? t('aiWorking') : `✨ ${t('aiSplitGoal')}`}</button>}
         <button className="link" onClick={() => mutate((d) => updateGoal(d, goal.id, { archived: !goal.archived }))}>
@@ -141,7 +153,6 @@ function GoalHours({ goal }: { goal: Goal }) {
         min={0}
         max={10000}
         step={0.5}
-        placeholder="–"
         value={goal.estimateHours ?? ''}
         aria-label={t('goalEstimate')}
         onChange={(e) => mutate((d) => updateGoal(d, goal.id, { estimateHours: e.target.value === '' ? null : Math.min(10000, Math.max(0, Number(e.target.value) || 0)) }))}
@@ -171,18 +182,20 @@ export function GoalsPanel({ projectId, color }: { projectId: string; color: str
   return (
     <section className="panel goals" aria-label={t('goals')}>
       <h2>{t('goals')}</h2>
-      <input
-        value={title}
-        maxLength={200}
-        placeholder={t('addGoalPlaceholder')}
-        onChange={(e) => setTitle(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && title.trim()) {
-            mutate((d) => addGoal(d, projectId, title))
-            setTitle('')
-          }
-        }}
-      />
+      <label className="field">
+        <span className="field-label">{t('addGoalPlaceholder')}</span>
+        <input
+          value={title}
+          maxLength={200}
+          onChange={(e) => setTitle(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && title.trim()) {
+              mutate((d) => addGoal(d, projectId, title))
+              setTitle('')
+            }
+          }}
+        />
+      </label>
       {shown.length === 0 && <p className="muted empty">{t('noGoals')}</p>}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={shown.map((g) => g.id)} strategy={verticalListSortingStrategy}>

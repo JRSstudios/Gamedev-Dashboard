@@ -217,3 +217,15 @@ export async function onQuickNoteShortcut(handler: () => void): Promise<() => vo
   const { listen } = await import('@tauri-apps/api/event')
   return listen('quick-note', () => handler())
 }
+
+export interface UnityScan {
+  packages: string[]
+  files: string[]
+  todos: { file: string; line: number; text: string }[]
+  truncated: boolean
+}
+/** Read-only look into the linked Unity project (packages, files, TODO comments). */
+export const scanUnityProject = (dir: string): Promise<UnityScan> => invoke<UnityScan>('scan_unity_project', { dir })
+
+/** Message of a crash in the previous run (desktop), removed once read. */
+export const takeCrashLog = (): Promise<string | null> => (IS_DESKTOP ? invoke<string | null>('take_crash_log') : Promise.resolve(null))

@@ -34,21 +34,23 @@ export function QuickNote() {
     <div className="modal-backdrop" onClick={() => setOpen(false)}>
       <div className="modal quick-note" role="dialog" aria-modal="true" aria-label={t('quickNoteTitle')} onClick={(e) => e.stopPropagation()}>
         <h2>{t('quickNoteTitle')}</h2>
-        <textarea
-          autoFocus
-          rows={4}
-          value={text}
-          maxLength={20000}
-          placeholder={t('quickNoteHint')}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') setOpen(false)
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault()
-              save()
-            }
-          }}
-        />
+        <label className="field">
+          <span className="field-label">{t('quickNoteHint')}</span>
+          <textarea
+            autoFocus
+            rows={4}
+            value={text}
+            maxLength={20000}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setOpen(false)
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                save()
+              }
+            }}
+          />
+        </label>
         <div className="row">
           <button className="primary" onClick={save}>{t('save')}</button>
           <button onClick={() => setOpen(false)}>{t('cancel')}</button>

@@ -1,5 +1,7 @@
 # 🎮 Gamedev Dashboard
 
+**[▶ Try it in your browser](https://jrsstudios.github.io/Gamedev-Dashboard/)** · **[⬇ Download for Windows](https://github.com/JRSstudios/Gamedev-Dashboard/releases/latest)** · [Report a bug](https://github.com/JRSstudios/Gamedev-Dashboard/issues/new?labels=bug)
+
 A calm, local-first overview for your game projects. Keep **goals with progress bars**, **assets** (concept art, music, sound effects) and **quick notes** together, per project — without OneNote chaos, Notion setup work or an Obsidian maze.
 
 - **Start with your Unity project**: pick your Unity project folder and the dashboard links it and takes over your existing art, audio and models. Afterwards it offers to connect Claude

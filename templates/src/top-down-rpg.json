@@ -6,26 +6,165 @@
   "description": "A small top-down adventure: walking in 8 directions, a village and a dungeon, NPC talk, enemies that chase, items and saving.",
   "author": "Gamedev Dashboard",
   "version": "1.0.0",
-  "languages": ["en"],
-  "tags": ["2d", "rpg", "adventure"],
+  "languages": [
+    "en"
+  ],
+  "tags": [
+    "2d",
+    "rpg",
+    "adventure"
+  ],
   "perspective": "2d",
   "contents": {
     "goals": [
-      { "title": "Walk around the world", "estimateHours": 6, "steps": ["Player with Rigidbody 2D (gravity 0) and TopDownController2D", "Walk animations with a 2D blend tree", "Camera with Confiner 2D", "Village tilemap with collisions"] },
-      { "title": "Talk and trade", "estimateHours": 10, "steps": ["Dialogue box UI", "NPC with a few lines", "Shop with 3 items", "Coins as a pickup"] },
-      { "title": "Dungeon and combat", "estimateHours": 14, "steps": ["Sword swing with a hitbox", "Enemy that chases the player (EnemyChase)", "Health bar", "Boss room door that needs a key"] },
-      { "title": "Save and load", "estimateHours": 4, "steps": ["Save position, coins and items (SaveSystem)", "Continue button in the menu"] }
+      {
+        "title": "Walk around the world",
+        "estimateHours": 6,
+        "steps": [
+          "Player with Rigidbody 2D (gravity 0) and TopDownController2D",
+          "Walk animations with a 2D blend tree",
+          "Camera with Confiner 2D",
+          "Village tilemap with collisions"
+        ]
+      },
+      {
+        "title": "Talk and trade",
+        "estimateHours": 10,
+        "steps": [
+          "Dialogue box UI",
+          "NPC with a few lines",
+          "Shop with 3 items",
+          "Coins as a pickup"
+        ]
+      },
+      {
+        "title": "Dungeon and combat",
+        "estimateHours": 14,
+        "steps": [
+          "Sword swing with a hitbox",
+          "Enemy that chases the player (EnemyChase)",
+          "Health bar",
+          "Boss room door that needs a key"
+        ]
+      },
+      {
+        "title": "Save and load",
+        "estimateHours": 4,
+        "steps": [
+          "Save position, coins and items (SaveSystem)",
+          "Continue button in the menu"
+        ]
+      }
     ],
     "pages": [
-      { "title": "World and story", "icon": "📜", "markdown": "# Setting\nWhere does the game take place? One paragraph is enough.\n\n## Main character\n- Name:\n- Goal:\n- What makes them special:\n\n## Places\n- Village (start, shop, NPCs)\n- Forest (first enemies)\n- Dungeon (boss)\n\n## Quest line\n- [ ] Talk to the elder\n- [ ] Find the key in the forest\n- [ ] Defeat the boss" },
-      { "title": "Characters", "icon": "🧑", "markdown": "## Elder\nGives the first quest. Friendly, a bit forgetful.\n\n## Shopkeeper\nSells potions and a better sword.\n\n## Boss\nWhat does it do? How does the player learn to beat it?" }
+      {
+        "title": "World and story",
+        "icon": "📜",
+        "markdown": "# Setting\nA quiet island village whose lighthouse went dark. Ships no longer come, and the forest behind the village has grown wild.\n\n## Main character\n- Name: Ari\n- Goal: relight the lighthouse\n- Special: can talk to animals\n\n## Places\n- Village (start, shop, NPCs)\n- Forest (first enemies)\n- Lighthouse dungeon (boss)\n\n## Quest line\n- [ ] Talk to the old keeper\n- [ ] Find the lens in the forest\n- [ ] Defeat the Gloom in the lighthouse"
+      },
+      {
+        "title": "Characters",
+        "icon": "🧑",
+        "markdown": "## Old keeper\nGives the first quest. Friendly, a bit forgetful, knows every story of the island.\n\n## Shopkeeper\nSells potions and a better sword. Trades shells for coins.\n\n## The Gloom (boss)\nA shadow that hides from light. The player learns to lure it into lamp light, where it can be hit."
+      }
     ],
     "tables": [
-      { "name": "Items", "columns": [{ "name": "Item", "type": "text" }, { "name": "Type", "type": "select", "options": ["Weapon", "Potion", "Key", "Other"] }, { "name": "Price", "type": "number" }, { "name": "In game", "type": "checkbox" }], "rows": [["Wooden sword", "Weapon", 0, false], ["Small potion", "Potion", 10, false], ["Dungeon key", "Key", 0, false]] },
-      { "name": "Enemies", "columns": [{ "name": "Enemy", "type": "text" }, { "name": "Health", "type": "number" }, { "name": "Damage", "type": "number" }, { "name": "Where", "type": "text" }], "rows": [["Slime", 2, 1, "Forest"], ["Bat", 1, 1, "Dungeon"]] }
+      {
+        "name": "Items",
+        "columns": [
+          {
+            "name": "Item",
+            "type": "text"
+          },
+          {
+            "name": "Type",
+            "type": "select",
+            "options": [
+              "Weapon",
+              "Potion",
+              "Key",
+              "Other"
+            ]
+          },
+          {
+            "name": "Price",
+            "type": "number"
+          },
+          {
+            "name": "In game",
+            "type": "checkbox"
+          }
+        ],
+        "rows": [
+          [
+            "Wooden sword",
+            "Weapon",
+            0,
+            false
+          ],
+          [
+            "Small potion",
+            "Potion",
+            10,
+            false
+          ],
+          [
+            "Dungeon key",
+            "Key",
+            0,
+            false
+          ]
+        ]
+      },
+      {
+        "name": "Enemies",
+        "columns": [
+          {
+            "name": "Enemy",
+            "type": "text"
+          },
+          {
+            "name": "Health",
+            "type": "number"
+          },
+          {
+            "name": "Damage",
+            "type": "number"
+          },
+          {
+            "name": "Where",
+            "type": "text"
+          }
+        ],
+        "rows": [
+          [
+            "Slime",
+            2,
+            1,
+            "Forest"
+          ],
+          [
+            "Bat",
+            1,
+            1,
+            "Dungeon"
+          ]
+        ]
+      }
     ],
     "cheats": [],
-    "budgets": { "concept": 10, "audio": 5, "unity": 34 },
-    "unityScripts": ["PlayerInputReader.cs", "TopDownController2D.cs", "EnemyChase.cs", "Health.cs", "HealthBar.cs", "SaveSystem.cs"]
+    "budgets": {
+      "concept": 10,
+      "audio": 5,
+      "unity": 34
+    },
+    "unityScripts": [
+      "PlayerInputReader.cs",
+      "TopDownController2D.cs",
+      "EnemyChase.cs",
+      "Health.cs",
+      "HealthBar.cs",
+      "SaveSystem.cs"
+    ]
   }
 }

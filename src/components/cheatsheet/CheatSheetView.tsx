@@ -118,7 +118,10 @@ function OwnEntry({ entry }: { entry: Cheat }) {
     <article className="cheat-entry">
       <header className="cheat-head">
         <input className="title-input big" value={entry.title} maxLength={200} aria-label={t('rename')} onChange={(e) => set({ title: e.target.value })} />
-        <input value={entry.category} maxLength={60} placeholder={t('cheatOwnCategory')} aria-label={t('cheatOwnCategory')} onChange={(e) => set({ category: e.target.value })} />
+        <label className="field">
+          <span className="field-label">{t('cheatOwnCategory')}</span>
+          <input value={entry.category} maxLength={60} aria-label={t('cheatOwnCategory')} onChange={(e) => set({ category: e.target.value })} />
+        </label>
       </header>
       <label className="field wide-field">
         {t('cheatOwnBody')}
@@ -183,7 +186,10 @@ export function CheatSheetView({ projectId }: { projectId: string }) {
   return (
     <div className="split cheats">
       <aside className="split-list panel">
-        <input type="search" value={query} placeholder={t('cheatSearch')} aria-label={t('cheatSearch')} onChange={(e) => setQuery(e.target.value)} />
+        <label className="field">
+          <span className="field-label">{t('cheatSearch')}</span>
+          <input type="search" value={query} aria-label={t('cheatSearch')} onChange={(e) => setQuery(e.target.value)} />
+        </label>
         <div className="chip-row">
           {PERSPECTIVES.map((p) => (
             <button key={p} className={perspective === p ? 'chip-btn on' : 'chip-btn'} onClick={() => setPerspective(perspective === p ? null : p)}>

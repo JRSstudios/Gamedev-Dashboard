@@ -16,7 +16,6 @@ function HoursInput({ value, label, onChange }: { value: number | null; label: s
       min={0}
       max={10000}
       step={0.5}
-      placeholder="–"
       aria-label={label}
       value={value ?? ''}
       onChange={(e) => onChange(e.target.value === '' ? null : Math.min(10000, Math.max(0, Number(e.target.value) || 0)))}
@@ -37,7 +36,7 @@ function Row({ name, planned, spent, deadline, risk, onPlan, onOpen }: { name: s
       </td>
       <td><HoursInput value={planned} label={t('budgetPlanned')} onChange={onPlan} /></td>
       <td className="num">{round(spent)} h</td>
-      <td className={`num${over ? ' warn' : ''}`}>{planned === null ? '–' : `${round(planned - spent)} h`}</td>
+      <td className={`num${over ? ' warn' : ''}`}>{planned === null ? t('budgetNotPlanned') : `${round(planned - spent)} h`}</td>
       <td className="bar-cell">
         <div className={`bar${over ? ' over' : ''}`} role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={name}>
           <span style={{ width: `${pct}%` }} />
@@ -79,11 +78,11 @@ export function TimeBudget({ projectId }: { projectId: string }) {
           </div>
           <div>
             <span className="small muted">{lastDeadline ? t('budgetFreeUntil', { date: lastDeadline }) : t('budgetFree30')}</span>
-            <strong>{free === null ? '–' : `${round(free)} h`}</strong>
+            <strong>{free === null ? t('budgetNoWeek') : `${round(free)} h`}</strong>
           </div>
           <div>
             <span className="small muted">{t('budgetTopSinks')}</span>
-            <strong className="small">{sinks.length ? sinks.map((x) => `${sectionTitle(t, x.s.id, x.s.label)} ${round(x.spent)} h`).join(' · ') : '–'}</strong>
+            <strong className="small">{sinks.length ? sinks.map((x) => `${sectionTitle(t, x.s.id, x.s.label)} ${round(x.spent)} h`).join(' · ') : t('budgetNoTime')}</strong>
           </div>
         </div>
         {free === null && <p className="small muted">{t('budgetNoAvailability')}</p>}

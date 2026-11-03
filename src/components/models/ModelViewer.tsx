@@ -21,10 +21,10 @@ import { loadModel, type ModelSource } from './loadModel'
 const materialsOf = (m: Mesh): Material[] => (Array.isArray(m.material) ? m.material : [m.material])
 
 /** Interactive 3D preview: drag to rotate, wheel to zoom, right-drag to pan. */
-export default function ModelViewer({ source, wireframe, dark }: { source: ModelSource | null; wireframe: boolean; dark: boolean }) {
+export default function ModelViewer({ source, wireframe, dark, autoRotate = false, bare = false }: { source: ModelSource | null; wireframe: boolean; dark: boolean; autoRotate?: boolean; bare?: boolean }) {
   const t = useT()
   const host = useRef<HTMLDivElement>(null)
-  const ctx = useRef<{ renderer: WebGLRenderer; scene: Scene; camera: PerspectiveCamera; controls: OrbitControls; grid: GridHelper; model: Object3D | null } | null>(null)
+  const ctx = useRef<{ renderer: WebGLRenderer; scene: Scene; camera: PerspectiveCamera; controls: OrbitControls; grid: GridHelper; model: Object3D | null; resetPan: () => void } | null>(null)
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [error, setError] = useState('')
 
@@ -32,7 +32,7 @@ export default function ModelViewer({ source, wireframe, dark }: { source: Model
   useEffect(() => {
     const el = host.current
     if (!el) return
-    const renderer = new WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
+    const renderer = new WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: true })
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     el.appendChild(renderer.domElement)
     const scene = new Scene()
@@ -40,6 +40,41 @@ export default function ModelViewer({ source, wireframe, dark }: { source: Model
     camera.position.set(3, 2, 4)
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true
+    // OrbitControls' pan moves the pivot along with the view, so the model would then swing around a
+    // point beside it. Instead the picture is shifted (view offset) and the pivot stays in the model.
+    controls.enablePan = false
+    const pan = { x: 0, y: 0, active: false, lastX: 0, lastY: 0 }
+    const applyPan = () => {
+      const w = el.clientWidth || 1
+      const h = el.clientHeight || 1
+      if (pan.x === 0 && pan.y === 0) camera.clearViewOffset()
+      else camera.setViewOffset(w, h, -pan.x, -pan.y, w, h)
+    }
+    const onDown = (e: PointerEvent) => {
+      if (e.button !== 2 && !(e.button === 0 && (e.shiftKey || e.ctrlKey))) return
+      pan.active = true
+      pan.lastX = e.clientX
+      pan.lastY = e.clientY
+      controls.enabled = false
+      renderer.domElement.setPointerCapture(e.pointerId)
+    }
+    const onMove = (e: PointerEvent) => {
+      if (!pan.active) return
+      pan.x += e.clientX - pan.lastX
+      pan.y += e.clientY - pan.lastY
+      pan.lastX = e.clientX
+      pan.lastY = e.clientY
+      applyPan()
+    }
+    const onUp = () => {
+      pan.active = false
+      controls.enabled = true
+    }
+    const noMenu = (e: Event) => e.preventDefault()
+    renderer.domElement.addEventListener('pointerdown', onDown, { capture: true })
+    renderer.domElement.addEventListener('pointermove', onMove)
+    renderer.domElement.addEventListener('pointerup', onUp)
+    renderer.domElement.addEventListener('contextmenu', noMenu)
     scene.add(new HemisphereLight(0xffffff, 0x444455, 1.6))
     scene.add(new AmbientLight(0xffffff, 0.4))
     const sun = new DirectionalLight(0xffffff, 2.2)
@@ -47,13 +82,14 @@ export default function ModelViewer({ source, wireframe, dark }: { source: Model
     scene.add(sun)
     const grid = new GridHelper(10, 20, 0x888888, 0xcccccc)
     scene.add(grid)
-    ctx.current = { renderer, scene, camera, controls, grid, model: null }
+    ctx.current = { renderer, scene, camera, controls, grid, model: null, resetPan: () => ((pan.x = 0), (pan.y = 0), applyPan()) }
 
     const resize = () => {
       const w = el.clientWidth || 1
       const h = el.clientHeight || 1
       renderer.setSize(w, h)
       camera.aspect = w / h
+      applyPan()
       camera.updateProjectionMatrix()
     }
     const observer = new ResizeObserver(resize)
@@ -69,6 +105,10 @@ export default function ModelViewer({ source, wireframe, dark }: { source: Model
     return () => {
       cancelAnimationFrame(frame)
       observer.disconnect()
+      renderer.domElement.removeEventListener('pointerdown', onDown, { capture: true })
+      renderer.domElement.removeEventListener('pointermove', onMove)
+      renderer.domElement.removeEventListener('pointerup', onUp)
+      renderer.domElement.removeEventListener('contextmenu', noMenu)
       controls.dispose()
       renderer.dispose()
       renderer.domElement.remove()
@@ -79,8 +119,16 @@ export default function ModelViewer({ source, wireframe, dark }: { source: Model
   useEffect(() => {
     const c = ctx.current
     if (!c) return
-    c.scene.background = new Color(dark ? 0x1b1e26 : 0xf3f4f7)
-  }, [dark])
+    c.scene.background = bare ? null : new Color(dark ? 0x1b1e26 : 0xf3f4f7)
+    c.grid.visible = !bare
+  }, [dark, bare])
+
+  useEffect(() => {
+    const c = ctx.current
+    if (!c) return
+    c.controls.autoRotate = autoRotate
+    c.controls.autoRotateSpeed = 2
+  }, [autoRotate])
 
   useEffect(() => {
     const c = ctx.current
@@ -111,6 +159,7 @@ export default function ModelViewer({ source, wireframe, dark }: { source: Model
         c.camera.near = radius / 1000
         c.camera.far = radius * 100
         c.camera.position.set(radius * 1.6, size.y / 2 + radius * 0.8, radius * 2.1)
+        c.resetPan()
         c.camera.updateProjectionMatrix()
         setStatus('idle')
       })

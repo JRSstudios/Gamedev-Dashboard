@@ -6,26 +6,138 @@
   "description": "A side-scrolling platformer from the first jump to a short playable demo: movement with coyote time, a tilemap level, enemies, pickups, a menu and a build.",
   "author": "Gamedev Dashboard",
   "version": "1.0.0",
-  "languages": ["en"],
-  "tags": ["2d", "platformer", "beginner"],
+  "languages": [
+    "en"
+  ],
+  "tags": [
+    "2d",
+    "platformer",
+    "beginner"
+  ],
   "perspective": "2d",
   "contents": {
     "goals": [
-      { "title": "Player movement feels good", "estimateHours": 8, "steps": ["Create the player with Rigidbody 2D and Capsule Collider 2D", "Add PlayerInputReader and PlatformerController2D", "Tune speed, jump height and gravity scale", "Add coyote time and jump buffer", "Camera follows the player (Cinemachine Position Composer)"] },
-      { "title": "First level", "estimateHours": 10, "steps": ["Make a tile palette from the tileset", "Paint ground and platforms on a Tilemap", "Add Tilemap Collider 2D and Composite Collider", "Place pickups and a goal flag", "Playtest and fix gaps that are too wide"] },
-      { "title": "Enemies and danger", "estimateHours": 8, "steps": ["Enemy walks between two points (Patrol2D)", "Touching an enemy hurts (DamageOnTouch + Health)", "Spikes and pits reset the player", "Stomp an enemy from above"] },
-      { "title": "Art and sound pass", "estimateHours": 12, "steps": ["Player idle, run and jump animations", "Background layers", "Jump, pickup and hit sounds", "Background music loop"] },
-      { "title": "Menu and build", "estimateHours": 5, "steps": ["Start menu with Play and Quit", "Pause menu", "Volume slider", "Windows build and test on another PC"] }
+      {
+        "title": "Player movement feels good",
+        "estimateHours": 8,
+        "steps": [
+          "Create the player with Rigidbody 2D and Capsule Collider 2D",
+          "Add PlayerInputReader and PlatformerController2D",
+          "Tune speed, jump height and gravity scale",
+          "Add coyote time and jump buffer",
+          "Camera follows the player (Cinemachine Position Composer)"
+        ]
+      },
+      {
+        "title": "First level",
+        "estimateHours": 10,
+        "steps": [
+          "Make a tile palette from the tileset",
+          "Paint ground and platforms on a Tilemap",
+          "Add Tilemap Collider 2D and Composite Collider",
+          "Place pickups and a goal flag",
+          "Playtest and fix gaps that are too wide"
+        ]
+      },
+      {
+        "title": "Enemies and danger",
+        "estimateHours": 8,
+        "steps": [
+          "Enemy walks between two points (Patrol2D)",
+          "Touching an enemy hurts (DamageOnTouch + Health)",
+          "Spikes and pits reset the player",
+          "Stomp an enemy from above"
+        ]
+      },
+      {
+        "title": "Art and sound pass",
+        "estimateHours": 12,
+        "steps": [
+          "Player idle, run and jump animations",
+          "Background layers",
+          "Jump, pickup and hit sounds",
+          "Background music loop"
+        ]
+      },
+      {
+        "title": "Menu and build",
+        "estimateHours": 5,
+        "steps": [
+          "Start menu with Play and Quit",
+          "Pause menu",
+          "Volume slider",
+          "Windows build and test on another PC"
+        ]
+      }
     ],
     "pages": [
-      { "title": "Game design", "icon": "🎮", "markdown": "# Pitch\nOne sentence: who do you play, what do you do, why is it fun?\n\n## Core loop\n- Run and jump through a level\n- Collect things\n- Reach the goal\n\n## Controls\n- Move: A/D or left stick\n- Jump: Space or south button\n\n## Scope for the demo\n- [ ] 1 level, about 2 minutes long\n- [ ] 1 enemy type\n- [ ] 1 collectible\n\n> Keep the first version tiny. Make it fun before you make it big." },
-      { "title": "Level ideas", "icon": "🗺", "markdown": "## Level 1: Teach the jump\n- Flat start, one small gap\n- A higher platform with a pickup above it\n- First enemy where it can be avoided\n\n## Level 2: Mix it\n- Moving platforms\n- Enemies near gaps\n\n---\nWrite every new idea here first and only build the best ones." }
+      {
+        "title": "Game design",
+        "icon": "🎮",
+        "markdown": "# Pitch\nYou play Moss, a tiny forest spirit who jumps through broken ruins to bring the light back to the valley.\n\n## Core loop\n- Run and jump through a level\n- Collect light seeds\n- Reach the shrine at the end\n\n## Controls\n- Move: A/D or left stick\n- Jump: Space or south button\n\n## Scope for the demo\n- [ ] 1 level, about 2 minutes long\n- [ ] 1 enemy type (slow beetle)\n- [ ] 1 collectible (light seed)\n\n> Keep the first version tiny. Make it fun before you make it big."
+      },
+      {
+        "title": "Level ideas",
+        "icon": "🗺",
+        "markdown": "## Level 1: Teach the jump\n- Flat start, one small gap\n- A higher platform with a pickup above it\n- First enemy where it can be avoided\n\n## Level 2: Mix it\n- Moving platforms\n- Enemies near gaps\n\n---\nWrite every new idea here first and only build the best ones."
+      }
     ],
     "tables": [
-      { "name": "Level list", "columns": [{ "name": "Level", "type": "text" }, { "name": "Status", "type": "select", "options": ["Idea", "Blockout", "Art", "Done"] }, { "name": "Playtime (min)", "type": "number" }, { "name": "Done", "type": "progress" }], "rows": [["1 - Meadow", "Idea", 2, 0], ["2 - Cave", "Idea", 3, 0]] }
+      {
+        "name": "Level list",
+        "columns": [
+          {
+            "name": "Level",
+            "type": "text"
+          },
+          {
+            "name": "Status",
+            "type": "select",
+            "options": [
+              "Idea",
+              "Blockout",
+              "Art",
+              "Done"
+            ]
+          },
+          {
+            "name": "Playtime (min)",
+            "type": "number"
+          },
+          {
+            "name": "Done",
+            "type": "progress"
+          }
+        ],
+        "rows": [
+          [
+            "1 - Meadow",
+            "Idea",
+            2,
+            0
+          ],
+          [
+            "2 - Cave",
+            "Idea",
+            3,
+            0
+          ]
+        ]
+      }
     ],
     "cheats": [],
-    "budgets": { "concept": 6, "audio": 4, "unity": 30 },
-    "unityScripts": ["PlayerInputReader.cs", "PlatformerController2D.cs", "Patrol2D.cs", "Health.cs", "DamageOnTouch.cs", "Pickup2D.cs"]
+    "budgets": {
+      "concept": 6,
+      "audio": 4,
+      "unity": 30
+    },
+    "unityScripts": [
+      "PlayerInputReader.cs",
+      "PlatformerController2D.cs",
+      "Patrol2D.cs",
+      "Health.cs",
+      "DamageOnTouch.cs",
+      "Pickup2D.cs"
+    ]
   }
 }

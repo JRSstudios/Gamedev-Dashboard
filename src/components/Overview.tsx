@@ -8,6 +8,7 @@ import { IS_DESKTOP, type ExternalApp } from '../platform'
 import { setSection, useStore } from '../store'
 import { InboxList } from './hub/InboxList'
 import { Suggestions } from './hub/Suggestions'
+import { SmartPanel } from './hub/SmartPanel'
 import { ProgressBar } from './ProgressBar'
 import { Icon } from './shell/Icon'
 import { UsagePanel } from './UsagePanel'
@@ -81,6 +82,7 @@ export function Overview({ projectId }: { projectId: string }) {
         )}
 
         <Suggestions projectId={projectId} />
+        <SmartPanel projectId={projectId} />
 
         <section className="panel">
           <div className="panel-head">

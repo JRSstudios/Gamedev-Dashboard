@@ -201,7 +201,10 @@ export function TemplatesView({ projectId }: { projectId: string }) {
   return (
     <div className="templates-view">
       <div className="toolbar">
-        <input type="search" placeholder={t('search')} value={query} onChange={(e) => setQuery(e.target.value)} aria-label={t('search')} />
+        <label className="field">
+          <span className="field-label">{t('search')}</span>
+          <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} aria-label={t('search')} />
+        </label>
         <div className="seg" role="group">
           {(['all', '2d', '3d'] as const).map((f) => (
             <button key={f} className={filter === f ? 'on' : ''} onClick={() => setFilter(f)}>{f === 'all' ? t('tplAll') : f.toUpperCase()}</button>

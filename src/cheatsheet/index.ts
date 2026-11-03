@@ -1,5 +1,6 @@
 import type { Lang } from '../i18n/languages'
 import { CAMERA } from './camera'
+import { EXTRA } from './extra'
 import { INPUT } from './input'
 import { localizeCheat } from './locales'
 import { MOVEMENT } from './movement'
@@ -12,7 +13,7 @@ export * from './types'
 export { CHEAT_LOCALES, localizeCheat } from './locales'
 
 /** Built-in Unity 6.6 cheat sheet, in reading order (German source texts). */
-export const CHEATS: CheatEntry[] = [...START, ...INPUT, ...MOVEMENT, ...CAMERA, ...WORLD, ...SYSTEMS]
+export const CHEATS: CheatEntry[] = [...START, ...INPUT, ...MOVEMENT, ...CAMERA, ...WORLD, ...SYSTEMS, ...EXTRA]
 
 const localized = new Map<Lang, CheatEntry[]>()
 

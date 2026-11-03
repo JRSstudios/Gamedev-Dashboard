@@ -4,6 +4,7 @@ import { updateSettings } from '../../model/ops'
 import { mutate, setSection } from '../../store'
 import { tutorialText } from '../../tutorial'
 import { TOUR } from '../../tutorial/content'
+import { Confetti } from './Confetti'
 
 const PAD = 6
 
@@ -38,9 +39,12 @@ export function Tour({ onClose }: { onClose: () => void }) {
     }
   }, [step.target, index])
 
-  const finish = () => {
+  const [party, setParty] = useState(false)
+  const finish = (celebrate = false) => {
+    if (celebrate) setParty(true)
     mutate((d) => updateSettings(d, { tutorial: { ...d.settings.tutorial, tourDone: true } }))
-    onClose()
+    if (celebrate) window.setTimeout(onClose, 1600)
+    else onClose()
   }
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -63,6 +67,7 @@ export function Tour({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="tour" role="dialog" aria-modal="true" aria-label={t('tutTour')}>
+      {party && <Confetti />}
       {rect ? (
         <div className="tour-spot" style={{ left: rect.left - PAD, top: rect.top - PAD, width: rect.width + PAD * 2, height: rect.height + PAD * 2 }} />
       ) : (
@@ -73,13 +78,13 @@ export function Tour({ onClose }: { onClose: () => void }) {
         <h3>{text.title}</h3>
         <p>{text.text}</p>
         <div className="row-between">
-          <button className="link" onClick={finish}>{t('tutSkip')}</button>
+          <button className="link" onClick={() => finish()}>{t('tutSkip')}</button>
           <span className="row">
             {index > 0 && <button onClick={() => setIndex(index - 1)}>{t('tutBack')}</button>}
             {index < TOUR.length - 1 ? (
               <button className="primary" autoFocus onClick={() => setIndex(index + 1)}>{t('tutNext')}</button>
             ) : (
-              <button className="primary" autoFocus onClick={finish}>{t('tutFinish')}</button>
+              <button className="primary" autoFocus onClick={() => finish(true)}>{t('tutFinish')}</button>
             )}
           </span>
         </div>

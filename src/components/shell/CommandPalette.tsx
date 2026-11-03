@@ -146,16 +146,18 @@ export function CommandPalette({
           }
         }}
       >
-        <input
-          autoFocus
-          value={query}
-          placeholder={t('palettePlaceholder')}
-          aria-label={t('palettePlaceholder')}
-          onChange={(e) => {
-            setQuery(e.target.value)
-            setIndex(0)
-          }}
-        />
+        <label className="field">
+          <span className="field-label">{t('palettePlaceholder')}</span>
+          <input
+            autoFocus
+            value={query}
+            aria-label={t('palettePlaceholder')}
+            onChange={(e) => {
+              setQuery(e.target.value)
+              setIndex(0)
+            }}
+          />
+        </label>
         <ul ref={list} role="listbox">
           {shown.map((c, i) => (
             <li key={c.id} role="option" aria-selected={i === at} className={i === at ? 'on' : ''} onMouseMove={() => setIndex(i)} onClick={() => run(c)}>

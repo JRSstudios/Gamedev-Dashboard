@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { DesktopOnly } from './DesktopOnly'
 import { askClaudeCli, claudeClearKey, claudeCliStatus, claudeHasKey, claudeSetKey, CLAUDE_MODELS, friendlyError, type CliStatus } from '../ai/claude'
 import { LANGUAGES, NATIVE_NAMES, useT } from '../i18n'
 import { updateSettings } from '../model/ops'
@@ -62,7 +63,7 @@ function ClaudeSettings() {
   return (
     <section className="panel">
       <h2>{t('claude')}</h2>
-      <p className="muted small">{IS_DESKTOP ? t('claudeIntro') : t('claudeDesktopOnly')}</p>
+      {IS_DESKTOP ? <p className="muted small">{t('claudeIntro')}</p> : <DesktopOnly reason={t('claudeDesktopOnly')} />}
       {IS_DESKTOP && (
         <>
           <div className="seg transport" role="radiogroup" aria-label={t('claudeTransport')}>
@@ -89,7 +90,6 @@ function ClaudeSettings() {
               autoComplete="off"
               spellCheck={false}
               value={key}
-              placeholder="sk-ant-…"
               aria-label={t('claudeKey')}
               onChange={(e) => setKey(e.target.value)}
             />

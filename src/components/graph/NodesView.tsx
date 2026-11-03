@@ -213,7 +213,10 @@ export function NodesView({ projectId }: { projectId: string }) {
     <div className="nodes">
       <aside className="nodes-library panel">
         <h2>{t('nodesLibrary')}</h2>
-        <input type="search" value={query} placeholder={t('nodesSearch')} onChange={(e) => setQuery(e.target.value)} />
+        <label className="field">
+          <span className="field-label">{t('nodesSearch')}</span>
+          <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} />
+        </label>
         {library.length === 0 && <p className="small muted">{t('nodesAllPlaced')}</p>}
         {TYPE_ORDER.map((type) => {
           const items = library.filter((r) => r.type === type)
@@ -232,7 +235,7 @@ export function NodesView({ projectId }: { projectId: string }) {
                         setLibDrag({ info: r, client: { x: e.clientX, y: e.clientY }, moved: false })
                       }}
                     >
-                      {r.title || '—'}
+                      {r.title || t('untitled')}
                     </span>
                     <button className="icon small" aria-label={`+ ${r.title}`} onClick={() => addAtCenter(r)}>+</button>
                   </li>
@@ -371,7 +374,7 @@ export function NodesView({ projectId }: { projectId: string }) {
               <span className={`chip ref-${selectedInfo.type}`}>{t(`ref_${selectedInfo.type}`)}</span>
               <button className="icon" aria-label={t('close')} onClick={() => setSelected(null)}>×</button>
             </div>
-            <h3>{selectedInfo.title || '—'}</h3>
+            <h3>{selectedInfo.title || t('untitled')}</h3>
             {selectedInfo.text && <p className="node-detail-text">{selectedInfo.text.slice(0, 600)}</p>}
             <p className="small muted">{t('nodesConnections', { n: connectionCount })}</p>
             <div className="row-actions">

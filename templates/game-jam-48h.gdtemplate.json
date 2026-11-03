@@ -70,7 +70,7 @@
       {
         "title": "Jam notes",
         "icon": "⏱",
-        "markdown": "# Theme\n\n## Idea\n\n## Cut list\nThings that sound fun but will not make it in time:\n- \n\n> Rule: if it is not fun after 12 hours, simplify. Do not add features."
+        "markdown": "# Theme\nExample: \"Only one\"\n\n## Idea\nA platformer where you can place only one block at a time; placing a new one removes the old one.\n\n## Cut list\nThings that sound fun but will not make it in time:\n- Level editor\n- Online leaderboard\n- Second character\n\n> Rule: if it is not fun after 12 hours, simplify. Do not add features."
       }
     ],
     "tables": [],

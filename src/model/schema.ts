@@ -204,6 +204,48 @@ export const ChatSchema = z.object({
   at: iso,
 })
 
+export const SLIDE_KINDS = ['title', 'image', 'gallery', 'compare', 'model', 'stats', 'text', 'end'] as const
+
+/** One slide of a showcase. Assets are referenced by id; text is plain. */
+export const SlideSchema = z.object({
+  id,
+  kind: z.enum(SLIDE_KINDS),
+  title: text(200).default(''),
+  text: text(2000).default(''),
+  assetIds: z.array(id).max(12).default([]),
+  seconds: z.number().min(1).max(60).default(4),
+  transition: z.enum(['fade', 'slide', 'zoom']).default('fade'),
+})
+
+/** A presentation built from the project's assets, for videos and posts. */
+export const ShowcaseSchema = z.object({
+  id,
+  projectId: id,
+  title: text(200),
+  format: z.enum(['16:9', '9:16', '1:1']).default('16:9'),
+  theme: z.enum(['dark', 'light', 'color']).default('dark'),
+  /** Music asset played during the presentation. */
+  musicId: id.nullable().default(null),
+  slides: z.array(SlideSchema).max(100),
+  createdAt: iso,
+})
+
+/** A bug report written in the Bugs section (or prepared after a crash). */
+export const BugSchema = z.object({
+  id,
+  title: text(200),
+  description: text(5000),
+  steps: text(5000).default(''),
+  expected: text(2000).default(''),
+  severity: z.enum(['low', 'medium', 'high', 'crash']).default('medium'),
+  /** Error message and stack captured automatically; paths are redacted. */
+  error: text(8000).default(''),
+  section: text(40).default(''),
+  status: z.enum(['draft', 'sent', 'fixed']).default('draft'),
+  auto: z.boolean().default(false),
+  createdAt: iso,
+})
+
 /** What a template installed, so it can be removed again. */
 export const InstallSchema = z.object({
   id,
@@ -317,6 +359,8 @@ export const DataSchema = z.object({
   pages: z.array(PageSchema).max(5000).default([]),
   chats: z.array(ChatSchema).max(5000).default([]),
   installs: z.array(InstallSchema).max(500).default([]),
+  bugs: z.array(BugSchema).max(500).default([]),
+  showcases: z.array(ShowcaseSchema).max(500).default([]),
   sessions: z.array(SessionSchema).max(50000),
   timer: TimerSchema.nullable().default(null),
   settings: SettingsSchema,
@@ -343,6 +387,9 @@ export type Cheat = z.infer<typeof CheatSchema>
 export type Idea = z.infer<typeof IdeaSchema>
 export type Usage = z.infer<typeof UsageSchema>
 export type Chat = z.infer<typeof ChatSchema>
+export type Bug = z.infer<typeof BugSchema>
+export type Slide = z.infer<typeof SlideSchema>
+export type Showcase = z.infer<typeof ShowcaseSchema>
 export type Install = z.infer<typeof InstallSchema>
 export type Availability = z.infer<typeof AvailabilitySchema>
 export type TimeBlock = z.infer<typeof TimeBlockSchema>
@@ -368,6 +415,8 @@ export function emptyData(): Data {
     pages: [],
     chats: [],
     installs: [],
+    bugs: [],
+    showcases: [],
     sessions: [],
     timer: null,
     settings: {

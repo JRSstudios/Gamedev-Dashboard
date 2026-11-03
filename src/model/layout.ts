@@ -15,11 +15,13 @@ export const SECTIONS = [
   'pages',
   'tables',
   'nodes',
+  'showcase',
   'planner',
   'unity',
   'blender',
   'krita',
   'templates',
+  'bugs',
   'tutorial',
   'settings',
 ] as const

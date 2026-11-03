@@ -13,6 +13,10 @@ import { PlannerView } from './components/planner/PlannerView'
 import { TemplatesView } from './components/templates/TemplatesView'
 import { TutorialView } from './components/tutorial/TutorialView'
 import { Tour } from './components/tutorial/Tour'
+import { BugsView } from './components/bugs/BugsView'
+import { ShowcaseView } from './components/showcase/ShowcaseView'
+import { onError, redact } from './features/bugs'
+import { reportBug } from './features/reportBug'
 import { QuickNote } from './components/QuickNote'
 import { AssistantPanel } from './components/assistant/AssistantPanel'
 import { BrainstormView } from './components/brainstorm/BrainstormView'
@@ -27,12 +31,13 @@ import { PagesView } from './components/pages/PagesView'
 import { TablesView } from './components/tables/TablesView'
 import { CommandPalette } from './components/shell/CommandPalette'
 import { NavRail } from './components/shell/NavRail'
+import { Icon } from './components/shell/Icon'
 import { ShortcutsDialog } from './components/shell/ShortcutsDialog'
 import { TopBar } from './components/shell/TopBar'
 import { useLang, useT } from './i18n'
 import { resolveSections } from './model/layout'
 import type { Project } from './model/schema'
-import { IS_DESKTOP, saveTextFile, snapshotNow } from './platform'
+import { confirmDialog, IS_DESKTOP, saveTextFile, snapshotNow, takeCrashLog } from './platform'
 import { dayKey } from './model/time'
 import { groupOf, sectionDescription, sectionTitle } from './sections'
 import { getData, init, notify, redo, setSection, startFresh, undo, useStore, type Section } from './store'
@@ -96,6 +101,10 @@ function SectionView({ section, project, onOpenAi }: { section: Section; project
       return <TemplatesView projectId={id} />
     case 'tutorial':
       return <TutorialView />
+    case 'showcase':
+      return <ShowcaseView projectId={id} />
+    case 'bugs':
+      return <BugsView />
     case 'settings':
       return <SettingsPage onOpenAi={onOpenAi} />
   }
@@ -149,6 +158,10 @@ export default function App() {
   useEffect(() => {
     if (phase !== 'ready') return
     startBridge(handleExportEvent)
+    // A crash in the last run: offer to turn it into a bug report.
+    void takeCrashLog().then(async (log) => {
+      if (log && (await confirmDialog(t('crashLastRun')))) reportBug({ severity: 'crash', error: redact(log).slice(0, 8000), title: 'Crash in the previous run' })
+    })
     // One snapshot per day; a missing backup folder is reported but never blocks the app.
     if (IS_DESKTOP) void snapshotNow(dayKey(new Date()), getData().settings.backupDir).catch((e: unknown) => notify(t('snapBackupFailed', { reason: String(e) })))
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once when the data is ready
@@ -163,6 +176,17 @@ export default function App() {
       window.removeEventListener('gd-claude', onAsk)
       window.removeEventListener('gd-tour', onTour)
     }
+  }, [])
+
+  // Unhandled errors: ask once per message whether to prepare a bug report.
+  useEffect(() => {
+    const asked = new Set<string>()
+    return onError((e) => {
+      if (asked.has(e.message)) return
+      asked.add(e.message)
+      notify(t('errorOccurred'), { label: t('bugReport'), run: () => reportBug({ severity: 'high', error: `${e.message}\n${e.stack}`.slice(0, 8000), title: e.message.slice(0, 200) }) })
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `t` only changes with the language
   }, [])
 
   // First start with a project: show the tour once.
@@ -211,7 +235,7 @@ export default function App() {
   if (status.phase === 'loading') return <main className="center-screen muted">{t('loading')}</main>
   if (status.phase === 'error') return <ErrorScreen message={status.message} raw={status.raw} />
 
-  const bare = ['overview', 'settings', 'planner', 'unity', 'blender', 'krita', 'pages', 'tables', 'nodes', 'cheats', 'brainstorm', 'models', 'templates', 'tutorial'].includes(section)
+  const bare = ['overview', 'settings', 'planner', 'unity', 'blender', 'krita', 'pages', 'tables', 'nodes', 'cheats', 'brainstorm', 'models', 'templates', 'tutorial', 'bugs', 'showcase'].includes(section)
   const sectionLabel = resolveSections(project).find((e) => e.id === section)?.label ?? ''
 
   return (
@@ -229,7 +253,10 @@ export default function App() {
                   <span>{project.name}</span>
                   {groupOf(section) && <span>{t(`group_${groupOf(section)!}`)}</span>}
                 </nav>
-                <h1>{sectionTitle(t, section, sectionLabel)}</h1>
+                <div className="page-title-row">
+                  <span className="page-icon-badge" aria-hidden="true"><Icon name={section} size={20} /></span>
+                  <h1>{sectionTitle(t, section, sectionLabel)}</h1>
+                </div>
                 <p className="muted">{sectionDescription(t, section)}</p>
               </div>
               <div className={`${bare ? 'page-body' : 'page-body hide-h2'} section-${section}`}>

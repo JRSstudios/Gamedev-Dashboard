@@ -25,11 +25,11 @@ export function SectionsSettings() {
           <li key={e.id} className={e.visible ? '' : 'off'}>
             <Icon name={e.id} />
             <input
-              value={e.label}
+              value={e.label || sectionTitle(t, e.id)}
               maxLength={60}
-              placeholder={sectionTitle(t, e.id)}
               aria-label={t('rename')}
-              onChange={(ev) => mutate((d) => renameSection(d, projectId, e.id, ev.target.value))}
+              // The built-in name is shown as the value; keeping it unchanged stores no custom name.
+              onChange={(ev) => mutate((d) => renameSection(d, projectId, e.id, ev.target.value === sectionTitle(t, e.id) ? '' : ev.target.value))}
             />
             <label className="check small">
               <input type="checkbox" checked={e.visible} onChange={(ev) => mutate((d) => setSectionVisible(d, projectId, e.id, ev.target.checked))} />

@@ -133,15 +133,17 @@ function AssetCard({ asset, missing }: { asset: Asset; missing: boolean }) {
             #{x}
           </button>
         ))}
-        <input
-          className="tag-input"
-          value={tag}
-          maxLength={32}
-          placeholder={t('addTag')}
-          onChange={(e) => setTag(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && addTag()}
-          onBlur={addTag}
-        />
+        <label className="field">
+          <span className="field-label">{t('addTag')}</span>
+          <input
+            className="tag-input"
+            value={tag}
+            maxLength={32}
+            onChange={(e) => setTag(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && addTag()}
+            onBlur={addTag}
+          />
+        </label>
       </div>
     </li>
   )
@@ -343,13 +345,15 @@ export function AssetBoard({ projectId, categories = ASSET_CATEGORIES, layout = 
     >
       <div className="panel-head">
         <h2>{title ?? t('assets')}</h2>
-        <input
-          type="search"
-          className="search"
-          value={query}
-          placeholder={t('searchAssets')}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+        <label className="field">
+          <span className="field-label">{t('searchAssets')}</span>
+          <input
+            type="search"
+            className="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </label>
         {actions}
         <ClaudeSortButton projectId={projectId} categories={categories} />
         {IS_DESKTOP ? (

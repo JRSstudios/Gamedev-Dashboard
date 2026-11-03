@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useT } from '../../i18n'
+import { suggestTableTemplate } from '../../model/smart'
 import { addTable, TABLE_TEMPLATES, type TemplateId } from '../../model/tables'
 import { getData, mutate, setFocus, useStore } from '../../store'
 import { Icon } from '../shell/Icon'
@@ -45,7 +46,14 @@ export function TablesView({ projectId }: { projectId: string }) {
             create()
           }}
         >
-          <input value={name} maxLength={100} placeholder={t('tableNamePlaceholder')} onChange={(e) => setName(e.target.value)} />
+          <label className="field">
+            <span className="field-label">{t('tableNamePlaceholder')}</span>
+            <input value={name} maxLength={100} onChange={(e) => {
+              setName(e.target.value)
+              const fit = suggestTableTemplate(e.target.value)
+              if (fit) setTemplate(fit)
+            }} />
+          </label>
           <label className="field">
             {t('template')}
             <select value={template} onChange={(e) => setTemplate(e.target.value as TemplateId)}>

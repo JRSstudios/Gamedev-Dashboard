@@ -5,6 +5,8 @@ import { addGoal, addSteps, updateSettings } from '../../model/ops'
 import { getActiveProjectId, mutate, notify, openItem, setSection, useStore } from '../../store'
 import { FIRST_GAME, LESSONS, type LessonId } from '../../tutorial/content'
 import { startTour, tutorialText } from '../../tutorial'
+import { Confetti } from './Confetti'
+import { LessonAnimation } from './LessonAnimation'
 
 /** Lessons with "try it" buttons, progress, the guided tour and the first-game course. */
 export function TutorialView() {
@@ -22,8 +24,10 @@ export function TutorialView() {
       const list = d.settings.tutorial.done.filter((x) => x !== current)
       return updateSettings(d, { tutorial: { ...d.settings.tutorial, done: value ? [...list, current] : list } })
     })
+  const [party, setParty] = useState(0)
   const next = () => {
     markDone(true)
+    if (done.filter((d) => d !== current && LESSONS.some((l) => l.id === d)).length === LESSONS.length - 1) setParty((n) => n + 1)
     const i = LESSONS.findIndex((l) => l.id === current)
     if (i < LESSONS.length - 1) setCurrent(LESSONS[i + 1].id)
   }
@@ -40,10 +44,14 @@ export function TutorialView() {
 
   return (
     <div className="tutorial">
+      {party > 0 && <Confetti key={party} />}
       <aside className="panel tut-list">
         <div className="panel-head">
           <h2>{t('tutLessons')}</h2>
           <span className="small muted">{t('tutProgress', { done: done.filter((d) => LESSONS.some((l) => l.id === d)).length, total: LESSONS.length })}</span>
+        </div>
+        <div className="tut-progress" aria-hidden="true">
+          <span style={{ width: `${(done.filter((d) => LESSONS.some((l) => l.id === d)).length / LESSONS.length) * 100}%` }} />
         </div>
         <ol className="plain">
           {LESSONS.map((l, i) => (
@@ -60,8 +68,9 @@ export function TutorialView() {
 
       <article className="panel tut-lesson">
         <h2>{body.title}</h2>
+        <LessonAnimation key={current} lesson={current} />
         <p>{body.intro}</p>
-        <ol className="tut-steps">
+        <ol className="tut-steps" key={`steps-${current}`}>
           {body.steps.map((s, i) => (
             <li key={i}>{s}</li>
           ))}

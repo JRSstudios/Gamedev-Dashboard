@@ -10,11 +10,12 @@ import { useTransferReport } from './useTransferReport'
 export type PathField = 'unityDir' | 'unityExe' | 'blenderDir' | 'blenderExe' | 'blenderExportDir' | 'kritaExe' | 'kritaDir'
 
 export function PathRow({ label, value, buttonLabel, onPick, onClear }: { label: string; value: string | null; buttonLabel: string; onPick: () => void; onClear: () => void }) {
+  const t = useT()
   return (
     <div className="path-row">
       <span className="small muted">{label}</span>
       <div className="path-line">
-        <code className="clip" title={value ?? ''}>{value ?? '—'}</code>
+        <code className="clip" title={value ?? ''}>{value ?? t('notLinked')}</code>
         <button onClick={onPick}>{buttonLabel}</button>
         {value && <button className="link" onClick={onClear} aria-label="×">×</button>}
       </div>

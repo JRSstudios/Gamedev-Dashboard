@@ -13,6 +13,7 @@ mod models;
 mod snapshots;
 mod templates;
 mod transfer;
+mod unity_scan;
 
 const MAX_DATA_BYTES: usize = 64 * 1024 * 1024;
 const MAX_PREVIEW_BYTES: u64 = 25 * 1024 * 1024;
@@ -113,6 +114,26 @@ fn read_text_file(path: String) -> Result<String, String> {
     fs::read_to_string(p).map_err(|e| e.to_string())
 }
 
+/// Navigation targets the main window may load: the bundled app, and the dev server in debug builds.
+pub(crate) fn allowed_navigation(url: &tauri::Url) -> bool {
+    let host = url.host_str().unwrap_or("");
+    match url.scheme() {
+        "tauri" | "asset" => true,
+        "http" | "https" if host == "tauri.localhost" => true,
+        "http" if cfg!(debug_assertions) && (host == "localhost" || host == "127.0.0.1") && url.port() == Some(1420) => true,
+        _ => false,
+    }
+}
+
+/// The crash message from the last run, if the app panicked; reading it removes it.
+#[tauri::command]
+fn take_crash_log(app: tauri::AppHandle) -> Option<String> {
+    let path = app.path().app_data_dir().ok()?.join("crash.log");
+    let text = fs::read_to_string(&path).ok()?;
+    let _ = fs::remove_file(&path);
+    Some(text.chars().take(16_000).collect())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -120,6 +141,13 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .manage(bridge::Bridge(std::sync::Mutex::new(bridge::Inner::new(String::new()))))
+        .plugin(
+            // The window only ever shows the bundled app. A link or script that tries to navigate it
+            // elsewhere is blocked; external links open in the system browser through the opener plugin.
+            tauri::plugin::Builder::<tauri::Wry>::new("navigation-guard")
+                .on_navigation(|_webview, url| allowed_navigation(url))
+                .build(),
+        )
         .plugin(
             // Ctrl+Shift+Space brings the window up with a quick note, even from another program.
             tauri_plugin_global_shortcut::Builder::new()
@@ -138,6 +166,14 @@ pub fn run() {
                 .build(),
         )
         .setup(|app| {
+            // Release builds abort on panic; the message is kept so the next start can offer a bug report.
+            if let Ok(dir) = app.path().app_data_dir() {
+                let crash = dir.join("crash.log");
+                let _ = fs::create_dir_all(&dir);
+                std::panic::set_hook(Box::new(move |info| {
+                    let _ = fs::write(&crash, format!("{info}\n{}", std::backtrace::Backtrace::force_capture()));
+                }));
+            }
             // The plugins are optional; without the bridge the dashboard works as before.
             if let Err(e) = bridge::start(app.handle()) {
                 eprintln!("bridge not started: {e}");
@@ -151,6 +187,7 @@ pub fn run() {
             read_preview,
             write_text_file,
             read_text_file,
+            take_crash_log,
             claude::claude_set_key,
             claude::claude_has_key,
             claude::claude_clear_key,
@@ -176,8 +213,24 @@ pub fn run() {
             templates::write_unity_script,
             snapshots::snapshot_now,
             snapshots::list_snapshots,
-            snapshots::read_snapshot
+            snapshots::read_snapshot,
+            unity_scan::scan_unity_project
         ])
         .run(tauri::generate_context!())
         .expect("error while running Gamedev Dashboard");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::allowed_navigation;
+
+    #[test]
+    fn only_the_bundled_app_may_load() {
+        for ok in ["http://tauri.localhost/index.html", "https://tauri.localhost/", "tauri://localhost/"] {
+            assert!(allowed_navigation(&ok.parse().unwrap()), "{ok}");
+        }
+        for bad in ["https://evil.example/", "http://127.0.0.1:9999/", "file:///C:/Windows/win.ini", "javascript:alert(1)"] {
+            assert!(!allowed_navigation(&bad.parse().unwrap()), "{bad}");
+        }
+    }
 }

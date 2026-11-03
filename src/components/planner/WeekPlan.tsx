@@ -47,6 +47,7 @@ export function Totals({ available, done, label }: { available: number; done: nu
       <div className="bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
         <span style={{ width: `${pct}%` }} />
       </div>
+      {available === 0 && <p className="small callout">{t('planEmpty')}</p>}
     </section>
   )
 }

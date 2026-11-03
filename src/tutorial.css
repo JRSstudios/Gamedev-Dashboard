@@ -1,0 +1,51 @@
+/* ---------- tutorial animations ---------- */
+.lesson-anim { width: 100%; max-width: 520px; display: block; margin: 4px auto 8px; border-radius: 14px; background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, var(--surface)), var(--surface-2)); }
+.lesson-anim .win { fill: var(--surface); stroke: var(--border); }
+.lesson-anim .side { fill: var(--surface-2); }
+.lesson-anim .nav { fill: var(--surface-3); }
+.lesson-anim .nav.on { fill: var(--accent); animation: glow 2s ease-in-out infinite; }
+.lesson-anim .card, .lesson-anim .tile, .lesson-anim .lane, .lesson-anim .board, .lesson-anim .landed { fill: var(--surface-2); stroke: var(--border); }
+.lesson-anim .card { animation: pop-in 3.2s var(--ease) infinite both; }
+.lesson-anim .tile.target { stroke: var(--accent); }
+.lesson-anim .wire { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-dasharray: 160; stroke-dashoffset: 160; animation: draw 2.4s ease-in-out infinite; }
+.lesson-anim .hub { fill: var(--accent); animation: glow 1.2s ease-in-out infinite; }
+.lesson-anim .file rect { fill: var(--accent); }
+.lesson-anim .file path { fill: #fff; opacity: 0.85; }
+.lesson-anim .file { animation: drop-file 3s var(--ease) infinite; }
+.lesson-anim .landed { opacity: 0; animation: land 3s var(--ease) infinite; }
+.lesson-anim .arrow { stroke: var(--accent); stroke-width: 3; fill: none; stroke-dasharray: 70; stroke-dashoffset: 70; animation: draw 2.2s ease-in-out infinite; }
+.lesson-anim .arrowhead { stroke: var(--accent); stroke-width: 3; fill: none; opacity: 0; animation: appear 2.2s ease-in-out infinite; }
+.lesson-anim .pulse { fill: none; stroke: var(--accent); stroke-width: 2; opacity: 0; transform-origin: 265px 90px; animation: ring 2.2s ease-out infinite; }
+.lesson-anim .bar { fill: var(--accent); transform-box: fill-box; transform-origin: bottom; animation: grow 2.6s var(--ease) infinite both; }
+.lesson-anim .card.move { fill: var(--accent); animation: move-card 3.4s var(--ease) infinite; }
+.lesson-anim .box { fill: var(--surface); stroke: var(--border-strong); }
+.lesson-anim .tick { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-dasharray: 20; stroke-dashoffset: 20; animation: draw 4s ease-in-out infinite; animation-delay: inherit; }
+.lesson-anim .line { fill: var(--surface-3); }
+.lesson-anim .bubble { opacity: 0; animation: appear 3.4s ease-in-out infinite both; }
+.lesson-anim .bubble.me { fill: var(--accent); }
+.lesson-anim .bubble.ai { fill: var(--surface-3); }
+.lesson-anim .apply { fill: var(--accent); opacity: 0; animation: appear 3.4s ease-in-out 2.2s infinite both; }
+@keyframes glow { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+@keyframes pop-in { 0% { opacity: 0; transform: translateY(8px); } 15%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+@keyframes draw { 0% { stroke-dashoffset: 160; } 50%, 85% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+@keyframes drop-file { 0% { transform: translate(260px, -50px) rotate(12deg); opacity: 0; } 15% { opacity: 1; } 55% { transform: translate(118px, 44px) rotate(0); opacity: 1; } 70%, 100% { transform: translate(118px, 44px); opacity: 0; } }
+@keyframes land { 0%, 55% { opacity: 0; } 65%, 90% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes appear { 0% { opacity: 0; } 20%, 85% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes ring { 0% { opacity: 0.8; transform: scale(0.6); } 100% { opacity: 0; transform: scale(1.4); } }
+@keyframes grow { 0% { transform: scaleY(0); } 40%, 85% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0.4; } }
+@keyframes move-card { 0%, 20% { transform: none; } 50%, 80% { transform: translate(136px, 64px); } 100% { transform: none; } }
+
+.tut-steps li { opacity: 0; animation: rise 0.45s var(--ease) both; }
+.tut-steps li:nth-child(1) { animation-delay: 0.05s; }
+.tut-steps li:nth-child(2) { animation-delay: 0.2s; }
+.tut-steps li:nth-child(3) { animation-delay: 0.35s; }
+.tut-steps li:nth-child(4) { animation-delay: 0.5s; }
+.tut-steps li:nth-child(5) { animation-delay: 0.65s; }
+.tut-progress { height: 6px; border-radius: 99px; background: var(--surface-3); overflow: hidden; }
+.tut-progress span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.5s var(--ease); }
+.tut-dot.done { animation: pop 0.3s var(--ease); }
+.tour-spot { animation: spot-pulse 1.8s ease-in-out infinite; }
+@keyframes spot-pulse { 0%, 100% { outline-offset: 0; outline-color: var(--accent); } 50% { outline-offset: 5px; outline-color: color-mix(in srgb, var(--accent) 40%, transparent); } }
+.confetti { position: fixed; inset: 0; pointer-events: none; z-index: 1100; overflow: hidden; }
+.confetti i { position: absolute; top: -12px; width: 8px; height: 14px; border-radius: 2px; animation: fall 1.8s ease-in forwards; }
+@keyframes fall { to { transform: translateY(105vh) rotate(720deg); opacity: 0.6; } }

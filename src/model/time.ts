@@ -18,7 +18,7 @@ export function startOfWeek(d: Date): Date {
 
 export function formatMinutes(minutes: number): string {
   const m = Math.round(minutes)
-  if (m < 60) return `${m}m`
+  if (m < 60) return `${m} min`
   return `${Math.floor(m / 60)}h${pad(m % 60)}`
 }
 

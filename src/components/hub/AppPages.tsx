@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { DesktopOnly } from '../DesktopOnly'
 import { launchApp, useInbox, useUnityValid } from '../../features/hub'
 import { unitySubFolder } from '../../features/transfer'
 import { useT } from '../../i18n'
@@ -22,7 +23,7 @@ function useLinkedPaths(projectId: string): string[] {
 function AppFrame({ project, app, canLaunch, intro, children }: { project: Project | undefined; app: ExternalApp; canLaunch: boolean; intro: string; children: (p: Project) => ReactNode }) {
   const t = useT()
   if (!project) return null
-  if (!IS_DESKTOP) return <p className="panel muted">{t('integDesktopOnly')}</p>
+  if (!IS_DESKTOP) return <DesktopOnly reason={t('integDesktopOnly')} />
   const label = app === 'unity' ? t('integOpenUnity') : app === 'blender' ? t('integOpenBlender') : t('kritaStart')
   return (
     <div className="app-page">
@@ -63,8 +64,7 @@ export function UnityPage({ projectId }: { projectId: string }) {
                   <label key={c} className="field">
                     {t(`cat_${c}`)}
                     <input
-                      value={p.integrations.unityMap[c] ?? ''}
-                      placeholder={unitySubFolder({ integrations: { ...p.integrations, unityMap: {} } }, c)}
+                      value={p.integrations.unityMap[c] ?? unitySubFolder({ integrations: { ...p.integrations, unityMap: {} } }, c)}
                       maxLength={300}
                       onChange={(e) => mutate((d) => updateIntegrations(d, p.id, { unityMap: { ...p.integrations.unityMap, [c]: e.target.value } }))}
                     />

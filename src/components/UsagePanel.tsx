@@ -105,7 +105,6 @@ export function UsagePanel({ compact = false }: { compact?: boolean }) {
           min={0}
           step={1}
           value={limit ?? ''}
-          placeholder={t('usageNoLimit')}
           onChange={(e) => {
             const v = e.target.value === '' ? null : Math.max(0, Number(e.target.value))
             mutate((d) => updateSettings(d, { claude: { ...d.settings.claude, monthlyLimitUsd: v === null || Number.isNaN(v) ? null : v } }))

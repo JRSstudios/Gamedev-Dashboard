@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { DesktopOnly } from '../DesktopOnly'
 import { PlanSchema, validActions, type Action } from '../../ai/actions'
 import { splitAnswer } from '../../ai/assistant'
 import { buildProjectContext } from '../../ai/context'
@@ -127,12 +128,12 @@ export function AssistantPanel({ projectId, onClose }: { projectId: string; onCl
           <button onClick={onClose} aria-label={t('close')}>×</button>
         </div>
       </div>
-      {ready === false && (
+      {ready === false && IS_DESKTOP && (
         <div className="callout small">
-          {IS_DESKTOP ? t('assistNotReady') : t('claudeDesktopOnly')}{' '}
-          {IS_DESKTOP && <button className="link" onClick={() => setSection('settings')}>{t('allSettings')}</button>}
+          {t('assistNotReady')} <button className="link" onClick={() => setSection('settings')}>{t('allSettings')}</button>
         </div>
       )}
+      {!IS_DESKTOP && <DesktopOnly reason={t('claudeDesktopOnly')} />}
       <div className="assistant-log" ref={list}>
         {messages.length === 0 && (
           <div className="small muted">
@@ -162,20 +163,22 @@ export function AssistantPanel({ projectId, onClose }: { projectId: string; onCl
           void send(input)
         }}
       >
-        <textarea
-          autoFocus
-          rows={3}
-          value={input}
-          maxLength={4000}
-          placeholder={t('assistPlaceholder')}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault()
-              void send(input)
-            }
-          }}
-        />
+        <label className="field">
+          <span className="field-label">{t('assistPlaceholder')}</span>
+          <textarea
+            autoFocus
+            rows={3}
+            value={input}
+            maxLength={4000}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                void send(input)
+              }
+            }}
+          />
+        </label>
         <button className="primary" type="submit" disabled={!ready || busy || !input.trim()}>{t('assistSend')}</button>
       </form>
     </aside>

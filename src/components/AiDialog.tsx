@@ -151,7 +151,10 @@ export function AiDialog({ projectId, onClose }: { projectId: string | null; onC
         ) : (
           <>
             <div className="stack">
-              <input value={custom} placeholder={`${t('aiUrl')} (optional)`} onChange={(e) => setCustom(e.target.value)} />
+              <label className="field">
+                <span className="field-label">{`${t('aiUrl')} (optional)`}</span>
+                <input value={custom} onChange={(e) => setCustom(e.target.value)} />
+              </label>
               <button className="primary" disabled={scanning} onClick={() => void scan()}>
                 {scanning ? t('aiScanning') : servers ? t('aiRecheck') : t('aiConnect')}
               </button>

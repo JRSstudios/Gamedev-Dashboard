@@ -72,7 +72,7 @@ export function NodeCard({ info, data }: { info: RefInfo; data: Data }) {
       <div className="node-head">
         <span className="node-kind">{info.type === 'page' && info.subtitle ? `${info.subtitle} ` : ''}{t(`ref_${info.type}`)}</span>
       </div>
-      <strong className="node-title">{info.title || '—'}</strong>
+      <strong className="node-title">{info.title || t('untitled')}</strong>
       <div className="node-body">{body}</div>
     </>
   )

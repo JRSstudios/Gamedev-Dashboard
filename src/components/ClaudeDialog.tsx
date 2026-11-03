@@ -144,7 +144,7 @@ export function ClaudeDialog({ projectId, initial, onClose }: { projectId: strin
             >
               <label className="field wide-field">
                 {t('topicLabel')}
-                <input autoFocus value={topic} maxLength={400} placeholder={t(`presetHint_${preset}`)} onChange={(e) => setTopic(e.target.value)} />
+                <input autoFocus value={topic} maxLength={400} onChange={(e) => setTopic(e.target.value)} />
               </label>
               {preset !== 'suggest' && (
                 <label className="check small muted">

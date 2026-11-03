@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { DesktopOnly } from '../DesktopOnly'
 import { PlanSchema, validActions, type Plan } from '../../ai/actions'
 import { extractJson } from '../../ai/client'
 import { buildProjectContext } from '../../ai/context'
@@ -82,7 +83,10 @@ export function BrainstormView({ projectId }: { projectId: string }) {
     <div className="brainstorm">
       <section className="panel brainstorm-input">
         <h2>{t('bsIdea')}</h2>
-        <textarea rows={4} maxLength={4000} value={text} placeholder={t('bsPlaceholder')} onChange={(e) => setText(e.target.value)} />
+        <label className="field">
+          <span className="field-label">{t('bsPlaceholder')}</span>
+          <textarea rows={4} maxLength={4000} value={text} onChange={(e) => setText(e.target.value)} />
+        </label>
         <div className="chip-row">
           <button className={perspective === '' ? 'chip-btn on' : 'chip-btn'} onClick={() => setPerspective('')}>{t('bsAnyPerspective')}</button>
           {PERSPECTIVES.map((p) => (
@@ -96,12 +100,12 @@ export function BrainstormView({ projectId }: { projectId: string }) {
             {phase.kind === 'working' ? t('claudeWorking') : `✦ ${t('bsPlan')}`}
           </button>
           <button disabled={!text.trim()} onClick={() => saveIdea()}>{t('bsSave')}</button>
-          {!ready && (
+          {!ready && IS_DESKTOP && (
             <span className="small muted">
-              {IS_DESKTOP ? t('bsNeedsClaude') : t('claudeDesktopOnly')}{' '}
-              {IS_DESKTOP && <button className="link-btn" onClick={() => setSection('settings')}>{t('claudeOpenSettings')}</button>}
+              {t('bsNeedsClaude')} <button className="link-btn" onClick={() => setSection('settings')}>{t('claudeOpenSettings')}</button>
             </span>
           )}
+          {!IS_DESKTOP && <DesktopOnly reason={t('claudeDesktopOnly')} />}
         </div>
       </section>
 

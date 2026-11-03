@@ -75,7 +75,7 @@ function CellEditor({ table, row, column }: { table: Table; row: Row; column: Co
     case 'url':
       return (
         <div className="cell-url">
-          <DraftInput type="url" aria-label={label} placeholder="https://" value={typeof value === 'string' ? value : ''} onCommit={set} />
+          <DraftInput type="url" aria-label={label} value={typeof value === 'string' ? value : ''} onCommit={set} />
           {typeof value === 'string' && (
             <button className="icon" aria-label={t('nodesOpen')} title={value} onClick={() => void openLink(value)}>↗</button>
           )}
@@ -149,7 +149,7 @@ function ColumnForm({
       {type === 'select' && (
         <label className="field">
           {t('columnOptions')}
-          <input value={options} maxLength={1200} placeholder="Idea, WIP, Done" onChange={(e) => setOptions(e.target.value)} />
+          <input value={options} maxLength={1200} onChange={(e) => setOptions(e.target.value)} />
         </label>
       )}
       <div className="row-actions">
@@ -221,7 +221,10 @@ export function TableEditor({ table, embedded = false }: { table: Table; embedde
 
       {!embedded && (
       <div className="toolbar">
-        <input type="search" value={filter} placeholder={t('filterRows')} onChange={(e) => setFilter(e.target.value)} />
+        <label className="field">
+          <span className="field-label">{t('filterRows')}</span>
+          <input type="search" value={filter} onChange={(e) => setFilter(e.target.value)} />
+        </label>
         <select value={sortCol} aria-label={t('sortNone')} onChange={(e) => setSortCol(e.target.value)}>
           <option value="">{t('sortNone')}</option>
           {table.columns.map((c) => (

@@ -60,12 +60,12 @@
       {
         "title": "World and story",
         "icon": "📜",
-        "markdown": "# Setting\nWhere does the game take place? One paragraph is enough.\n\n## Main character\n- Name:\n- Goal:\n- What makes them special:\n\n## Places\n- Village (start, shop, NPCs)\n- Forest (first enemies)\n- Dungeon (boss)\n\n## Quest line\n- [ ] Talk to the elder\n- [ ] Find the key in the forest\n- [ ] Defeat the boss"
+        "markdown": "# Setting\nA quiet island village whose lighthouse went dark. Ships no longer come, and the forest behind the village has grown wild.\n\n## Main character\n- Name: Ari\n- Goal: relight the lighthouse\n- Special: can talk to animals\n\n## Places\n- Village (start, shop, NPCs)\n- Forest (first enemies)\n- Lighthouse dungeon (boss)\n\n## Quest line\n- [ ] Talk to the old keeper\n- [ ] Find the lens in the forest\n- [ ] Defeat the Gloom in the lighthouse"
       },
       {
         "title": "Characters",
         "icon": "🧑",
-        "markdown": "## Elder\nGives the first quest. Friendly, a bit forgetful.\n\n## Shopkeeper\nSells potions and a better sword.\n\n## Boss\nWhat does it do? How does the player learn to beat it?"
+        "markdown": "## Old keeper\nGives the first quest. Friendly, a bit forgetful, knows every story of the island.\n\n## Shopkeeper\nSells potions and a better sword. Trades shells for coins.\n\n## The Gloom (boss)\nA shadow that hides from light. The player learns to lure it into lamp light, where it can be hit."
       }
     ],
     "tables": [

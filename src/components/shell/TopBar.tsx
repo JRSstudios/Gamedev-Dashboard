@@ -4,7 +4,7 @@ import { projectToMarkdown, weekToMarkdown } from '../../model/markdown'
 import { updateSettings } from '../../model/ops'
 import { projectProgress, totalProgress } from '../../model/progress'
 import { dayKey, formatMinutes, minutesOnDay, minutesThisWeek } from '../../model/time'
-import { confirmDialog, pickTextFile, saveTextFile } from '../../platform'
+import { confirmDialog, openLink, pickTextFile, saveTextFile } from '../../platform'
 import { mutate, notify, replaceData, setSection, useStore } from '../../store'
 import { ProgressBar } from '../ProgressBar'
 import { startTour } from '../../tutorial'
@@ -87,7 +87,15 @@ export function TopBar({ onOpenPalette, onOpenAi, onOpenShortcuts, onOpenAssista
     { kind: 'item', label: t('nav_tutorial'), onSelect: () => setSection('tutorial') },
     { kind: 'item', label: t('tutStartTour'), onSelect: startTour },
   ]
-  const help: MenuItem[] = [{ kind: 'item', label: t('shortcutsTitle'), onSelect: onOpenShortcuts }]
+  const help: MenuItem[] = [
+    { kind: 'item', label: t('shortcutsTitle'), onSelect: onOpenShortcuts },
+    { kind: 'item', label: t('nav_tutorial'), onSelect: () => setSection('tutorial') },
+    { kind: 'item', label: t('bugReport'), onSelect: () => setSection('bugs') },
+    { kind: 'separator' },
+    { kind: 'item', label: t('helpWebDemo'), onSelect: () => void openLink('https://jrsstudios.github.io/Gamedev-Dashboard/') },
+    { kind: 'item', label: t('helpGithub'), onSelect: () => void openLink('https://github.com/JRSstudios/Gamedev-Dashboard') },
+    { kind: 'item', label: t('helpVersion', { version: __APP_VERSION__ }), disabled: true, onSelect: () => {} },
+  ]
 
   return (
     <header className="topbar">

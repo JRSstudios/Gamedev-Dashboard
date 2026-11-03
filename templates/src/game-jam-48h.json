@@ -6,23 +6,80 @@
   "description": "A tight plan for a 48-hour jam: idea in the first hour, playable core after 12 hours, content and polish after that, upload with time to spare.",
   "author": "Gamedev Dashboard",
   "version": "1.0.0",
-  "languages": ["en"],
-  "tags": ["jam", "planning", "any"],
+  "languages": [
+    "en"
+  ],
+  "tags": [
+    "jam",
+    "planning",
+    "any"
+  ],
   "perspective": "any",
   "contents": {
     "goals": [
-      { "title": "Hour 0-2: Idea", "estimateHours": 2, "steps": ["Write 10 ideas for the theme", "Pick one you can finish", "Write the core loop in one sentence"] },
-      { "title": "Hour 2-12: Playable core", "estimateHours": 10, "steps": ["Player moves", "The main mechanic works", "You can win and lose", "Restart without closing the game"] },
-      { "title": "Hour 12-36: Content", "estimateHours": 20, "steps": ["3 short levels or one growing level", "Art for the player and enemies", "Sound effects", "Music"] },
-      { "title": "Hour 36-46: Polish", "estimateHours": 8, "steps": ["Title screen", "Screen shake and juice", "Fix the worst bugs", "Let someone else play it"] },
-      { "title": "Hour 46-48: Ship", "estimateHours": 2, "steps": ["Build for the web or Windows", "Upload and test the download", "Write the page text and add screenshots"] }
+      {
+        "title": "Hour 0-2: Idea",
+        "estimateHours": 2,
+        "steps": [
+          "Write 10 ideas for the theme",
+          "Pick one you can finish",
+          "Write the core loop in one sentence"
+        ]
+      },
+      {
+        "title": "Hour 2-12: Playable core",
+        "estimateHours": 10,
+        "steps": [
+          "Player moves",
+          "The main mechanic works",
+          "You can win and lose",
+          "Restart without closing the game"
+        ]
+      },
+      {
+        "title": "Hour 12-36: Content",
+        "estimateHours": 20,
+        "steps": [
+          "3 short levels or one growing level",
+          "Art for the player and enemies",
+          "Sound effects",
+          "Music"
+        ]
+      },
+      {
+        "title": "Hour 36-46: Polish",
+        "estimateHours": 8,
+        "steps": [
+          "Title screen",
+          "Screen shake and juice",
+          "Fix the worst bugs",
+          "Let someone else play it"
+        ]
+      },
+      {
+        "title": "Hour 46-48: Ship",
+        "estimateHours": 2,
+        "steps": [
+          "Build for the web or Windows",
+          "Upload and test the download",
+          "Write the page text and add screenshots"
+        ]
+      }
     ],
     "pages": [
-      { "title": "Jam notes", "icon": "⏱", "markdown": "# Theme\n\n## Idea\n\n## Cut list\nThings that sound fun but will not make it in time:\n- \n\n> Rule: if it is not fun after 12 hours, simplify. Do not add features." }
+      {
+        "title": "Jam notes",
+        "icon": "⏱",
+        "markdown": "# Theme\nExample: \"Only one\"\n\n## Idea\nA platformer where you can place only one block at a time; placing a new one removes the old one.\n\n## Cut list\nThings that sound fun but will not make it in time:\n- Level editor\n- Online leaderboard\n- Second character\n\n> Rule: if it is not fun after 12 hours, simplify. Do not add features."
+      }
     ],
     "tables": [],
     "cheats": [],
     "budgets": {},
-    "unityScripts": ["GameManager.cs", "ShakeOnHit.cs", "MenuActions.cs"]
+    "unityScripts": [
+      "GameManager.cs",
+      "ShakeOnHit.cs",
+      "MenuActions.cs"
+    ]
   }
 }

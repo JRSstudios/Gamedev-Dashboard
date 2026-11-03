@@ -74,7 +74,7 @@
       {
         "title": "Game design",
         "icon": "🎮",
-        "markdown": "# Pitch\nOne sentence: who do you play, what do you do, why is it fun?\n\n## Core loop\n- Run and jump through a level\n- Collect things\n- Reach the goal\n\n## Controls\n- Move: A/D or left stick\n- Jump: Space or south button\n\n## Scope for the demo\n- [ ] 1 level, about 2 minutes long\n- [ ] 1 enemy type\n- [ ] 1 collectible\n\n> Keep the first version tiny. Make it fun before you make it big."
+        "markdown": "# Pitch\nYou play Moss, a tiny forest spirit who jumps through broken ruins to bring the light back to the valley.\n\n## Core loop\n- Run and jump through a level\n- Collect light seeds\n- Reach the shrine at the end\n\n## Controls\n- Move: A/D or left stick\n- Jump: Space or south button\n\n## Scope for the demo\n- [ ] 1 level, about 2 minutes long\n- [ ] 1 enemy type (slow beetle)\n- [ ] 1 collectible (light seed)\n\n> Keep the first version tiny. Make it fun before you make it big."
       },
       {
         "title": "Level ideas",
