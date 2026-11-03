@@ -1,34 +1,21 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { AiDialog } from './components/AiDialog'
 import { AssetBoard } from './components/AssetBoard'
 import { ClaudeDialog, type ClaudeRequest } from './components/ClaudeDialog'
 import { GoalsPanel } from './components/GoalsPanel'
-import { BlenderPage, KritaPage, UnityPage } from './components/hub/AppPages'
 import { LinkForm } from './components/LinkForm'
 import { NotesPanel } from './components/NotesPanel'
 import { Overview } from './components/Overview'
 import { ResearchPanel } from './components/ResearchPanel'
-import { SettingsPage } from './components/SettingsPage'
-import { PlannerView } from './components/planner/PlannerView'
-import { TemplatesView } from './components/templates/TemplatesView'
-import { TutorialView } from './components/tutorial/TutorialView'
 import { Tour } from './components/tutorial/Tour'
-import { BugsView } from './components/bugs/BugsView'
-import { ShowcaseView } from './components/showcase/ShowcaseView'
 import { onError, redact } from './features/bugs'
 import { reportBug } from './features/reportBug'
 import { QuickNote } from './components/QuickNote'
 import { AssistantPanel } from './components/assistant/AssistantPanel'
-import { BrainstormView } from './components/brainstorm/BrainstormView'
-import { CheatSheetView } from './components/cheatsheet/CheatSheetView'
-import { NodesView } from './components/graph/NodesView'
-import { ModelsView } from './components/models/ModelsView'
 import { ConnectClaudeDialog, Welcome } from './components/onboarding/Onboarding'
 import { useGlobalDrop } from './globalDrop'
 import { handleExportEvent } from './features/autoImport'
 import { startBridge, useBridgeConfigSync } from './features/bridge'
-import { PagesView } from './components/pages/PagesView'
-import { TablesView } from './components/tables/TablesView'
 import { CommandPalette } from './components/shell/CommandPalette'
 import { NavRail } from './components/shell/NavRail'
 import { Icon } from './components/shell/Icon'
@@ -42,6 +29,24 @@ import { dayKey } from './model/time'
 import { groupOf, sectionDescription, sectionTitle } from './sections'
 import { getData, init, notify, redo, setSection, startFresh, undo, useStore, type Section } from './store'
 import { toggleTimer } from './timerActions'
+import { useLanguageReady } from './i18n/load'
+
+// Sections other than the everyday ones load on first visit, which keeps the start bundle small.
+const SettingsPage = lazy(() => import('./components/SettingsPage').then((m) => ({ default: m.SettingsPage })))
+const PlannerView = lazy(() => import('./components/planner/PlannerView').then((m) => ({ default: m.PlannerView })))
+const TemplatesView = lazy(() => import('./components/templates/TemplatesView').then((m) => ({ default: m.TemplatesView })))
+const TutorialView = lazy(() => import('./components/tutorial/TutorialView').then((m) => ({ default: m.TutorialView })))
+const BugsView = lazy(() => import('./components/bugs/BugsView').then((m) => ({ default: m.BugsView })))
+const ShowcaseView = lazy(() => import('./components/showcase/ShowcaseView').then((m) => ({ default: m.ShowcaseView })))
+const BrainstormView = lazy(() => import('./components/brainstorm/BrainstormView').then((m) => ({ default: m.BrainstormView })))
+const CheatSheetView = lazy(() => import('./components/cheatsheet/CheatSheetView').then((m) => ({ default: m.CheatSheetView })))
+const NodesView = lazy(() => import('./components/graph/NodesView').then((m) => ({ default: m.NodesView })))
+const ModelsView = lazy(() => import('./components/models/ModelsView').then((m) => ({ default: m.ModelsView })))
+const PagesView = lazy(() => import('./components/pages/PagesView').then((m) => ({ default: m.PagesView })))
+const TablesView = lazy(() => import('./components/tables/TablesView').then((m) => ({ default: m.TablesView })))
+const BlenderPage = lazy(() => import('./components/hub/AppPages').then((m) => ({ default: m.BlenderPage })))
+const KritaPage = lazy(() => import('./components/hub/AppPages').then((m) => ({ default: m.KritaPage })))
+const UnityPage = lazy(() => import('./components/hub/AppPages').then((m) => ({ default: m.UnityPage })))
 
 function ErrorScreen({ message, raw }: { message: string; raw: string | null }) {
   const t = useT()
@@ -146,6 +151,7 @@ export default function App() {
     document.documentElement.dataset.theme = theme === 'auto' ? '' : theme
   }, [theme])
   const lang = useLang()
+  const langReady = useLanguageReady(lang)
   useEffect(() => {
     // lets the browser pick Japanese or Chinese glyph forms and read the page in the right language
     document.documentElement.lang = lang === 'zh' ? 'zh-Hans' : lang
@@ -232,7 +238,7 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `t` only changes with the language
   }, [phase, projectId])
 
-  if (status.phase === 'loading') return <main className="center-screen muted">{t('loading')}</main>
+  if (status.phase === 'loading' || !langReady) return <main className="center-screen muted">{t('loading')}</main>
   if (status.phase === 'error') return <ErrorScreen message={status.message} raw={status.raw} />
 
   const bare = ['overview', 'settings', 'planner', 'unity', 'blender', 'krita', 'pages', 'tables', 'nodes', 'cheats', 'brainstorm', 'models', 'templates', 'tutorial', 'bugs', 'showcase'].includes(section)
@@ -260,7 +266,9 @@ export default function App() {
                 <p className="muted">{sectionDescription(t, section)}</p>
               </div>
               <div className={`${bare ? 'page-body' : 'page-body hide-h2'} section-${section}`}>
-                <SectionView key={`${project.id}-${section}`} section={section} project={project} onOpenAi={() => setAiOpen(true)} />
+                <Suspense fallback={<p className="muted">{t('loading')}</p>}>
+                  <SectionView key={`${project.id}-${section}`} section={section} project={project} onOpenAi={() => setAiOpen(true)} />
+                </Suspense>
               </div>
             </>
           ) : (

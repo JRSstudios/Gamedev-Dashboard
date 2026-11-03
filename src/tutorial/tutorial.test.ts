@@ -8,7 +8,7 @@ describe('tutorial', () => {
   it('every language has every lesson and tour step, with the same number of steps as English', () => {
     const en = TUTORIAL_LOCALES.en
     for (const lang of LANGUAGES) {
-      const loc = TUTORIAL_LOCALES[lang]
+      const loc = TUTORIAL_LOCALES[lang]!
       expect(Object.keys(loc.lessons).sort(), lang).toEqual(LESSONS.map((l) => l.id).sort())
       expect(Object.keys(loc.tour).sort(), lang).toEqual(TOUR.map((s) => s.id).sort())
       for (const l of LESSONS) {

@@ -9,7 +9,9 @@ export default defineConfig({
   base: './',
   plugins: [react()],
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
+  // three.js alone is ~670 kB; it only loads with the 3D view, so the limit is raised above it.
+  build: { chunkSizeWarningLimit: 700 },
   clearScreen: false,
   server: { port: 1420, strictPort: true },
-  test: { include: ['src/**/*.test.ts'] },
+  test: { include: ['src/**/*.test.ts'], setupFiles: ['src/test-setup.ts'] },
 })

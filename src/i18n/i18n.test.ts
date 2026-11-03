@@ -9,7 +9,7 @@ describe('translations', () => {
   it('every language has every key, non-empty, with the same placeholders as English', () => {
     const keys = Object.keys(DICTS.en) as (keyof typeof DICTS.en)[]
     for (const lang of LANGUAGES) {
-      const dict = DICTS[lang]
+      const dict = DICTS[lang]!
       expect(Object.keys(dict).sort()).toEqual([...keys].sort())
       for (const key of keys) {
         expect(dict[key].trim().length, `${lang}.${key}`).toBeGreaterThan(0)
@@ -22,7 +22,7 @@ describe('translations', () => {
     // Product and program names stay the same in every language.
     const NAMES = new Set(['appName', 'paletteClaudeRun', 'nav_integrations', 'integExeUnity', 'integExeBlender', 'integUnity', 'kritaExe', 'nav_unity', 'nav_blender', 'nav_krita', 'pluginTitle', 'unityPpu'])
     for (const lang of LANGUAGES.filter((l) => l !== 'en')) {
-      const same = (Object.keys(DICTS.en) as (keyof typeof DICTS.en)[]).filter((k) => !NAMES.has(k) && DICTS[lang][k] === DICTS.en[k] && DICTS.en[k].length > 12)
+      const same = (Object.keys(DICTS.en) as (keyof typeof DICTS.en)[]).filter((k) => !NAMES.has(k) && DICTS[lang]![k] === DICTS.en[k] && DICTS.en[k].length > 12)
       // Brand names and short technical terms may stay the same; long sentences must not.
       expect(same, lang).toEqual([])
     }

@@ -2,7 +2,7 @@ import type { Lang } from '../i18n/languages'
 import { CAMERA } from './camera'
 import { EXTRA } from './extra'
 import { INPUT } from './input'
-import { localizeCheat } from './locales'
+import { CHEAT_LOCALES, localizeCheat, type CheatLocale } from './locales'
 import { MOVEMENT } from './movement'
 import { START } from './start'
 import { SYSTEMS } from './systems'
@@ -16,6 +16,12 @@ export { CHEAT_LOCALES, localizeCheat } from './locales'
 export const CHEATS: CheatEntry[] = [...START, ...INPUT, ...MOVEMENT, ...CAMERA, ...WORLD, ...SYSTEMS, ...EXTRA]
 
 const localized = new Map<Lang, CheatEntry[]>()
+
+/** Registers a loaded translation and drops the cached list built before it arrived. */
+export function setCheatLocale(lang: Exclude<Lang, 'de' | 'en'>, locale: CheatLocale) {
+  CHEAT_LOCALES[lang] = locale
+  localized.delete(lang)
+}
 
 /** The whole cheat sheet in one language. */
 export function cheatsIn(lang: Lang): CheatEntry[] {
