@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.1.0] - 2026-11-03
+First public beta. Installers are unsigned (see README).
 ### Added
 - Projects, goals with steps and progress bars, asset board with drag & drop, notes with tags
 - Optional local AI (Ollama / LM Studio) suggestions
