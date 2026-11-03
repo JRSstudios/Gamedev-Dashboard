@@ -2,8 +2,9 @@ import { startTimer, stopTimer } from './model/ops'
 import { getData, mutate } from './store'
 
 /** Remembers the last choices so the Ctrl+T shortcut can start a timer without opening a form. */
-export const timerPrefs: { goalId: string | null; mode: 'stopwatch' | 'pomodoro'; minutes: number } = {
+export const timerPrefs: { goalId: string | null; section: string | null; mode: 'stopwatch' | 'pomodoro'; minutes: number } = {
   goalId: null,
+  section: null,
   mode: 'stopwatch',
   minutes: 25,
 }
@@ -18,6 +19,6 @@ export function toggleTimer(projectId: string): number | null {
     return sessions.length > before ? sessions[sessions.length - 1].minutes : 0
   }
   const goalId = goals.some((g) => g.id === timerPrefs.goalId && g.projectId === projectId) ? timerPrefs.goalId : null
-  mutate((d) => startTimer(d, projectId, goalId, timerPrefs.mode, timerPrefs.minutes))
+  mutate((d) => startTimer(d, projectId, goalId, timerPrefs.mode, timerPrefs.minutes, new Date(), timerPrefs.section))
   return null
 }

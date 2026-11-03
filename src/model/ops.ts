@@ -141,7 +141,7 @@ export function addGoal(data: Data, projectId: string, title: string): Data {
   return { ...data, goals: [...data.goals, goal] }
 }
 
-export const updateGoal = (data: Data, id: string, patch: Partial<Pick<Goal, 'title' | 'deadline' | 'archived'>>): Data => ({
+export const updateGoal = (data: Data, id: string, patch: Partial<Pick<Goal, 'title' | 'deadline' | 'archived' | 'estimateHours'>>): Data => ({
   ...data,
   goals: data.goals.map((g) => (g.id === id ? { ...g, ...patch } : g)),
 })
@@ -387,3 +387,13 @@ export const updateIntegrations = (data: Data, projectId: string, patch: Partial
   updateProject(data, projectId, {
     integrations: { ...(data.projects.find((p) => p.id === projectId)?.integrations ?? EMPTY_INTEGRATIONS), ...patch },
   })
+
+/** Planned hours for a section; `null` removes the budget. */
+export function setSectionBudget(data: Data, projectId: string, section: string, hours: number | null): Data {
+  const p = data.projects.find((x) => x.id === projectId)
+  if (!p) return data
+  const sectionBudgets = { ...p.sectionBudgets }
+  if (hours === null || !Number.isFinite(hours) || hours <= 0) delete sectionBudgets[section]
+  else sectionBudgets[section] = Math.min(10000, Math.round(hours * 4) / 4)
+  return updateProject(data, projectId, { sectionBudgets })
+}

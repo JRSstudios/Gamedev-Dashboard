@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AiDialog } from './components/AiDialog'
 import { AssetBoard } from './components/AssetBoard'
-import { CalendarPanel } from './components/CalendarPanel'
 import { ClaudeDialog, type ClaudeRequest } from './components/ClaudeDialog'
 import { GoalsPanel } from './components/GoalsPanel'
 import { BlenderPage, KritaPage, UnityPage } from './components/hub/AppPages'
@@ -10,7 +9,7 @@ import { NotesPanel } from './components/NotesPanel'
 import { Overview } from './components/Overview'
 import { ResearchPanel } from './components/ResearchPanel'
 import { SettingsPage } from './components/SettingsPage'
-import { TimerPanel } from './components/TimerPanel'
+import { PlannerView } from './components/planner/PlannerView'
 import { BrainstormView } from './components/brainstorm/BrainstormView'
 import { CheatSheetView } from './components/cheatsheet/CheatSheetView'
 import { NodesView } from './components/graph/NodesView'
@@ -80,12 +79,7 @@ function SectionView({ section, project, onOpenAi }: { section: Section; project
     case 'nodes':
       return <NodesView projectId={id} />
     case 'planner':
-      return (
-        <div className="planner">
-          <TimerPanel projectId={id} />
-          <CalendarPanel projectId={id} />
-        </div>
-      )
+      return <PlannerView projectId={id} />
     case 'unity':
       return <UnityPage projectId={id} />
     case 'blender':

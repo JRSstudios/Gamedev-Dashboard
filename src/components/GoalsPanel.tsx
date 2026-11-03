@@ -13,6 +13,7 @@ import { useState } from 'react'
 import { splitGoal } from '../ai/client'
 import { useT } from '../i18n'
 import { addGoal, addSteps, deleteGoal, deleteStep, reorderGoals, toggleStep, updateGoal } from '../model/ops'
+import { spentOnGoal } from '../model/availability'
 import { goalProgress } from '../model/progress'
 import type { Goal } from '../model/schema'
 import { confirmDialog } from '../platform'
@@ -83,6 +84,7 @@ function GoalCard({ goal, color }: { goal: Goal; color: string }) {
             onChange={(e) => mutate((d) => updateGoal(d, goal.id, { deadline: e.target.value || null }))}
           />
         </label>
+        <GoalHours goal={goal} />
       </div>
       <ul className="steps">
         {goal.steps.map((s) => (
@@ -122,6 +124,30 @@ function GoalCard({ goal, color }: { goal: Goal; color: string }) {
         <button className="link danger" onClick={() => void remove()}>{t('delete')}</button>
       </div>
     </li>
+  )
+}
+
+/** "3 h of 8 h": logged time against the estimate, the estimate edited in place. */
+function GoalHours({ goal }: { goal: Goal }) {
+  const t = useT()
+  const spent = useStore((s) => spentOnGoal(s.data, goal.id))
+  const over = goal.estimateHours !== null && spent > goal.estimateHours
+  return (
+    <label className={over ? 'warn' : ''} title={t('goalHoursHint')}>
+      {t('goalHours', { spent: Math.round(spent * 10) / 10 })}{' '}
+      <input
+        type="number"
+        className="hours"
+        min={0}
+        max={10000}
+        step={0.5}
+        placeholder="–"
+        value={goal.estimateHours ?? ''}
+        aria-label={t('goalEstimate')}
+        onChange={(e) => mutate((d) => updateGoal(d, goal.id, { estimateHours: e.target.value === '' ? null : Math.min(10000, Math.max(0, Number(e.target.value) || 0)) }))}
+      />{' '}
+      h
+    </label>
   )
 }
 

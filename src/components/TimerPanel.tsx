@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useT } from '../i18n'
+import { resolveSections } from '../model/layout'
+import { sectionTitle, TRACKED_SECTIONS } from '../sections'
 import { stopTimer } from '../model/ops'
 import { formatClock } from '../model/time'
 import { mutate, notify, useStore } from '../store'
@@ -11,6 +13,7 @@ export function TimerPanel({ projectId }: { projectId: string }) {
   const goals = useStore((s) => s.data.goals)
   const projects = useStore((s) => s.data.projects)
   const [goalId, setGoalId] = useState(timerPrefs.goalId ?? '')
+  const [section, setSectionPref] = useState(timerPrefs.section ?? '')
   const [mode, setMode] = useState(timerPrefs.mode)
   const [minutes, setMinutes] = useState(timerPrefs.minutes)
   const [now, setNow] = useState(() => Date.now())
@@ -49,6 +52,7 @@ export function TimerPanel({ projectId }: { projectId: string }) {
 
   const toggle = () => {
     timerPrefs.goalId = goalId || null
+    timerPrefs.section = section || null
     timerPrefs.mode = mode
     timerPrefs.minutes = minutes
     const saved = toggleTimer(projectId)
@@ -80,6 +84,12 @@ export function TimerPanel({ projectId }: { projectId: string }) {
           <select value={goalId} onChange={(e) => setGoalId(e.target.value)} aria-label={t('timerGoal')}>
             <option value="">{t('noGoal')}</option>
             {projectGoals.map((g) => <option key={g.id} value={g.id}>{g.title}</option>)}
+          </select>
+          <select value={section} onChange={(e) => setSectionPref(e.target.value)} aria-label={t('timerSection')}>
+            <option value="">{t('noSection')}</option>
+            {resolveSections(projects.find((p) => p.id === projectId))
+              .filter((s) => TRACKED_SECTIONS.includes(s.id))
+              .map((s) => <option key={s.id} value={s.id}>{sectionTitle(t, s.id, s.label)}</option>)}
           </select>
         </>
       )}

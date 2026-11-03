@@ -102,3 +102,32 @@
 .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .unity-console { grid-column: 1 / -1; }
 .model-actions { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+
+/* ---- planner: week, month, time per section ---- */
+.planner-view { display: grid; gap: 16px; }
+.plan-totals .bar { margin-top: 10px; }
+.bar > span { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.bar.over > span { background: var(--warn); }
+.legend { display: flex; gap: 16px; margin: 6px 0 10px; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; }
+.blk.gamedev { background: var(--accent); }
+.blk.work { background: color-mix(in srgb, var(--muted) 45%, var(--surface-3)); }
+.week-days { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.week-days > li { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: grid; gap: 6px; }
+.week-days > li.today { border-color: var(--accent); }
+.day-bar { position: relative; height: 10px; background: var(--surface-3); border-radius: 99px; overflow: hidden; }
+.day-bar .blk { position: absolute; top: 0; bottom: 0; border-radius: 99px; }
+.block-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.block-row input[type='time'] { width: 7.5em; }
+.block-row select { width: auto; }
+.month-grid .plan-day { display: grid; align-content: start; gap: 1px; min-height: 58px; text-align: left; padding: 4px 6px; }
+.plan-day .done { opacity: 0.85; }
+.plan-day.differs { outline: 2px dashed var(--accent); outline-offset: -3px; }
+.budget-table { width: 100%; border-collapse: collapse; }
+.budget-table th { text-align: left; font-weight: 600; font-size: 0.8rem; color: var(--muted); padding: 4px 6px; }
+.budget-table td { padding: 4px 6px; border-top: 1px solid var(--border); vertical-align: middle; }
+.budget-table td.num { white-space: nowrap; text-align: right; }
+.budget-table .bar-cell { width: 28%; min-width: 90px; }
+.budget-table tr.risk td:first-child { border-left: 3px solid var(--warn); }
+.budget-table .pill { margin-left: 6px; }
+input.hours { width: 5.5em; padding: 2px 6px; }

@@ -16,3 +16,6 @@ export const SECTION_GROUPS = [
 export type SectionGroupId = (typeof SECTION_GROUPS)[number]['id']
 
 export const groupOf = (s: Section): SectionGroupId | null => SECTION_GROUPS.find((g) => (g.sections as readonly Section[]).includes(s))?.id ?? null
+
+/** Sections time can be planned and booked on (overview, planner and settings are not work areas). */
+export const TRACKED_SECTIONS: readonly Section[] = ['goals', 'brainstorm', 'cheats', 'concept', 'inspiration', 'models', 'research', 'audio', 'assets', 'notes', 'pages', 'tables', 'nodes', 'unity', 'blender', 'krita']
