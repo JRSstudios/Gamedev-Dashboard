@@ -145,6 +145,12 @@ export default function App() {
   }, [phase])
 
   useEffect(() => {
+    const onAsk = (e: Event) => setClaudeRequest({ preset: (e as CustomEvent<{ preset: ClaudeRequest['preset'] }>).detail.preset, topic: '', autorun: true })
+    window.addEventListener('gd-claude', onAsk)
+    return () => window.removeEventListener('gd-claude', onAsk)
+  }, [])
+
+  useEffect(() => {
     if (phase !== 'ready') return
     const onKey = (e: KeyboardEvent) => {
       if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey) return

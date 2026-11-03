@@ -1,5 +1,5 @@
 import { resolveLanguage, translate, type TFn } from '../i18n'
-import { addAssets, fileName, guessCategory, guessKind, newAsset } from '../model/ops'
+import { addAssets, fileName, guessCategory, guessKind, newAsset, sortCategory } from '../model/ops'
 import type { AssetCategory, Data } from '../model/schema'
 import type { BridgeEvent } from '../platform'
 import { getActiveProjectId, getData, mutate, notify } from '../store'
@@ -9,7 +9,8 @@ import { sendToUnity } from './transfer'
 export type ExportOutcome = 'ignored' | 'notified' | 'added' | 'updated'
 
 /** Category for a file exported by a plugin: Krita art is concept art, Blender files go by type. */
-export const exportCategory = (app: string, path: string): AssetCategory => (app === 'krita' ? 'concept' : guessCategory(guessKind(fileName(path))))
+export const exportCategory = (app: string, path: string, data?: Data): AssetCategory =>
+  app === 'krita' ? 'concept' : data ? sortCategory(data, fileName(path), path) : guessCategory(guessKind(fileName(path)))
 
 /**
  * What an export event means for the project. With auto import on, the file is linked as an asset
@@ -17,7 +18,7 @@ export const exportCategory = (app: string, path: string): AssetCategory => (app
  */
 export function planExport(data: Data, projectId: string | null, e: BridgeEvent): { outcome: ExportOutcome; next: Data; path: string; category: AssetCategory } {
   const path = typeof e.data.path === 'string' ? e.data.path.slice(0, 2000) : ''
-  const category = exportCategory(e.app, path)
+  const category = exportCategory(e.app, path, data)
   const project = data.projects.find((p) => p.id === projectId && !p.archived)
   if (e.type !== 'exported' || !path || !project) return { outcome: 'ignored', next: data, path, category }
   if (!project.integrations.autoImport) return { outcome: 'notified', next: data, path, category }

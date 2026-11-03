@@ -37,6 +37,8 @@ export const GoalSchema = z.object({
   archived: z.boolean(),
   createdAt: iso,
   steps: z.array(StepSchema).max(500),
+  /** Planned hours for this goal; null when not estimated. */
+  estimateHours: z.number().min(0).max(10000).nullable().default(null),
 })
 
 export const NoteSchema = z.object({
@@ -120,6 +122,9 @@ export const TableSchema = z.object({
   columns: z.array(ColumnSchema).max(30),
   rows: z.array(RowSchema).max(2000),
   createdAt: iso,
+  /** How the table is shown; kanban groups by a select column, calendar by a date column. */
+  view: z.enum(['table', 'kanban', 'calendar', 'gallery']).default('table'),
+  viewColumn: id.nullable().default(null),
 })
 
 const blockText = text(5000)
@@ -141,6 +146,8 @@ export const PageSchema = z.object({
   /** A single emoji or short mark; plain text only. */
   icon: text(8).default(''),
   blocks: z.array(BlockSchema).max(500),
+  /** Parent page for the page tree; null for top-level pages. */
+  parentId: id.nullable().default(null),
   createdAt: iso,
   updatedAt: iso,
 })
@@ -188,6 +195,25 @@ export const UsageSchema = z.object({
   cacheWrite: z.number().int().min(0).default(0),
 })
 
+/** One message of the assistant chat. */
+export const ChatSchema = z.object({
+  id,
+  projectId: id,
+  role: z.enum(['user', 'assistant']),
+  text: text(40000),
+  at: iso,
+})
+
+/** What a template installed, so it can be removed again. */
+export const InstallSchema = z.object({
+  id,
+  projectId: id,
+  templateId: text(100),
+  name: text(200),
+  at: iso,
+  created: z.array(z.object({ type: z.enum(['goal', 'page', 'table', 'cheat']), id })).max(2000),
+})
+
 export const LayoutSchema = z.object({
   /** Order is the navigation order; sections missing here keep their default place. */
   sections: z.array(z.object({ id: text(40), label: text(60).default(''), visible: z.boolean().default(true) })).max(60),
@@ -204,6 +230,8 @@ export const ProjectSchema = z.object({
   graph: GraphSchema.default({ nodes: [], edges: [] }),
   /** Files the user dismissed from the hub inbox, so they do not come back. */
   inboxDismissed: z.array(text(1000)).max(2000).default([]),
+  /** Planned hours per section (section id -> hours). */
+  sectionBudgets: z.record(text(40), z.number().min(0).max(10000)).default({}),
 })
 
 export const SessionSchema = z.object({
@@ -211,6 +239,8 @@ export const SessionSchema = z.object({
   /** Added after v1.0 of the schema; older files simply have no project on their sessions. */
   projectId: id.nullable().default(null),
   goalId: id.nullable(),
+  /** Section the time was spent on (optional). */
+  section: text(40).nullable().default(null),
   start: iso,
   end: iso,
   minutes: z.number().min(0).max(100000),
@@ -220,11 +250,26 @@ export const SessionSchema = z.object({
 export const TimerSchema = z.object({
   projectId: id,
   goalId: id.nullable(),
+  section: text(40).nullable().default(null),
   mode: z.enum(['stopwatch', 'pomodoro']),
   /** Pomodoro length in minutes (ignored for the stopwatch). */
   minutes: z.number().int().min(1).max(240),
   startedAt: iso,
 })
+
+const clock = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$|^24:00$/)
+export const TimeBlockSchema = z.object({ from: clock, to: clock, kind: z.enum(['work', 'gamedev']) })
+const dayBlocks = z.array(TimeBlockSchema).max(12)
+
+/** Weekly working and gamedev times (index 0 = Monday) plus days that differ. */
+export const AvailabilitySchema = z.object({
+  weekly: z.array(dayBlocks).length(7),
+  exceptions: z
+    .array(z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), blocks: dayBlocks, note: text(200).default('') }))
+    .max(1000),
+})
+
+export const emptyAvailability = (): z.infer<typeof AvailabilitySchema> => ({ weekly: [[], [], [], [], [], [], []], exceptions: [] })
 
 export const SettingsSchema = z.object({
   language: z.enum(['auto', ...LANGUAGES]),
@@ -244,10 +289,18 @@ export const SettingsSchema = z.object({
       monthlyLimitUsd: z.number().min(0).max(100000).nullable().default(null),
       /** The "connect Claude?" question was answered once. */
       asked: z.boolean().default(false),
+      /** 'api' uses the key in the credential store, 'cli' the user's installed Claude Code. */
+      transport: z.enum(['api', 'cli']).default('api'),
     })
-    .default({ enabled: false, model: 'claude-sonnet-5-5', webSearch: false, monthlyLimitUsd: null, asked: false }),
+    .default({ enabled: false, model: 'claude-sonnet-5-5', webSearch: false, monthlyLimitUsd: null, asked: false, transport: 'api' }),
   /** Local connection for the Unity, Blender and Krita plugins. */
   bridgeEnabled: z.boolean().default(true),
+  /** File-name keyword -> category, learned when the user corrects a category. */
+  learned: z.record(text(40), z.enum(ASSET_CATEGORIES)).default({}),
+  availability: AvailabilitySchema.default(emptyAvailability()),
+  tutorial: z.object({ done: z.array(text(40)).max(100), tourDone: z.boolean() }).default({ done: [], tourDone: false }),
+  /** Extra folder that receives a copy of every daily snapshot (desktop). */
+  backupDir: text(2000).nullable().default(null),
 })
 
 export const DataSchema = z.object({
@@ -262,6 +315,8 @@ export const DataSchema = z.object({
   usage: z.array(UsageSchema).max(6000).default([]),
   tables: z.array(TableSchema).max(2000).default([]),
   pages: z.array(PageSchema).max(5000).default([]),
+  chats: z.array(ChatSchema).max(5000).default([]),
+  installs: z.array(InstallSchema).max(500).default([]),
   sessions: z.array(SessionSchema).max(50000),
   timer: TimerSchema.nullable().default(null),
   settings: SettingsSchema,
@@ -287,6 +342,10 @@ export type Layout = z.infer<typeof LayoutSchema>
 export type Cheat = z.infer<typeof CheatSchema>
 export type Idea = z.infer<typeof IdeaSchema>
 export type Usage = z.infer<typeof UsageSchema>
+export type Chat = z.infer<typeof ChatSchema>
+export type Install = z.infer<typeof InstallSchema>
+export type Availability = z.infer<typeof AvailabilitySchema>
+export type TimeBlock = z.infer<typeof TimeBlockSchema>
 export type Session = z.infer<typeof SessionSchema>
 export type Timer = z.infer<typeof TimerSchema>
 export type Settings = z.infer<typeof SettingsSchema>
@@ -307,14 +366,20 @@ export function emptyData(): Data {
     usage: [],
     tables: [],
     pages: [],
+    chats: [],
+    installs: [],
     sessions: [],
     timer: null,
     settings: {
       language: 'auto',
       theme: 'light',
       ai: { enabled: false, baseUrl: '', model: '' },
-      claude: { enabled: false, model: 'claude-sonnet-5-5', webSearch: false, monthlyLimitUsd: null, asked: false },
+      claude: { enabled: false, model: 'claude-sonnet-5-5', webSearch: false, monthlyLimitUsd: null, asked: false, transport: 'api' },
       bridgeEnabled: true,
+      learned: {},
+      availability: emptyAvailability(),
+      tutorial: { done: [], tourDone: false },
+      backupDir: null,
     },
   }
 }

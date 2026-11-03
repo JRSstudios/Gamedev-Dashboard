@@ -1,5 +1,5 @@
 import type { TFn } from '../i18n'
-import { addAssets, addProject, newAsset, updateIntegrations } from '../model/ops'
+import { addAssets, addProject, newAsset, sortCategory, updateIntegrations } from '../model/ops'
 import { inspectUnityProject, IS_DESKTOP, listFolder, pickFolder } from '../platform'
 import { getData, mutate, notify, openDialog, setActiveProject, setSection } from '../store'
 
@@ -30,7 +30,7 @@ export async function openUnityProject(t: TFn, importFiles: boolean): Promise<bo
   if (importFiles) {
     try {
       const files = await listFolder(`${dir}/Assets`, IMPORT_EXTS, 500, 6)
-      next = addAssets(next, files.map((f) => newAsset(project.id, f.name, f.path)))
+      next = addAssets(next, files.map((f) => newAsset(project.id, f.name, f.path, sortCategory(next, f.name, f.path))))
       imported = files.length
     } catch {
       /* the project is still usable without the import */

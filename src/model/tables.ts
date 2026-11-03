@@ -89,6 +89,8 @@ export function addTable(data: Data, projectId: string, name: string, template: 
     columns: ((TABLE_TEMPLATES[template] ?? TABLE_TEMPLATES.blank) as ColumnSpec[]).map(column),
     rows: [],
     createdAt: now(),
+    view: 'table',
+    viewColumn: null,
   }
   return { data: { ...data, tables: [...data.tables, table] }, table }
 }

@@ -29,13 +29,14 @@ export function newBlock(type: BlockType): Block {
   }
 }
 
-export function addPage(data: Data, projectId: string, title: string, blocks: Block[] = [newBlock('paragraph')]): { data: Data; page: Page } {
+export function addPage(data: Data, projectId: string, title: string, blocks: Block[] = [newBlock('paragraph')], parentId: string | null = null): { data: Data; page: Page } {
   const page: Page = {
     id: uid(),
     projectId,
     title: title.trim().slice(0, 200) || 'Untitled',
     icon: '',
     blocks: blocks.slice(0, MAX_BLOCKS),
+    parentId,
     createdAt: now(),
     updatedAt: now(),
   }

@@ -19,11 +19,10 @@ import {
   addAssets,
   deleteAsset,
   fileName,
-  guessCategory,
-  guessKind,
   moveAsset,
   newAsset,
   sanitizeTag,
+  sortCategory,
   updateAsset,
 } from '../model/ops'
 import { sendToBlender, sendToUnity } from '../features/transfer'
@@ -36,7 +35,7 @@ const KRITA_EXTS = ['kra', 'png', 'jpg', 'jpeg', 'psd']
 /** Opens the 3D preview with this model selected. */
 const openModel = (id: string) => openItem('model', id)
 import { deleteBlob, MAX_DEMO_FILE_BYTES, putBlob } from '../storage/indexedDb'
-import { mutate, notify, openItem, useStore } from '../store'
+import { getData, mutate, notify, openItem, useStore } from '../store'
 
 function AssetCard({ asset, missing }: { asset: Asset; missing: boolean }) {
   const t = useT()
@@ -223,7 +222,7 @@ export function AssetBoard({ projectId, categories = ASSET_CATEGORIES, layout = 
   const catsRef = useRef(categories)
   catsRef.current = categories
   const fit = (name: string): AssetCategory => {
-    const guess = guessCategory(guessKind(name))
+    const guess = sortCategory(getData(), name)
     return catsRef.current.includes(guess) ? guess : catsRef.current[0]
   }
   const sensors = useSensors(

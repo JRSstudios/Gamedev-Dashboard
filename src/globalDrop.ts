@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { useT } from './i18n'
-import { addAssets, fileName, newAsset } from './model/ops'
+import { addAssets, fileName, newAsset, sortCategory } from './model/ops'
 import { onNativeFileDrop } from './platform'
-import { mutate, notify } from './store'
+import { getData, mutate, notify } from './store'
 
 /**
  * Files dropped anywhere in the window land in the active project, sorted by type
@@ -25,7 +25,7 @@ export function useGlobalDrop(projectId: string | null) {
       (paths) => {
         const id = project.current
         if (!id || paths.length === 0 || document.querySelector('[data-own-drop]')) return
-        const created = paths.map((p) => newAsset(id, fileName(p), p))
+        const created = paths.map((p) => newAsset(id, fileName(p), p, sortCategory(getData(), fileName(p), p)))
         const ids = new Set(created.map((a) => a.id))
         mutate((d) => addAssets(d, created))
         notify(translate.current('dropSorted', { n: created.length }), {

@@ -13,6 +13,7 @@ import type {
 } from './schema'
 import { isHttpUrl } from './schema'
 import { removeRefs } from './graph'
+import { classify, learn } from './classify'
 
 /** Pure, immutable operations on `Data`. The store wraps these. */
 
@@ -97,6 +98,7 @@ export function addProject(data: Data, name: string): { data: Data; project: Pro
     layout: { sections: [] },
     graph: { nodes: [], edges: [] },
     inboxDismissed: [],
+    sectionBudgets: {},
   }
   return { data: { ...data, projects: [...data.projects, project] }, project }
 }
@@ -134,6 +136,7 @@ export function addGoal(data: Data, projectId: string, title: string): Data {
     archived: false,
     createdAt: now(),
     steps: [],
+    estimateHours: null,
   }
   return { ...data, goals: [...data.goals, goal] }
 }
@@ -227,8 +230,18 @@ export function newLink(projectId: string, url: string, title: string, category:
 
 export const addAssets = (data: Data, assets: Asset[]): Data => ({ ...data, assets: [...data.assets, ...assets] })
 
+/** The category the local classifier picks, using what it learned from earlier corrections. */
+export const sortCategory = (data: Data, name: string, path: string | null = null): AssetCategory =>
+  classify(name, guessKind(name), path ?? '', data.settings.learned).category
+
+/** A category the user picked by hand teaches the classifier the words of the file name. */
+function learnCategory(data: Data, asset: Asset | undefined, category: AssetCategory | undefined): Data {
+  if (!asset || !category || asset.category === category || asset.kind === 'link') return data
+  return { ...data, settings: { ...data.settings, learned: learn(data.settings.learned, asset.name, category) } }
+}
+
 export const updateAsset = (data: Data, id: string, patch: Partial<Pick<Asset, 'name' | 'category' | 'tags' | 'note'>>): Data => ({
-  ...data,
+  ...learnCategory(data, data.assets.find((a) => a.id === id), patch.category),
   assets: data.assets.map((a) => (a.id === id ? { ...a, ...patch } : a)),
 })
 
@@ -252,9 +265,10 @@ export function moveAsset(data: Data, activeId: string, category: AssetCategory,
   const rest = data.assets.filter((a) => a.id !== activeId)
   const moved = { ...active, category }
   const at = beforeId ? rest.findIndex((a) => a.id === beforeId) : -1
-  if (at < 0) return { ...data, assets: [...rest, moved] }
+  const base = learnCategory(data, active, category)
+  if (at < 0) return { ...base, assets: [...rest, moved] }
   rest.splice(at, 0, moved)
-  return { ...data, assets: rest }
+  return { ...base, assets: rest }
 }
 
 // ---- notes ----------------------------------------------------------------
@@ -301,10 +315,11 @@ export function startTimer(
   mode: 'stopwatch' | 'pomodoro',
   minutes: number,
   at: Date = new Date(),
+  section: string | null = null,
 ): Data {
   if (data.timer) return data
   const length = Math.min(240, Math.max(1, Math.round(minutes) || 25))
-  return { ...data, timer: { projectId, goalId, mode, minutes: length, startedAt: at.toISOString() } }
+  return { ...data, timer: { projectId, goalId, section, mode, minutes: length, startedAt: at.toISOString() } }
 }
 
 /** Stops the timer and stores a session. Sessions under 30 seconds are discarded. */
@@ -320,6 +335,7 @@ export function stopTimer(data: Data, at: Date = new Date()): Data {
     id: newId(),
     projectId: timer.projectId,
     goalId: timer.goalId,
+    section: timer.section,
     start: timer.startedAt,
     end: new Date(started + elapsed).toISOString(),
     minutes,

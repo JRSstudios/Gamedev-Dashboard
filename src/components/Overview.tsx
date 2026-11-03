@@ -7,6 +7,7 @@ import { dayKey, formatMinutes, minutesOnDay, minutesThisWeek } from '../model/t
 import { IS_DESKTOP, type ExternalApp } from '../platform'
 import { setSection, useStore } from '../store'
 import { InboxList } from './hub/InboxList'
+import { Suggestions } from './hub/Suggestions'
 import { ProgressBar } from './ProgressBar'
 import { Icon } from './shell/Icon'
 import { UsagePanel } from './UsagePanel'
@@ -78,6 +79,8 @@ export function Overview({ projectId }: { projectId: string }) {
             <InboxList project={project} items={items} limit={6} />
           </section>
         )}
+
+        <Suggestions projectId={projectId} />
 
         <section className="panel">
           <div className="panel-head">
