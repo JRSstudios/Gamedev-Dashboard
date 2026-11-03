@@ -21,4 +21,8 @@ Please report vulnerabilities privately via GitHub's "Report a vulnerability" (S
 - Snapshots: a copy of `data.json` is kept once a day in the app data folder (`snapshots/data-YYYY-MM-DD.json`, last 14); with a backup folder chosen, the same copy goes there as `gamedev-dashboard-YYYY-MM-DD.json`. Only files with exactly these names are ever deleted.
 - Global shortcut: `Ctrl+Shift+Space` only brings the window to the front and opens the quick note.
 - Plugin helpers run fixed code inside Blender/Krita/Unity (apply transforms, origin, LODs, batch export, sprite sheet, build); no code is sent from the app.
+- Bug reports never leave the app on their own: "Send" opens a pre-filled GitHub issue in the browser, and the user submits it there. User names in paths, e-mail addresses, API keys and tokens are removed from the text and the error log first. After a crash only the panic message and backtrace are kept in `crash.log` in the app data folder, read once on the next start.
+- The main window may only load the bundled app (a navigation guard blocks every other URL); the Content-Security-Policy allows scripts only from the app itself and forbids frames, forms and plugins.
+- The Unity project scan only reads: package names from `Packages/manifest.json`, file names under `Assets` (no symlinks, depth and count limited) and `// TODO` lines of C# files up to 256 KB.
+- CodeQL scans the code on every push and weekly.
 - Release installers are currently unsigned.

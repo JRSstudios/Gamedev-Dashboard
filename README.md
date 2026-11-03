@@ -17,6 +17,9 @@ A calm, local-first overview for your game projects. Keep **goals with progress 
 - **Assistant** (`Ctrl+J`): chat with Claude about your project, using an API key or your own Claude Code subscription; it explains Unity errors, writes scripts you can save into Unity and proposes changes you review
 - **Safety nets**: `Ctrl+Z`/`Ctrl+Y` for every change, daily snapshots with restore, an optional backup folder (e.g. in your cloud drive)
 - **Leave Notion/Obsidian behind**: import an Obsidian vault or a Notion export; pages with formatting, sub-pages, backlinks and a daily devlog; tables as kanban, calendar or gallery; quick note from anywhere with `Ctrl+Shift+Space`
+- **Project analysis**: one click reads your Unity project and proposes complete goals, filled tables (scripts, scenes, assets), notes from your TODO comments and a learning path; while typing, new goals get steps from the cheat sheet and notes get tag suggestions
+- **Showcase**: turn concept art, 3D models, progress and music into an animated presentation and record it for YouTube (16:9), TikTok/Shorts (9:16) or Instagram (1:1)
+- **Bug reports**: describe a problem in the Bugs section and send it as a pre-filled GitHub issue; after a crash the app offers to prepare one
 - **Projects** as the top level; everything else belongs to one
 - **Goals & steps** with progress bars per goal, project and overall; drag to reorder
 - **Asset board**: drop files from your file manager, drag cards between columns (Concept art, Music, Sound FX, Reference, Other), image thumbnails, audio preview, tags, search, "file moved" warnings

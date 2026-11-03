@@ -41,6 +41,14 @@
 - Import from Obsidian vaults and Notion exports (Markdown pages with their folder tree, CSV as tables)
 - Pages: formatted text (**bold**, *italic*, `code`, links, clickable `[[links]]`), sub-pages, daily devlog page, page templates (design document, character, level, postmortem)
 - Table views: kanban board, calendar and gallery
+- Project analysis: scans the linked Unity project (packages, scripts, scenes, TODO comments) and proposes goals, filled tables (scripts, scenes, assets), notes and a learning path; steps from the cheat sheet for new goals, tag suggestions for notes, table templates picked from the name
+- Showcase section: slides from concept art, 3D models, progress and music with animated transitions; full-screen presenter for screen recording in 16:9, 9:16 or 1:1
+- Bugs section: reports become a pre-filled GitHub issue (personal data removed); after an error or a crash the app offers to prepare a report
+- Cheat sheet: object pooling, enemy state machine, moving platforms, parallax, checkpoints, scene fades, dialogues, interaction
+- Animated tutorial lessons, tour highlight and confetti; refreshed design with section icons and motion
+- Visible labels instead of grey hints, explained empty states, example content in page and project templates
 - Unity build with scene check from the dashboard; Blender helpers (apply rotation/scale, origin to floor, LODs, export each collection); Krita sprite sheet export
 ### Changed
+- 3D preview: panning moves the picture and keeps the model as the rotation centre
+- Tighter Content-Security-Policy, the window cannot be navigated away from the app, CodeQL scanning
 - Cheat sheet scripts use English comments and log texts
