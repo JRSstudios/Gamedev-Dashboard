@@ -1,7 +1,7 @@
 import { addUsage, overMonthlyLimit } from '../model/usage'
 import { getData, mutate } from '../store'
 import { APP_GUIDE } from './appGuide'
-import { askClaude, ClaudeError, DEFAULT_CLAUDE_MODEL, type ClaudeResult, type Sender } from './claude'
+import { askClaude, askClaudeCli, claudeCliStatus, claudeHasKey, ClaudeError, DEFAULT_CLAUDE_MODEL, type ClaudeResult, type Sender } from './claude'
 
 export class LimitReachedError extends ClaudeError {}
 
@@ -16,10 +16,10 @@ export async function runClaude(
   const data = getData()
   if (!opts.ignoreLimit && overMonthlyLimit(data)) throw new LimitReachedError('limit')
   const model = data.settings.claude.model || DEFAULT_CLAUDE_MODEL
-  const result = await askClaude(
-    { model, system: opts.system, user: opts.user, webSearch: opts.webSearch ?? false, maxTokens: opts.maxTokens, guide: APP_GUIDE },
-    send,
-  )
+  const result =
+    data.settings.claude.transport === 'cli' && !send
+      ? await askClaudeCli({ model, system: opts.system, user: opts.user, guide: APP_GUIDE })
+      : await askClaude({ model, system: opts.system, user: opts.user, webSearch: opts.webSearch ?? false, maxTokens: opts.maxTokens, guide: APP_GUIDE }, send)
   mutate((d) =>
     addUsage(d, {
       model: result.model || model,
@@ -32,3 +32,7 @@ export async function runClaude(
   )
   return result
 }
+
+/** Whether Claude can be used with the chosen connection: a saved key, or Claude Code installed. */
+export const claudeAvailable = (): Promise<boolean> =>
+  getData().settings.claude.transport === 'cli' ? claudeCliStatus().then((s) => s.found) : claudeHasKey()

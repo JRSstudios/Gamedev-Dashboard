@@ -196,3 +196,8 @@ export async function onBridgeEvent(handler: (e: BridgeEvent) => void): Promise<
   const { listen } = await import('@tauri-apps/api/event')
   return listen<BridgeEvent>('bridge-event', (e) => handler(e.payload))
 }
+
+/** Reads `index.json` or one template from the GitHub catalog (desktop; fixed address in Rust). */
+export const templatesFetch = (name: string): Promise<string> => invoke<string>('templates_fetch', { name })
+/** Writes a template script into Assets/Scripts/Templates of the Unity project; fails with "exists" instead of overwriting. */
+export const writeUnityScript = (unityDir: string, file: string, text: string): Promise<string> => invoke<string>('write_unity_script', { unityDir, file, text })

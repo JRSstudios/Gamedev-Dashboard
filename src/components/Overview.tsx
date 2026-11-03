@@ -61,7 +61,7 @@ export function Overview({ projectId }: { projectId: string }) {
   return (
     <div className="overview hub">
       {IS_DESKTOP && (
-        <div className="app-tiles">
+        <div className="app-tiles" data-tour="hub-tiles">
           {(['unity', 'blender', 'krita'] as const).map((app) => (
             <AppTile key={app} project={project} app={app} inboxCount={items.filter((i) => i.source === app).length} />
           ))}

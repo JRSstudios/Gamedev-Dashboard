@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { claudeClearKey, claudeHasKey, claudeSetKey, CLAUDE_MODELS, friendlyError } from '../ai/claude'
+import { askClaudeCli, claudeClearKey, claudeCliStatus, claudeHasKey, claudeSetKey, CLAUDE_MODELS, friendlyError, type CliStatus } from '../ai/claude'
 import { LANGUAGES, NATIVE_NAMES, useT } from '../i18n'
 import { updateSettings } from '../model/ops'
 import { IS_DESKTOP } from '../platform'
@@ -15,9 +15,25 @@ function ClaudeSettings() {
   const [key, setKey] = useState('')
   const set = (patch: Partial<typeof claude>) => mutate((d) => updateSettings(d, { claude: { ...d.settings.claude, ...patch } }))
 
+  const [cli, setCli] = useState<CliStatus | null>(null)
+  const [testing, setTesting] = useState(false)
   useEffect(() => {
     void claudeHasKey().then(setHasKey)
+    void claudeCliStatus().then(setCli)
   }, [])
+  const viaCli = claude.transport === 'cli'
+  const ready = viaCli ? Boolean(cli?.found) : Boolean(hasKey)
+  const testCli = async () => {
+    setTesting(true)
+    try {
+      const r = await askClaudeCli({ model: claude.model, system: 'Reply with the single word OK.', user: 'Test' })
+      notify(t('cliTestOk', { reply: r.text.slice(0, 40) }))
+      set({ enabled: true })
+    } catch (e) {
+      notify(t('aiFailed', { reason: e instanceof Error ? e.message : String(e) }))
+    }
+    setTesting(false)
+  }
 
   const save = async () => {
     try {
@@ -48,8 +64,19 @@ function ClaudeSettings() {
       <p className="muted small">{IS_DESKTOP ? t('claudeIntro') : t('claudeDesktopOnly')}</p>
       {IS_DESKTOP && (
         <>
-          <p className="small">{hasKey ? t('claudeKeyStored') : t('claudeKeyNone')}</p>
-          <form
+          <div className="seg transport" role="radiogroup" aria-label={t('claudeTransport')}>
+            <button role="radio" aria-checked={!viaCli} className={viaCli ? '' : 'on'} onClick={() => set({ transport: 'api' })}>{t('claudeViaApi')}</button>
+            <button role="radio" aria-checked={viaCli} className={viaCli ? 'on' : ''} onClick={() => set({ transport: 'cli' })}>{t('claudeViaCli')}</button>
+          </div>
+          <p className="small muted">{viaCli ? t('claudeViaCliHint') : t('claudeViaApiHint')}</p>
+          {viaCli && (
+            <div className="row">
+              <span className={`pill ${cli?.found ? 'ok' : 'bad'}`}>{cli?.found ? t('cliFound', { version: cli.version ?? '?' }) : t('cliMissing')}</span>
+              <button disabled={!cli?.found || testing} onClick={() => void testCli()}>{testing ? t('claudeWorking') : t('cliTest')}</button>
+            </div>
+          )}
+          {!viaCli && <p className="small">{hasKey ? t('claudeKeyStored') : t('claudeKeyNone')}</p>}
+          {!viaCli && <form
             className="key-form"
             onSubmit={(e) => {
               e.preventDefault()
@@ -67,7 +94,7 @@ function ClaudeSettings() {
             />
             <button className="primary" type="submit" disabled={!key.trim()}>{t('claudeSave')}</button>
             {hasKey && <button type="button" onClick={() => void remove()}>{t('claudeRemove')}</button>}
-          </form>
+          </form>}
           <label className="field">
             {t('claudeModel')}
             <select value={claude.model} onChange={(e) => set({ model: e.target.value })}>
@@ -75,7 +102,7 @@ function ClaudeSettings() {
             </select>
           </label>
           <label className="check">
-            <input type="checkbox" checked={claude.enabled} disabled={!hasKey} onChange={(e) => set({ enabled: e.target.checked })} />
+            <input type="checkbox" checked={claude.enabled} disabled={!ready} onChange={(e) => set({ enabled: e.target.checked })} />
             {t('claudeEnable')}
           </label>
           <label className="check">

@@ -60,7 +60,7 @@ export function NavRail() {
   )
 
   return (
-    <aside className="navrail">
+    <aside className="navrail" data-tour="nav">
       <div className="brand">
         <span className="brand-mark" aria-hidden="true" />
         <strong>{t('appName')}</strong>

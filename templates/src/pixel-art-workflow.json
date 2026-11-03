@@ -1,0 +1,28 @@
+{
+  "format": "gdtemplate",
+  "formatVersion": 1,
+  "id": "pixel-art-workflow",
+  "name": "Pixel Art Workflow",
+  "description": "From Krita to Unity without blurry sprites: canvas sizes, a palette, layers as sprites, pixels per unit and the Pixel Perfect Camera.",
+  "author": "Gamedev Dashboard",
+  "version": "1.0.0",
+  "languages": ["en"],
+  "tags": ["2d", "pixel-art", "krita", "workflow"],
+  "perspective": "2d",
+  "contents": {
+    "goals": [
+      { "title": "Set up the pipeline", "estimateHours": 2, "steps": ["Install the Krita plugin (Krita page)", "Link the Krita folder and turn on auto import", "Turn on Pixel art and set pixels per unit on the Unity page", "Add a Pixel Perfect Camera to the main camera"] },
+      { "title": "Palette and style", "estimateHours": 4, "steps": ["Pick a palette with 16-32 colors", "Draw a 16x16 test tile", "Draw the player at the chosen size", "Check it in Unity at 1x and 3x zoom"] },
+      { "title": "Tileset", "estimateHours": 8, "steps": ["Ground, wall and decoration tiles", "Export layers as sprites", "Slice the tileset in the Sprite Editor", "Build a Rule Tile"] }
+    ],
+    "pages": [
+      { "title": "Style guide", "icon": "🎨", "markdown": "## Sizes\n- Tiles: 16 x 16 px\n- Player: 16 x 24 px\n- Pixels per unit: 16\n\n## Rules\n- Only colors from the palette\n- No anti-aliasing on the outline\n- Light comes from the top left\n\n## Unity import\n- Filter mode: Point\n- Compression: None\n- The Unity plugin sets both when Pixel art is on" }
+    ],
+    "tables": [
+      { "name": "Sprite list", "columns": [{ "name": "Sprite", "type": "text" }, { "name": "Size", "type": "text" }, { "name": "Frames", "type": "number" }, { "name": "Done", "type": "checkbox" }], "rows": [["Player idle", "16x24", 4, false], ["Player run", "16x24", 6, false], ["Grass tile", "16x16", 1, false]] }
+    ],
+    "cheats": [],
+    "budgets": { "concept": 14, "krita": 6 },
+    "unityScripts": []
+  }
+}

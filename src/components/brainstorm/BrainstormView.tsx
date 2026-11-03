@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { PlanSchema, validActions, type Plan } from '../../ai/actions'
-import { claudeHasKey } from '../../ai/claude'
 import { extractJson } from '../../ai/client'
 import { buildProjectContext } from '../../ai/context'
-import { LimitReachedError, runClaude } from '../../ai/run'
+import { claudeAvailable, LimitReachedError, runClaude } from '../../ai/run'
 import { getCheat, PERSPECTIVES, type Perspective } from '../../cheatsheet'
 import { ENGLISH_NAMES, resolveLanguage, useT, type Lang } from '../../i18n'
 import { newId } from '../../model/ops'
@@ -42,7 +41,7 @@ export function BrainstormView({ projectId }: { projectId: string }) {
   const ready = IS_DESKTOP && hasKey && data.settings.claude.enabled
 
   useEffect(() => {
-    void claudeHasKey().then(setHasKey)
+    void claudeAvailable().then(setHasKey)
   }, [])
 
   const query = `${text} ${perspective ? t(`persp_${perspective}`) : ''}`

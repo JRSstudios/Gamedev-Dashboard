@@ -1,0 +1,85 @@
+{
+  "templates": [
+    {
+      "file": "2d-platformer.gdtemplate.json",
+      "id": "2d-platformer",
+      "name": "2D Platformer",
+      "description": "A side-scrolling platformer from the first jump to a short playable demo: movement with coyote time, a tilemap level, enemies, pickups, a menu and a build.",
+      "author": "Gamedev Dashboard",
+      "tags": [
+        "2d",
+        "platformer",
+        "beginner"
+      ],
+      "perspective": "2d",
+      "languages": [
+        "en"
+      ]
+    },
+    {
+      "file": "3d-third-person.gdtemplate.json",
+      "id": "3d-third-person",
+      "name": "3D Third Person",
+      "description": "A third-person 3D game: camera-relative movement with a CharacterController, an orbit camera with Cinemachine 3, a blocked-out level, models from Blender and simple enemies.",
+      "author": "Gamedev Dashboard",
+      "tags": [
+        "3d",
+        "action",
+        "third-person"
+      ],
+      "perspective": "3d",
+      "languages": [
+        "en"
+      ]
+    },
+    {
+      "file": "game-jam-48h.gdtemplate.json",
+      "id": "game-jam-48h",
+      "name": "Game Jam (48 hours)",
+      "description": "A tight plan for a 48-hour jam: idea in the first hour, playable core after 12 hours, content and polish after that, upload with time to spare.",
+      "author": "Gamedev Dashboard",
+      "tags": [
+        "jam",
+        "planning",
+        "any"
+      ],
+      "perspective": "any",
+      "languages": [
+        "en"
+      ]
+    },
+    {
+      "file": "pixel-art-workflow.gdtemplate.json",
+      "id": "pixel-art-workflow",
+      "name": "Pixel Art Workflow",
+      "description": "From Krita to Unity without blurry sprites: canvas sizes, a palette, layers as sprites, pixels per unit and the Pixel Perfect Camera.",
+      "author": "Gamedev Dashboard",
+      "tags": [
+        "2d",
+        "pixel-art",
+        "krita",
+        "workflow"
+      ],
+      "perspective": "2d",
+      "languages": [
+        "en"
+      ]
+    },
+    {
+      "file": "top-down-rpg.gdtemplate.json",
+      "id": "top-down-rpg",
+      "name": "Top-Down RPG",
+      "description": "A small top-down adventure: walking in 8 directions, a village and a dungeon, NPC talk, enemies that chase, items and saving.",
+      "author": "Gamedev Dashboard",
+      "tags": [
+        "2d",
+        "rpg",
+        "adventure"
+      ],
+      "perspective": "2d",
+      "languages": [
+        "en"
+      ]
+    }
+  ]
+}

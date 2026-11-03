@@ -1,0 +1,161 @@
+{
+  "format": "gdtemplate",
+  "formatVersion": 1,
+  "id": "2d-platformer",
+  "name": "2D Platformer",
+  "description": "A side-scrolling platformer from the first jump to a short playable demo: movement with coyote time, a tilemap level, enemies, pickups, a menu and a build.",
+  "author": "Gamedev Dashboard",
+  "version": "1.0.0",
+  "languages": [
+    "en"
+  ],
+  "tags": [
+    "2d",
+    "platformer",
+    "beginner"
+  ],
+  "perspective": "2d",
+  "contents": {
+    "goals": [
+      {
+        "title": "Player movement feels good",
+        "estimateHours": 8,
+        "steps": [
+          "Create the player with Rigidbody 2D and Capsule Collider 2D",
+          "Add PlayerInputReader and PlatformerController2D",
+          "Tune speed, jump height and gravity scale",
+          "Add coyote time and jump buffer",
+          "Camera follows the player (Cinemachine Position Composer)"
+        ]
+      },
+      {
+        "title": "First level",
+        "estimateHours": 10,
+        "steps": [
+          "Make a tile palette from the tileset",
+          "Paint ground and platforms on a Tilemap",
+          "Add Tilemap Collider 2D and Composite Collider",
+          "Place pickups and a goal flag",
+          "Playtest and fix gaps that are too wide"
+        ]
+      },
+      {
+        "title": "Enemies and danger",
+        "estimateHours": 8,
+        "steps": [
+          "Enemy walks between two points (Patrol2D)",
+          "Touching an enemy hurts (DamageOnTouch + Health)",
+          "Spikes and pits reset the player",
+          "Stomp an enemy from above"
+        ]
+      },
+      {
+        "title": "Art and sound pass",
+        "estimateHours": 12,
+        "steps": [
+          "Player idle, run and jump animations",
+          "Background layers",
+          "Jump, pickup and hit sounds",
+          "Background music loop"
+        ]
+      },
+      {
+        "title": "Menu and build",
+        "estimateHours": 5,
+        "steps": [
+          "Start menu with Play and Quit",
+          "Pause menu",
+          "Volume slider",
+          "Windows build and test on another PC"
+        ]
+      }
+    ],
+    "pages": [
+      {
+        "title": "Game design",
+        "icon": "🎮",
+        "markdown": "# Pitch\nOne sentence: who do you play, what do you do, why is it fun?\n\n## Core loop\n- Run and jump through a level\n- Collect things\n- Reach the goal\n\n## Controls\n- Move: A/D or left stick\n- Jump: Space or south button\n\n## Scope for the demo\n- [ ] 1 level, about 2 minutes long\n- [ ] 1 enemy type\n- [ ] 1 collectible\n\n> Keep the first version tiny. Make it fun before you make it big."
+      },
+      {
+        "title": "Level ideas",
+        "icon": "🗺",
+        "markdown": "## Level 1: Teach the jump\n- Flat start, one small gap\n- A higher platform with a pickup above it\n- First enemy where it can be avoided\n\n## Level 2: Mix it\n- Moving platforms\n- Enemies near gaps\n\n---\nWrite every new idea here first and only build the best ones."
+      }
+    ],
+    "tables": [
+      {
+        "name": "Level list",
+        "columns": [
+          {
+            "name": "Level",
+            "type": "text"
+          },
+          {
+            "name": "Status",
+            "type": "select",
+            "options": [
+              "Idea",
+              "Blockout",
+              "Art",
+              "Done"
+            ]
+          },
+          {
+            "name": "Playtime (min)",
+            "type": "number"
+          },
+          {
+            "name": "Done",
+            "type": "progress"
+          }
+        ],
+        "rows": [
+          [
+            "1 - Meadow",
+            "Idea",
+            2,
+            0
+          ],
+          [
+            "2 - Cave",
+            "Idea",
+            3,
+            0
+          ]
+        ]
+      }
+    ],
+    "cheats": [],
+    "budgets": {
+      "concept": 6,
+      "audio": 4,
+      "unity": 30
+    },
+    "unityScripts": [
+      {
+        "file": "PlayerInputReader.cs",
+        "text": "using UnityEngine;\nusing UnityEngine.InputSystem;\n\n// Reads the project-wide actions (Edit > Project Settings > Input System Package).\n// Other scripts only use the properties below.\npublic class PlayerInputReader : MonoBehaviour\n{\n    private InputAction moveAction;\n    private InputAction lookAction;\n    private InputAction jumpAction;\n    private InputAction sprintAction;\n    private InputAction attackAction;\n    private InputAction interactAction;\n\n    public Vector2 Move { get; private set; }\n    public Vector2 Look { get; private set; }\n    public bool JumpPressed { get; private set; }\n    public bool JumpHeld { get; private set; }\n    public bool SprintHeld { get; private set; }\n    public bool AttackPressed { get; private set; }\n    public bool InteractPressed { get; private set; }\n\n    private void Awake()\n    {\n        moveAction = InputSystem.actions.FindAction(\"Move\");\n        lookAction = InputSystem.actions.FindAction(\"Look\");\n        jumpAction = InputSystem.actions.FindAction(\"Jump\");\n        sprintAction = InputSystem.actions.FindAction(\"Sprint\");\n        attackAction = InputSystem.actions.FindAction(\"Attack\");\n        interactAction = InputSystem.actions.FindAction(\"Interact\");\n    }\n\n    private void Update()\n    {\n        Move = moveAction != null ? moveAction.ReadValue<Vector2>() : Vector2.zero;\n        Look = lookAction != null ? lookAction.ReadValue<Vector2>() : Vector2.zero;\n        JumpPressed = jumpAction != null && jumpAction.WasPressedThisFrame();\n        JumpHeld = jumpAction != null && jumpAction.IsPressed();\n        SprintHeld = sprintAction != null && sprintAction.IsPressed();\n        AttackPressed = attackAction != null && attackAction.WasPressedThisFrame();\n        InteractPressed = interactAction != null && interactAction.WasPressedThisFrame();\n    }\n}"
+      },
+      {
+        "file": "PlatformerController2D.cs",
+        "text": "using UnityEngine;\n\n// Side view: run, jump, variable jump height, coyote time and jump buffer.\n[RequireComponent(typeof(Rigidbody2D), typeof(PlayerInputReader))]\npublic class PlatformerController2D : MonoBehaviour\n{\n    [Header(\"Laufen\")]\n    [SerializeField] private float moveSpeed = 8f;\n    [SerializeField] private float acceleration = 60f;\n\n    [Header(\"Springen\")]\n    [SerializeField] private float jumpVelocity = 14f;\n    [SerializeField] private float coyoteTime = 0.1f;   // seconds after leaving the edge\n    [SerializeField] private float jumpBuffer = 0.12f;  // seconds before landing\n    [SerializeField] private float jumpCutMultiplier = 0.5f; // button released early = smaller jump\n\n    [Header(\"Boden\")]\n    [SerializeField] private Transform groundCheck;\n    [SerializeField] private float groundRadius = 0.15f;\n    [SerializeField] private LayerMask groundLayer;\n\n    private Rigidbody2D body;\n    private PlayerInputReader input;\n    private SpriteRenderer sprite;\n    private float lastGroundedTime = -10f;\n    private float lastJumpPressedTime = -10f;\n\n    public bool IsGrounded { get; private set; }\n\n    private void Awake()\n    {\n        body = GetComponent<Rigidbody2D>();\n        input = GetComponent<PlayerInputReader>();\n        sprite = GetComponentInChildren<SpriteRenderer>();\n    }\n\n    private void Update()\n    {\n        IsGrounded = Physics2D.OverlapCircle(groundCheck.position, groundRadius, groundLayer);\n        if (IsGrounded) lastGroundedTime = Time.time;\n        if (input.JumpPressed) lastJumpPressedTime = Time.time;\n\n        bool canJump = Time.time - lastGroundedTime <= coyoteTime;\n        bool wantsJump = Time.time - lastJumpPressedTime <= jumpBuffer;\n        if (canJump && wantsJump)\n        {\n            body.linearVelocity = new Vector2(body.linearVelocity.x, jumpVelocity);\n            lastJumpPressedTime = -10f;\n            lastGroundedTime = -10f;\n        }\n\n        // Button released early: cut the jump short\n        if (!input.JumpHeld && body.linearVelocity.y > 0f)\n        {\n            body.linearVelocity = new Vector2(body.linearVelocity.x, body.linearVelocity.y * jumpCutMultiplier);\n        }\n\n        if (sprite != null && Mathf.Abs(input.Move.x) > 0.01f) sprite.flipX = input.Move.x < 0f;\n    }\n\n    private void FixedUpdate()\n    {\n        float target = input.Move.x * moveSpeed;\n        float x = Mathf.MoveTowards(body.linearVelocity.x, target, acceleration * Time.fixedDeltaTime);\n        body.linearVelocity = new Vector2(x, body.linearVelocity.y);\n    }\n\n    private void OnDrawGizmosSelected()\n    {\n        if (groundCheck == null) return;\n        Gizmos.color = Color.yellow;\n        Gizmos.DrawWireSphere(groundCheck.position, groundRadius);\n    }\n}"
+      },
+      {
+        "file": "Patrol2D.cs",
+        "text": "using UnityEngine;\n\n// Walks back and forth, turns around at walls and ledges.\n[RequireComponent(typeof(Rigidbody2D))]\npublic class Patrol2D : MonoBehaviour\n{\n    [SerializeField] private float speed = 2f;\n    [SerializeField] private Transform wallCheck;\n    [SerializeField] private Transform ledgeCheck;\n    [SerializeField] private LayerMask groundLayer;\n\n    private Rigidbody2D body;\n    private int direction = 1;\n\n    private void Awake()\n    {\n        body = GetComponent<Rigidbody2D>();\n    }\n\n    private void FixedUpdate()\n    {\n        bool wallAhead = Physics2D.OverlapCircle(wallCheck.position, 0.1f, groundLayer);\n        bool groundAhead = Physics2D.OverlapCircle(ledgeCheck.position, 0.1f, groundLayer);\n        if (wallAhead || !groundAhead) Flip();\n        body.linearVelocity = new Vector2(direction * speed, body.linearVelocity.y);\n    }\n\n    private void Flip()\n    {\n        direction = -direction;\n        Vector3 scale = transform.localScale;\n        scale.x = Mathf.Abs(scale.x) * direction;\n        transform.localScale = scale; // also mirrors the check points\n    }\n}"
+      },
+      {
+        "file": "Health.cs",
+        "text": "using UnityEngine;\nusing UnityEngine.Events;\n\n// Health for the player or enemies. Other scripts call TakeDamage.\npublic class Health : MonoBehaviour\n{\n    [SerializeField] private int maxHealth = 5;\n    public UnityEvent<int> onHealthChanged; // connect in the Inspector, e.g. to the health bar\n    public UnityEvent onDied;\n\n    public int Current { get; private set; }\n    public int Max => maxHealth;\n\n    private void Awake()\n    {\n        Current = maxHealth;\n    }\n\n    public void TakeDamage(int amount)\n    {\n        if (Current <= 0) return;\n        Current = Mathf.Max(0, Current - amount);\n        onHealthChanged?.Invoke(Current);\n        if (Current == 0) onDied?.Invoke();\n    }\n\n    public void Heal(int amount)\n    {\n        Current = Mathf.Min(maxHealth, Current + amount);\n        onHealthChanged?.Invoke(Current);\n    }\n}"
+      },
+      {
+        "file": "DamageOnTouch.cs",
+        "text": "using UnityEngine;\n\n// Spikes/enemies in 3D: deal damage on contact.\npublic class DamageOnTouch : MonoBehaviour\n{\n    [SerializeField] private int damage = 1;\n\n    private void OnCollisionEnter(Collision collision)\n    {\n        if (collision.collider.TryGetComponent(out Health health)) health.TakeDamage(damage);\n    }\n\n    private void OnTriggerEnter(Collider other)\n    {\n        if (other.TryGetComponent(out Health health)) health.TakeDamage(damage);\n    }\n}"
+      },
+      {
+        "file": "Pickup2D.cs",
+        "text": "using UnityEngine;\n\n// Coin/heart in 2D: Collider2D with \"Is Trigger\" on this object.\npublic class Pickup2D : MonoBehaviour\n{\n    [SerializeField] private int healAmount = 1;\n    [SerializeField] private AudioClip sound;\n\n    private void OnTriggerEnter2D(Collider2D other)\n    {\n        if (!other.CompareTag(\"Player\")) return;\n        if (other.TryGetComponent(out Health health)) health.Heal(healAmount);\n        if (sound != null) AudioSource.PlayClipAtPoint(sound, transform.position);\n        Destroy(gameObject);\n    }\n}"
+      }
+    ]
+  }
+}

@@ -8,9 +8,9 @@ export const sectionDescription = (t: TFn, s: Section): string => t(`desc_${s}`)
 /** Navigation groups. Sections keep the order from the project layout inside their group. */
 export const SECTION_GROUPS = [
   { id: 'plan', sections: ['overview', 'goals', 'brainstorm', 'planner'] },
-  { id: 'knowledge', sections: ['cheats', 'research', 'notes', 'pages', 'tables', 'nodes'] },
+  { id: 'knowledge', sections: ['tutorial', 'cheats', 'research', 'notes', 'pages', 'tables', 'nodes'] },
   { id: 'assets', sections: ['concept', 'inspiration', 'models', 'audio', 'assets'] },
-  { id: 'tools', sections: ['unity', 'blender', 'krita'] },
+  { id: 'tools', sections: ['unity', 'blender', 'krita', 'templates'] },
 ] as const satisfies readonly { id: string; sections: readonly Section[] }[]
 
 export type SectionGroupId = (typeof SECTION_GROUPS)[number]['id']

@@ -7,8 +7,10 @@ use tauri::Manager;
 
 mod bridge;
 mod claude;
+mod claude_cli;
 mod installer;
 mod models;
+mod templates;
 mod transfer;
 
 const MAX_DATA_BYTES: usize = 64 * 1024 * 1024;
@@ -135,6 +137,8 @@ pub fn run() {
             claude::claude_has_key,
             claude::claude_clear_key,
             claude::claude_request,
+            claude_cli::claude_cli_status,
+            claude_cli::claude_cli_request,
             transfer::inspect_unity_project,
             transfer::copy_into_folder,
             transfer::list_folder,
@@ -149,7 +153,9 @@ pub fn run() {
             installer::install_blender_addon,
             installer::install_krita_plugin,
             installer::uninstall_plugin,
-            installer::plugin_status
+            installer::plugin_status,
+            templates::templates_fetch,
+            templates::write_unity_script
         ])
         .run(tauri::generate_context!())
         .expect("error while running Gamedev Dashboard");

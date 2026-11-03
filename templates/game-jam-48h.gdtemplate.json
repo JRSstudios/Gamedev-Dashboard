@@ -1,0 +1,94 @@
+{
+  "format": "gdtemplate",
+  "formatVersion": 1,
+  "id": "game-jam-48h",
+  "name": "Game Jam (48 hours)",
+  "description": "A tight plan for a 48-hour jam: idea in the first hour, playable core after 12 hours, content and polish after that, upload with time to spare.",
+  "author": "Gamedev Dashboard",
+  "version": "1.0.0",
+  "languages": [
+    "en"
+  ],
+  "tags": [
+    "jam",
+    "planning",
+    "any"
+  ],
+  "perspective": "any",
+  "contents": {
+    "goals": [
+      {
+        "title": "Hour 0-2: Idea",
+        "estimateHours": 2,
+        "steps": [
+          "Write 10 ideas for the theme",
+          "Pick one you can finish",
+          "Write the core loop in one sentence"
+        ]
+      },
+      {
+        "title": "Hour 2-12: Playable core",
+        "estimateHours": 10,
+        "steps": [
+          "Player moves",
+          "The main mechanic works",
+          "You can win and lose",
+          "Restart without closing the game"
+        ]
+      },
+      {
+        "title": "Hour 12-36: Content",
+        "estimateHours": 20,
+        "steps": [
+          "3 short levels or one growing level",
+          "Art for the player and enemies",
+          "Sound effects",
+          "Music"
+        ]
+      },
+      {
+        "title": "Hour 36-46: Polish",
+        "estimateHours": 8,
+        "steps": [
+          "Title screen",
+          "Screen shake and juice",
+          "Fix the worst bugs",
+          "Let someone else play it"
+        ]
+      },
+      {
+        "title": "Hour 46-48: Ship",
+        "estimateHours": 2,
+        "steps": [
+          "Build for the web or Windows",
+          "Upload and test the download",
+          "Write the page text and add screenshots"
+        ]
+      }
+    ],
+    "pages": [
+      {
+        "title": "Jam notes",
+        "icon": "⏱",
+        "markdown": "# Theme\n\n## Idea\n\n## Cut list\nThings that sound fun but will not make it in time:\n- \n\n> Rule: if it is not fun after 12 hours, simplify. Do not add features."
+      }
+    ],
+    "tables": [],
+    "cheats": [],
+    "budgets": {},
+    "unityScripts": [
+      {
+        "file": "GameManager.cs",
+        "text": "using UnityEngine;\nusing UnityEngine.Events;\nusing UnityEngine.SceneManagement;\n\n// Holds the score and game state. Exactly one per scene.\npublic class GameManager : MonoBehaviour\n{\n    public static GameManager Instance { get; private set; }\n\n    public UnityEvent<int> onScoreChanged;\n    public UnityEvent onGameOver;\n\n    public int Score { get; private set; }\n\n    private void Awake()\n    {\n        if (Instance != null && Instance != this)\n        {\n            Destroy(gameObject);\n            return;\n        }\n        Instance = this;\n    }\n\n    public void AddScore(int amount)\n    {\n        Score += amount;\n        onScoreChanged?.Invoke(Score);\n    }\n\n    public void GameOver()\n    {\n        onGameOver?.Invoke();\n        Invoke(nameof(Restart), 2f);\n    }\n\n    public void Restart()\n    {\n        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);\n    }\n}"
+      },
+      {
+        "file": "ShakeOnHit.cs",
+        "text": "using UnityEngine;\nusing Unity.Cinemachine;\n\n// Triggers a camera shake, e.g. from Health.onHealthChanged.\n[RequireComponent(typeof(CinemachineImpulseSource))]\npublic class ShakeOnHit : MonoBehaviour\n{\n    [SerializeField] private float force = 1f;\n    private CinemachineImpulseSource source;\n\n    private void Awake()\n    {\n        source = GetComponent<CinemachineImpulseSource>();\n    }\n\n    public void Shake()\n    {\n        source.GenerateImpulseWithForce(force);\n    }\n}"
+      },
+      {
+        "file": "MenuActions.cs",
+        "text": "using UnityEngine;\nusing UnityEngine.SceneManagement;\n\n// For the buttons in the main menu.\npublic class MenuActions : MonoBehaviour\n{\n    [SerializeField] private string gameScene = \"Game\";\n\n    public void Play()\n    {\n        Time.timeScale = 1f;\n        SceneManager.LoadScene(gameScene);\n    }\n\n    public void Quit()\n    {\n        Application.Quit();\n#if UNITY_EDITOR\n        UnityEditor.EditorApplication.isPlaying = false;\n#endif\n    }\n}"
+      }
+    ]
+  }
+}

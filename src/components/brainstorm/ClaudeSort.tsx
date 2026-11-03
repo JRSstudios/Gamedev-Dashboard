@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { PlanSchema, validActions, type Plan } from '../../ai/actions'
-import { claudeHasKey } from '../../ai/claude'
 import { extractJson } from '../../ai/client'
-import { LimitReachedError, runClaude } from '../../ai/run'
+import { claudeAvailable, LimitReachedError, runClaude } from '../../ai/run'
 import { ENGLISH_NAMES, resolveLanguage, useT } from '../../i18n'
 import type { AssetCategory } from '../../model/schema'
 import { IS_DESKTOP } from '../../platform'
@@ -20,7 +19,7 @@ export function ClaudeSortButton({ projectId, categories }: { projectId: string;
   const [phase, setPhase] = useState<{ kind: 'working'; batch: number; of: number } | { kind: 'error'; message: string } | { kind: 'plan'; plan: Plan } | null>(null)
 
   useEffect(() => {
-    if (IS_DESKTOP) void claudeHasKey().then(setHasKey)
+    if (IS_DESKTOP) void claudeAvailable().then(setHasKey)
   }, [])
   if (!IS_DESKTOP || !enabled || !hasKey) return null
 

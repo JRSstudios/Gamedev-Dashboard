@@ -186,3 +186,73 @@ export async function askClaude(
 export const claudeHasKey = (): Promise<boolean> => (IS_DESKTOP ? invoke<boolean>('claude_has_key') : Promise.resolve(false))
 export const claudeSetKey = (key: string): Promise<void> => invoke('claude_set_key', { key })
 export const claudeClearKey = (): Promise<void> => invoke('claude_clear_key')
+
+// ---- Claude Code (the user's subscription) ---------------------------------
+
+export interface CliStatus {
+  found: boolean
+  path: string | null
+  version: string | null
+}
+
+export const claudeCliStatus = (): Promise<CliStatus> =>
+  IS_DESKTOP ? invoke<CliStatus>('claude_cli_status') : Promise.resolve({ found: false, path: null, version: null })
+
+const CliResult = z
+  .object({
+    is_error: z.boolean().optional(),
+    subtype: z.string().optional(),
+    result: z.string().optional(),
+    usage: z
+      .object({
+        input_tokens: z.number().nullish(),
+        output_tokens: z.number().nullish(),
+        cache_read_input_tokens: z.number().nullish(),
+        cache_creation_input_tokens: z.number().nullish(),
+      })
+      .passthrough()
+      .optional(),
+  })
+  .passthrough()
+
+/** Usage from Claude Code is recorded under this prefix: it runs on the subscription, so no dollar estimate. */
+export const CLI_MODEL_PREFIX = 'claude-code/'
+
+/** Reads the JSON that `claude -p --output-format json` prints. */
+export function parseCliResult(raw: string, model: string): ClaudeResult {
+  let parsed: z.infer<typeof CliResult>
+  try {
+    parsed = CliResult.parse(JSON.parse(raw))
+  } catch {
+    throw new ClaudeError(`Claude Code: ${raw.slice(0, 300)}`)
+  }
+  if (parsed.is_error || !parsed.result) throw new ClaudeError(`Claude Code: ${(parsed.result ?? parsed.subtype ?? 'error').slice(0, 300)}`)
+  return {
+    text: parsed.result.trim(),
+    sources: [],
+    model: `${CLI_MODEL_PREFIX}${model}`,
+    inputTokens: parsed.usage?.input_tokens ?? 0,
+    outputTokens: parsed.usage?.output_tokens ?? 0,
+    cacheReadTokens: parsed.usage?.cache_read_input_tokens ?? 0,
+    cacheWriteTokens: parsed.usage?.cache_creation_input_tokens ?? 0,
+  }
+}
+
+export type CliSender = (model: string, system: string, prompt: string) => Promise<string>
+const sendViaCli: CliSender = (model, system, prompt) => invoke<string>('claude_cli_request', { model, system, prompt })
+
+/** Same contract as `askClaude`, through Claude Code. Web search is not available this way. */
+export async function askClaudeCli(
+  opts: { model: string; system: string; user: string; guide?: string },
+  send: CliSender = sendViaCli,
+): Promise<ClaudeResult> {
+  if (!IS_DESKTOP && send === sendViaCli) throw new ClaudeError('Claude is only available in the desktop app.')
+  const system = opts.guide ? `${opts.guide}\n\n${opts.system}` : opts.system
+  let raw: string
+  try {
+    raw = await send(opts.model, system, opts.user)
+  } catch (e) {
+    throw new ClaudeError(e instanceof Error ? e.message : String(e))
+  }
+  return parseCliResult(raw, opts.model)
+}

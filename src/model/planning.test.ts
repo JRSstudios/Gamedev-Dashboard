@@ -102,3 +102,66 @@ describe('suggestions', () => {
     expect(list.map((s) => s.kind)).toEqual(['unityErrors', 'missing'])
   })
 })
+
+describe('templates', () => {
+  it('installs every bundled template and removes it again', async () => {
+    const { BUNDLED_TEMPLATES } = await import('../templates/bundled')
+    const { installTemplate, uninstallTemplate } = await import('./templates')
+    expect(BUNDLED_TEMPLATES.length).toBeGreaterThanOrEqual(5)
+    for (const tpl of BUNDLED_TEMPLATES) {
+      const created = addProject(emptyData(), 'G')
+      const { data, install } = installTemplate(created.data, created.project.id, tpl)
+      expect(data.goals.length).toBe(tpl.contents.goals.length)
+      expect(data.pages.length).toBe(tpl.contents.pages.length)
+      expect(data.tables.length).toBe(tpl.contents.tables.length)
+      const back = uninstallTemplate(data, install.id)
+      expect(back.goals).toEqual([])
+      expect(back.pages).toEqual([])
+      expect(back.tables).toEqual([])
+      expect(back.installs).toEqual([])
+    }
+  })
+
+  it('exports text only and rejects bad files', async () => {
+    const { exportTemplate, parseTemplate } = await import('./templates')
+    const created = addProject(emptyData(), 'My Game')
+    let d = addGoal(created.data, created.project.id, 'Menu')
+    d = addAssets(d, [newAsset(created.project.id, 'secret.png', 'C:/Users/me/secret.png', 'concept')])
+    const tpl = exportTemplate(d, created.project.id, { goals: true, pages: true, tables: true, budgets: true }, { name: 'My Game', description: '', author: '' })
+    expect(tpl.id).toBe('my-game')
+    expect(JSON.stringify(tpl)).not.toContain('C:/Users')
+    expect(parseTemplate(JSON.stringify(tpl)).contents.goals[0].title).toBe('Menu')
+    expect(() => parseTemplate('{"format":"gdtemplate","formatVersion":1,"id":"../x","name":"x","contents":{}}')).toThrow()
+    expect(() => parseTemplate(JSON.stringify({ ...tpl, contents: { ...tpl.contents, unityScripts: [{ file: '../evil.cs', text: '' }] } }))).toThrow()
+  })
+})
+
+describe('markdown and csv import', () => {
+  it('turns markdown into blocks', async () => {
+    const { mdToBlocks, splitMarkdown, csvToTable } = await import('./importMd')
+    const blocks = mdToBlocks('# Title\n\nSome **text**\nmore\n\n- a\n- b\n\n- [x] done\n- [ ] open\n\n> tip\n\n---\n')
+    expect(blocks.map((b) => b.type)).toEqual(['heading', 'paragraph', 'list', 'checklist', 'callout', 'divider'])
+    expect(splitMarkdown('---\ntitle: Hello\n---\nBody', 'x.md')).toEqual({ title: 'Hello', body: 'Body' })
+    expect(splitMarkdown('Text', 'Level ideas 0123456789abcdef0123456789abcdef.md').title).toBe('Level ideas')
+    const t = csvToTable('Name;Count;Done\n"A; b";2;yes\nC;3;no\n')
+    expect(t.columns.map((c) => c.type)).toEqual(['text', 'number', 'checkbox'])
+    expect(t.rows[0]).toEqual(['A; b', '2', true])
+  })
+})
+
+describe('assistant answers', () => {
+  it('separates text and proposed actions', async () => {
+    const { splitAnswer } = await import('../ai/assistant')
+    const r = splitAnswer('Do this.\n\n```json\n{"summary":"s","actions":[]}\n```')
+    expect(r.text).toBe('Do this.')
+    expect(r.json).toEqual({ summary: 's', actions: [] })
+    expect(splitAnswer('Plain').json).toBeNull()
+  })
+
+  it('reads Claude Code results', async () => {
+    const { parseCliResult } = await import('../ai/claude')
+    const r = parseCliResult(JSON.stringify({ type: 'result', is_error: false, result: ' Hi ', usage: { input_tokens: 5, output_tokens: 2 } }), 'claude-sonnet-5-5')
+    expect(r).toMatchObject({ text: 'Hi', inputTokens: 5, outputTokens: 2, model: 'claude-code/claude-sonnet-5-5' })
+    expect(() => parseCliResult(JSON.stringify({ is_error: true, result: 'Not logged in' }), 'x')).toThrow(/Not logged in/)
+  })
+})

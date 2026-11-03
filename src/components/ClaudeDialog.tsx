@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { claudeHasKey, ClaudeError, type ClaudeResult } from '../ai/claude'
-import { LimitReachedError, runClaude } from '../ai/run'
+import { ClaudeError, type ClaudeResult } from '../ai/claude'
+import { claudeAvailable, LimitReachedError, runClaude } from '../ai/run'
 import { buildProjectContext } from '../ai/context'
 import { buildPrompt, PRESETS, splitTitle, SuggestionsSchema, type Preset, type Suggestion } from '../ai/prompts'
 import { extractJson } from '../ai/client'
@@ -58,7 +58,7 @@ export function ClaudeDialog({ projectId, initial, onClose }: { projectId: strin
   }
 
   useEffect(() => {
-    void claudeHasKey().then(setHasKey)
+    void claudeAvailable().then(setHasKey)
   }, [])
 
   useEffect(() => {

@@ -7,6 +7,7 @@ import { dayKey, formatMinutes, minutesOnDay, minutesThisWeek } from '../../mode
 import { confirmDialog, pickTextFile, saveTextFile } from '../../platform'
 import { mutate, notify, replaceData, setSection, useStore } from '../../store'
 import { ProgressBar } from '../ProgressBar'
+import { startTour } from '../../tutorial'
 import { Icon } from './Icon'
 import { MenuButton, type MenuItem } from './MenuButton'
 
@@ -17,9 +18,10 @@ interface Props {
   onOpenPalette: () => void
   onOpenAi: () => void
   onOpenShortcuts: () => void
+  onOpenAssistant: () => void
 }
 
-export function TopBar({ onOpenPalette, onOpenAi, onOpenShortcuts }: Props) {
+export function TopBar({ onOpenPalette, onOpenAi, onOpenShortcuts, onOpenAssistant }: Props) {
   const t = useT()
   const data = useStore((s) => s.data)
   const activeId = useStore((s) => s.activeProjectId)
@@ -82,6 +84,8 @@ export function TopBar({ onOpenPalette, onOpenAi, onOpenShortcuts }: Props) {
     { kind: 'item', label: t('themeAuto'), checked: theme === 'auto', onSelect: () => setTheme('auto') },
     { kind: 'separator' },
     { kind: 'item', label: t('allSettings'), onSelect: () => setSection('settings') },
+    { kind: 'item', label: t('nav_tutorial'), onSelect: () => setSection('tutorial') },
+    { kind: 'item', label: t('tutStartTour'), onSelect: startTour },
   ]
   const help: MenuItem[] = [{ kind: 'item', label: t('shortcutsTitle'), onSelect: onOpenShortcuts }]
 
@@ -93,7 +97,7 @@ export function TopBar({ onOpenPalette, onOpenAi, onOpenShortcuts }: Props) {
         <MenuButton label={t('menu_help')} items={help} />
       </div>
 
-      <button className="palette-trigger" onClick={onOpenPalette}>
+      <button className="palette-trigger" data-tour="palette" onClick={onOpenPalette}>
         <Icon name="search" size={16} />
         <span>{t('paletteHint')}</span>
         <kbd>Ctrl K</kbd>
@@ -117,11 +121,14 @@ export function TopBar({ onOpenPalette, onOpenAi, onOpenShortcuts }: Props) {
         )}
       </div>
       <div className="topbar-actions">
+        <button className="icon-button" data-tour="assistant" onClick={onOpenAssistant} aria-label={t('assistant')} title={`${t('assistant')} (Ctrl+J)`}><Icon name="chat" /></button>
         <button className="icon-button" onClick={onOpenAi} aria-label={t('ai')} title={t('ai')}><Icon name="spark" /></button>
         <button className="icon-button" onClick={() => setTheme(dark ? 'light' : 'dark')} aria-label={t('themeToggle')} title={t('themeToggle')}>
           <Icon name={dark ? 'sun' : 'moon'} />
         </button>
-        <MenuButton label={t('settingsGear')} icon={<Icon name="settings" />} items={settingsMenu} />
+        <span data-tour="settings">
+          <MenuButton label={t('settingsGear')} icon={<Icon name="settings" />} items={settingsMenu} />
+        </span>
       </div>
     </header>
   )

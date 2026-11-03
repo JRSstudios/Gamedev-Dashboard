@@ -55,7 +55,7 @@ export function Suggestions({ projectId }: { projectId: string }) {
   const params = (s: Suggestion) => (s.kind === 'category' ? { ...s.params, category: t(`cat_${s.category!}`) } : s.params)
 
   return (
-    <section className="panel hub-suggest">
+    <section className="panel hub-suggest" data-tour="suggestions">
       <div className="panel-head">
         <h2>{t('sugTitle')}</h2>
         {list.length > 0 && <span className="badge">{list.length}</span>}

@@ -1,0 +1,188 @@
+{
+  "format": "gdtemplate",
+  "formatVersion": 1,
+  "id": "top-down-rpg",
+  "name": "Top-Down RPG",
+  "description": "A small top-down adventure: walking in 8 directions, a village and a dungeon, NPC talk, enemies that chase, items and saving.",
+  "author": "Gamedev Dashboard",
+  "version": "1.0.0",
+  "languages": [
+    "en"
+  ],
+  "tags": [
+    "2d",
+    "rpg",
+    "adventure"
+  ],
+  "perspective": "2d",
+  "contents": {
+    "goals": [
+      {
+        "title": "Walk around the world",
+        "estimateHours": 6,
+        "steps": [
+          "Player with Rigidbody 2D (gravity 0) and TopDownController2D",
+          "Walk animations with a 2D blend tree",
+          "Camera with Confiner 2D",
+          "Village tilemap with collisions"
+        ]
+      },
+      {
+        "title": "Talk and trade",
+        "estimateHours": 10,
+        "steps": [
+          "Dialogue box UI",
+          "NPC with a few lines",
+          "Shop with 3 items",
+          "Coins as a pickup"
+        ]
+      },
+      {
+        "title": "Dungeon and combat",
+        "estimateHours": 14,
+        "steps": [
+          "Sword swing with a hitbox",
+          "Enemy that chases the player (EnemyChase)",
+          "Health bar",
+          "Boss room door that needs a key"
+        ]
+      },
+      {
+        "title": "Save and load",
+        "estimateHours": 4,
+        "steps": [
+          "Save position, coins and items (SaveSystem)",
+          "Continue button in the menu"
+        ]
+      }
+    ],
+    "pages": [
+      {
+        "title": "World and story",
+        "icon": "📜",
+        "markdown": "# Setting\nWhere does the game take place? One paragraph is enough.\n\n## Main character\n- Name:\n- Goal:\n- What makes them special:\n\n## Places\n- Village (start, shop, NPCs)\n- Forest (first enemies)\n- Dungeon (boss)\n\n## Quest line\n- [ ] Talk to the elder\n- [ ] Find the key in the forest\n- [ ] Defeat the boss"
+      },
+      {
+        "title": "Characters",
+        "icon": "🧑",
+        "markdown": "## Elder\nGives the first quest. Friendly, a bit forgetful.\n\n## Shopkeeper\nSells potions and a better sword.\n\n## Boss\nWhat does it do? How does the player learn to beat it?"
+      }
+    ],
+    "tables": [
+      {
+        "name": "Items",
+        "columns": [
+          {
+            "name": "Item",
+            "type": "text"
+          },
+          {
+            "name": "Type",
+            "type": "select",
+            "options": [
+              "Weapon",
+              "Potion",
+              "Key",
+              "Other"
+            ]
+          },
+          {
+            "name": "Price",
+            "type": "number"
+          },
+          {
+            "name": "In game",
+            "type": "checkbox"
+          }
+        ],
+        "rows": [
+          [
+            "Wooden sword",
+            "Weapon",
+            0,
+            false
+          ],
+          [
+            "Small potion",
+            "Potion",
+            10,
+            false
+          ],
+          [
+            "Dungeon key",
+            "Key",
+            0,
+            false
+          ]
+        ]
+      },
+      {
+        "name": "Enemies",
+        "columns": [
+          {
+            "name": "Enemy",
+            "type": "text"
+          },
+          {
+            "name": "Health",
+            "type": "number"
+          },
+          {
+            "name": "Damage",
+            "type": "number"
+          },
+          {
+            "name": "Where",
+            "type": "text"
+          }
+        ],
+        "rows": [
+          [
+            "Slime",
+            2,
+            1,
+            "Forest"
+          ],
+          [
+            "Bat",
+            1,
+            1,
+            "Dungeon"
+          ]
+        ]
+      }
+    ],
+    "cheats": [],
+    "budgets": {
+      "concept": 10,
+      "audio": 5,
+      "unity": 34
+    },
+    "unityScripts": [
+      {
+        "file": "PlayerInputReader.cs",
+        "text": "using UnityEngine;\nusing UnityEngine.InputSystem;\n\n// Reads the project-wide actions (Edit > Project Settings > Input System Package).\n// Other scripts only use the properties below.\npublic class PlayerInputReader : MonoBehaviour\n{\n    private InputAction moveAction;\n    private InputAction lookAction;\n    private InputAction jumpAction;\n    private InputAction sprintAction;\n    private InputAction attackAction;\n    private InputAction interactAction;\n\n    public Vector2 Move { get; private set; }\n    public Vector2 Look { get; private set; }\n    public bool JumpPressed { get; private set; }\n    public bool JumpHeld { get; private set; }\n    public bool SprintHeld { get; private set; }\n    public bool AttackPressed { get; private set; }\n    public bool InteractPressed { get; private set; }\n\n    private void Awake()\n    {\n        moveAction = InputSystem.actions.FindAction(\"Move\");\n        lookAction = InputSystem.actions.FindAction(\"Look\");\n        jumpAction = InputSystem.actions.FindAction(\"Jump\");\n        sprintAction = InputSystem.actions.FindAction(\"Sprint\");\n        attackAction = InputSystem.actions.FindAction(\"Attack\");\n        interactAction = InputSystem.actions.FindAction(\"Interact\");\n    }\n\n    private void Update()\n    {\n        Move = moveAction != null ? moveAction.ReadValue<Vector2>() : Vector2.zero;\n        Look = lookAction != null ? lookAction.ReadValue<Vector2>() : Vector2.zero;\n        JumpPressed = jumpAction != null && jumpAction.WasPressedThisFrame();\n        JumpHeld = jumpAction != null && jumpAction.IsPressed();\n        SprintHeld = sprintAction != null && sprintAction.IsPressed();\n        AttackPressed = attackAction != null && attackAction.WasPressedThisFrame();\n        InteractPressed = interactAction != null && interactAction.WasPressedThisFrame();\n    }\n}"
+      },
+      {
+        "file": "TopDownController2D.cs",
+        "text": "using UnityEngine;\n\n// Top-down view: movement in all directions, facing direction for animations.\n[RequireComponent(typeof(Rigidbody2D), typeof(PlayerInputReader))]\npublic class TopDownController2D : MonoBehaviour\n{\n    [SerializeField] private float moveSpeed = 5f;\n    [SerializeField] private float sprintMultiplier = 1.6f;\n    [SerializeField] private Animator animator; // optional\n\n    private Rigidbody2D body;\n    private PlayerInputReader input;\n\n    public Vector2 Facing { get; private set; } = Vector2.down;\n\n    private void Awake()\n    {\n        body = GetComponent<Rigidbody2D>();\n        input = GetComponent<PlayerInputReader>();\n    }\n\n    private void Update()\n    {\n        if (input.Move.sqrMagnitude > 0.01f) Facing = input.Move.normalized;\n        if (animator != null)\n        {\n            animator.SetFloat(\"MoveX\", Facing.x);\n            animator.SetFloat(\"MoveY\", Facing.y);\n            animator.SetFloat(\"Speed\", input.Move.magnitude);\n        }\n    }\n\n    private void FixedUpdate()\n    {\n        // ClampMagnitude: diagonal is not faster than straight\n        Vector2 move = Vector2.ClampMagnitude(input.Move, 1f);\n        float speed = moveSpeed * (input.SprintHeld ? sprintMultiplier : 1f);\n        body.linearVelocity = move * speed;\n    }\n}"
+      },
+      {
+        "file": "EnemyChase.cs",
+        "text": "using UnityEngine;\nusing UnityEngine.AI;\n\n// Patrols between waypoints, chases the player when in range.\n[RequireComponent(typeof(NavMeshAgent))]\npublic class EnemyChase : MonoBehaviour\n{\n    [SerializeField] private Transform[] waypoints;\n    [SerializeField] private float sightRange = 10f;\n    [SerializeField] private float loseRange = 15f;\n\n    private NavMeshAgent agent;\n    private Transform player;\n    private int nextWaypoint;\n    private bool chasing;\n\n    private void Awake()\n    {\n        agent = GetComponent<NavMeshAgent>();\n        GameObject found = GameObject.FindWithTag(\"Player\");\n        if (found != null) player = found.transform;\n    }\n\n    private void Update()\n    {\n        float distance = player != null ? Vector3.Distance(transform.position, player.position) : float.MaxValue;\n        if (!chasing && distance < sightRange) chasing = true;\n        if (chasing && distance > loseRange) chasing = false;\n\n        if (chasing)\n        {\n            agent.SetDestination(player.position);\n        }\n        else if (waypoints.Length > 0 && !agent.pathPending && agent.remainingDistance < 0.5f)\n        {\n            agent.SetDestination(waypoints[nextWaypoint].position);\n            nextWaypoint = (nextWaypoint + 1) % waypoints.Length;\n        }\n    }\n}"
+      },
+      {
+        "file": "Health.cs",
+        "text": "using UnityEngine;\nusing UnityEngine.Events;\n\n// Health for the player or enemies. Other scripts call TakeDamage.\npublic class Health : MonoBehaviour\n{\n    [SerializeField] private int maxHealth = 5;\n    public UnityEvent<int> onHealthChanged; // connect in the Inspector, e.g. to the health bar\n    public UnityEvent onDied;\n\n    public int Current { get; private set; }\n    public int Max => maxHealth;\n\n    private void Awake()\n    {\n        Current = maxHealth;\n    }\n\n    public void TakeDamage(int amount)\n    {\n        if (Current <= 0) return;\n        Current = Mathf.Max(0, Current - amount);\n        onHealthChanged?.Invoke(Current);\n        if (Current == 0) onDied?.Invoke();\n    }\n\n    public void Heal(int amount)\n    {\n        Current = Mathf.Min(maxHealth, Current + amount);\n        onHealthChanged?.Invoke(Current);\n    }\n}"
+      },
+      {
+        "file": "HealthBar.cs",
+        "text": "using TMPro;\nusing UnityEngine;\nusing UnityEngine.UI;\n\n// Shows health as a bar and as text.\npublic class HealthBar : MonoBehaviour\n{\n    [SerializeField] private Health health;\n    [SerializeField] private Image fill;      // Image Type: Filled\n    [SerializeField] private TMP_Text label;  // optional\n\n    private void Start()\n    {\n        SetValue(health.Current);\n        health.onHealthChanged.AddListener(SetValue);\n    }\n\n    public void SetValue(int current)\n    {\n        fill.fillAmount = health.Max > 0 ? (float)current / health.Max : 0f;\n        if (label != null) label.text = current + \" / \" + health.Max;\n    }\n}"
+      },
+      {
+        "file": "SaveSystem.cs",
+        "text": "using System.IO;\nusing UnityEngine;\n\n[System.Serializable]\npublic class SaveData\n{\n    public string sceneName = \"Game\";\n    public Vector3 playerPosition;\n    public int health = 5;\n    public int coins;\n}\n\n// Saves SaveData as a JSON file.\npublic static class SaveSystem\n{\n    private static string FilePath => Path.Combine(Application.persistentDataPath, \"save.json\");\n\n    public static void Save(SaveData data)\n    {\n        File.WriteAllText(FilePath, JsonUtility.ToJson(data, true));\n    }\n\n    public static SaveData Load()\n    {\n        if (!File.Exists(FilePath)) return new SaveData();\n        return JsonUtility.FromJson<SaveData>(File.ReadAllText(FilePath));\n    }\n\n    public static void Delete()\n    {\n        if (File.Exists(FilePath)) File.Delete(FilePath);\n    }\n}"
+      }
+    ]
+  }
+}

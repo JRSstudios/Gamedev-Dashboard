@@ -19,6 +19,8 @@ export const SECTIONS = [
   'unity',
   'blender',
   'krita',
+  'templates',
+  'tutorial',
   'settings',
 ] as const
 export type Section = (typeof SECTIONS)[number]

@@ -1,0 +1,140 @@
+{
+  "format": "gdtemplate",
+  "formatVersion": 1,
+  "id": "3d-third-person",
+  "name": "3D Third Person",
+  "description": "A third-person 3D game: camera-relative movement with a CharacterController, an orbit camera with Cinemachine 3, a blocked-out level, models from Blender and simple enemies.",
+  "author": "Gamedev Dashboard",
+  "version": "1.0.0",
+  "languages": [
+    "en"
+  ],
+  "tags": [
+    "3d",
+    "action",
+    "third-person"
+  ],
+  "perspective": "3d",
+  "contents": {
+    "goals": [
+      {
+        "title": "Character controller",
+        "estimateHours": 8,
+        "steps": [
+          "Capsule player with CharacterController",
+          "ThirdPersonController: walk relative to the camera",
+          "Jump and gravity",
+          "CinemachineCamera with Orbital Follow and Rotation Composer"
+        ]
+      },
+      {
+        "title": "Blockout level",
+        "estimateHours": 8,
+        "steps": [
+          "Block out the level with ProBuilder or cubes",
+          "Check jump distances",
+          "Place checkpoints",
+          "Lighting pass"
+        ]
+      },
+      {
+        "title": "Models from Blender",
+        "estimateHours": 16,
+        "steps": [
+          "Install the Blender add-on (Blender page)",
+          "Player model with applied scale",
+          "Export with auto export on save",
+          "Prefab from the model in Unity",
+          "Animations: idle, run, jump"
+        ]
+      },
+      {
+        "title": "Enemies",
+        "estimateHours": 10,
+        "steps": [
+          "Bake a NavMesh",
+          "Enemy chases when it sees the player (LineOfSight)",
+          "Player health and respawn"
+        ]
+      }
+    ],
+    "pages": [
+      {
+        "title": "Game design",
+        "icon": "🎮",
+        "markdown": "# Pitch\nWho do you play and what is the goal?\n\n## Camera and controls\n- Mouse / right stick turns the camera\n- WASD / left stick moves relative to the camera\n\n## Scale\nOne Blender unit is one meter. The player is about 1.8 m tall.\n\n## Demo scope\n- [ ] One area, 5 minutes of play\n- [ ] One enemy type\n- [ ] A goal at the end"
+      },
+      {
+        "title": "Blender to Unity checklist",
+        "icon": "✅",
+        "markdown": "- [ ] Scale applied (Ctrl+A > Scale)\n- [ ] Rotation applied\n- [ ] Origin at the feet\n- [ ] UV map present\n- [ ] Under 30k triangles for the player\n- [ ] Export as FBX with -Z forward, Y up (the add-on does this)"
+      }
+    ],
+    "tables": [
+      {
+        "name": "Models",
+        "columns": [
+          {
+            "name": "Model",
+            "type": "text"
+          },
+          {
+            "name": "Status",
+            "type": "select",
+            "options": [
+              "Todo",
+              "Modeling",
+              "Texturing",
+              "In Unity"
+            ]
+          },
+          {
+            "name": "Triangles",
+            "type": "number"
+          }
+        ],
+        "rows": [
+          [
+            "Player",
+            "Todo",
+            null
+          ],
+          [
+            "Enemy",
+            "Todo",
+            null
+          ],
+          [
+            "Crate",
+            "Todo",
+            null
+          ]
+        ]
+      }
+    ],
+    "cheats": [],
+    "budgets": {
+      "models": 20,
+      "blender": 10,
+      "unity": 30
+    },
+    "unityScripts": [
+      {
+        "file": "PlayerInputReader.cs",
+        "text": "using UnityEngine;\nusing UnityEngine.InputSystem;\n\n// Reads the project-wide actions (Edit > Project Settings > Input System Package).\n// Other scripts only use the properties below.\npublic class PlayerInputReader : MonoBehaviour\n{\n    private InputAction moveAction;\n    private InputAction lookAction;\n    private InputAction jumpAction;\n    private InputAction sprintAction;\n    private InputAction attackAction;\n    private InputAction interactAction;\n\n    public Vector2 Move { get; private set; }\n    public Vector2 Look { get; private set; }\n    public bool JumpPressed { get; private set; }\n    public bool JumpHeld { get; private set; }\n    public bool SprintHeld { get; private set; }\n    public bool AttackPressed { get; private set; }\n    public bool InteractPressed { get; private set; }\n\n    private void Awake()\n    {\n        moveAction = InputSystem.actions.FindAction(\"Move\");\n        lookAction = InputSystem.actions.FindAction(\"Look\");\n        jumpAction = InputSystem.actions.FindAction(\"Jump\");\n        sprintAction = InputSystem.actions.FindAction(\"Sprint\");\n        attackAction = InputSystem.actions.FindAction(\"Attack\");\n        interactAction = InputSystem.actions.FindAction(\"Interact\");\n    }\n\n    private void Update()\n    {\n        Move = moveAction != null ? moveAction.ReadValue<Vector2>() : Vector2.zero;\n        Look = lookAction != null ? lookAction.ReadValue<Vector2>() : Vector2.zero;\n        JumpPressed = jumpAction != null && jumpAction.WasPressedThisFrame();\n        JumpHeld = jumpAction != null && jumpAction.IsPressed();\n        SprintHeld = sprintAction != null && sprintAction.IsPressed();\n        AttackPressed = attackAction != null && attackAction.WasPressedThisFrame();\n        InteractPressed = interactAction != null && interactAction.WasPressedThisFrame();\n    }\n}"
+      },
+      {
+        "file": "ThirdPersonController.cs",
+        "text": "using UnityEngine;\n\n// Third person with CharacterController: camera-relative movement, jump, gravity.\n[RequireComponent(typeof(CharacterController), typeof(PlayerInputReader))]\npublic class ThirdPersonController : MonoBehaviour\n{\n    [SerializeField] private float walkSpeed = 4f;\n    [SerializeField] private float sprintSpeed = 7f;\n    [SerializeField] private float turnSpeed = 720f;   // degrees per second\n    [SerializeField] private float jumpHeight = 1.2f;\n    [SerializeField] private float gravity = -20f;\n    [SerializeField] private Transform cameraTransform;\n\n    private CharacterController controller;\n    private PlayerInputReader input;\n    private float verticalVelocity;\n\n    private void Awake()\n    {\n        controller = GetComponent<CharacterController>();\n        input = GetComponent<PlayerInputReader>();\n        if (cameraTransform == null && Camera.main != null) cameraTransform = Camera.main.transform;\n    }\n\n    private void Update()\n    {\n        // Project the camera direction onto the ground\n        Vector3 forward = Vector3.ProjectOnPlane(cameraTransform.forward, Vector3.up).normalized;\n        Vector3 right = Vector3.ProjectOnPlane(cameraTransform.right, Vector3.up).normalized;\n        Vector3 move = forward * input.Move.y + right * input.Move.x;\n        move = Vector3.ClampMagnitude(move, 1f);\n\n        if (move.sqrMagnitude > 0.001f)\n        {\n            Quaternion target = Quaternion.LookRotation(move, Vector3.up);\n            transform.rotation = Quaternion.RotateTowards(transform.rotation, target, turnSpeed * Time.deltaTime);\n        }\n\n        if (controller.isGrounded && verticalVelocity < 0f) verticalVelocity = -2f; // keep grounded\n        if (controller.isGrounded && input.JumpPressed) verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);\n        verticalVelocity += gravity * Time.deltaTime;\n\n        float speed = input.SprintHeld ? sprintSpeed : walkSpeed;\n        Vector3 velocity = move * speed + Vector3.up * verticalVelocity;\n        controller.Move(velocity * Time.deltaTime);\n    }\n}"
+      },
+      {
+        "file": "LineOfSight.cs",
+        "text": "using UnityEngine;\n\n// Checks whether this object can see the target (no wall in between).\npublic class LineOfSight : MonoBehaviour\n{\n    [SerializeField] private Transform target;\n    [SerializeField] private float viewDistance = 15f;\n    [SerializeField] private LayerMask obstacles;\n\n    public bool CanSeeTarget()\n    {\n        Vector3 toTarget = target.position - transform.position;\n        if (toTarget.magnitude > viewDistance) return false;\n        // Does the ray hit an obstacle before it reaches the target?\n        return !Physics.Raycast(transform.position, toTarget.normalized, toTarget.magnitude, obstacles);\n    }\n\n    private void OnDrawGizmosSelected()\n    {\n        if (target == null) return;\n        Gizmos.color = CanSeeTarget() ? Color.green : Color.red;\n        Gizmos.DrawLine(transform.position, target.position);\n    }\n}"
+      },
+      {
+        "file": "Health.cs",
+        "text": "using UnityEngine;\nusing UnityEngine.Events;\n\n// Health for the player or enemies. Other scripts call TakeDamage.\npublic class Health : MonoBehaviour\n{\n    [SerializeField] private int maxHealth = 5;\n    public UnityEvent<int> onHealthChanged; // connect in the Inspector, e.g. to the health bar\n    public UnityEvent onDied;\n\n    public int Current { get; private set; }\n    public int Max => maxHealth;\n\n    private void Awake()\n    {\n        Current = maxHealth;\n    }\n\n    public void TakeDamage(int amount)\n    {\n        if (Current <= 0) return;\n        Current = Mathf.Max(0, Current - amount);\n        onHealthChanged?.Invoke(Current);\n        if (Current == 0) onDied?.Invoke();\n    }\n\n    public void Heal(int amount)\n    {\n        Current = Mathf.Min(maxHealth, Current + amount);\n        onHealthChanged?.Invoke(Current);\n    }\n}"
+      }
+    ]
+  }
+}

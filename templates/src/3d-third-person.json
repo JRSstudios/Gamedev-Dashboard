@@ -1,0 +1,30 @@
+{
+  "format": "gdtemplate",
+  "formatVersion": 1,
+  "id": "3d-third-person",
+  "name": "3D Third Person",
+  "description": "A third-person 3D game: camera-relative movement with a CharacterController, an orbit camera with Cinemachine 3, a blocked-out level, models from Blender and simple enemies.",
+  "author": "Gamedev Dashboard",
+  "version": "1.0.0",
+  "languages": ["en"],
+  "tags": ["3d", "action", "third-person"],
+  "perspective": "3d",
+  "contents": {
+    "goals": [
+      { "title": "Character controller", "estimateHours": 8, "steps": ["Capsule player with CharacterController", "ThirdPersonController: walk relative to the camera", "Jump and gravity", "CinemachineCamera with Orbital Follow and Rotation Composer"] },
+      { "title": "Blockout level", "estimateHours": 8, "steps": ["Block out the level with ProBuilder or cubes", "Check jump distances", "Place checkpoints", "Lighting pass"] },
+      { "title": "Models from Blender", "estimateHours": 16, "steps": ["Install the Blender add-on (Blender page)", "Player model with applied scale", "Export with auto export on save", "Prefab from the model in Unity", "Animations: idle, run, jump"] },
+      { "title": "Enemies", "estimateHours": 10, "steps": ["Bake a NavMesh", "Enemy chases when it sees the player (LineOfSight)", "Player health and respawn"] }
+    ],
+    "pages": [
+      { "title": "Game design", "icon": "🎮", "markdown": "# Pitch\nWho do you play and what is the goal?\n\n## Camera and controls\n- Mouse / right stick turns the camera\n- WASD / left stick moves relative to the camera\n\n## Scale\nOne Blender unit is one meter. The player is about 1.8 m tall.\n\n## Demo scope\n- [ ] One area, 5 minutes of play\n- [ ] One enemy type\n- [ ] A goal at the end" },
+      { "title": "Blender to Unity checklist", "icon": "✅", "markdown": "- [ ] Scale applied (Ctrl+A > Scale)\n- [ ] Rotation applied\n- [ ] Origin at the feet\n- [ ] UV map present\n- [ ] Under 30k triangles for the player\n- [ ] Export as FBX with -Z forward, Y up (the add-on does this)" }
+    ],
+    "tables": [
+      { "name": "Models", "columns": [{ "name": "Model", "type": "text" }, { "name": "Status", "type": "select", "options": ["Todo", "Modeling", "Texturing", "In Unity"] }, { "name": "Triangles", "type": "number" }], "rows": [["Player", "Todo", null], ["Enemy", "Todo", null], ["Crate", "Todo", null]] }
+    ],
+    "cheats": [],
+    "budgets": { "models": 20, "blender": 10, "unity": 30 },
+    "unityScripts": ["PlayerInputReader.cs", "ThirdPersonController.cs", "LineOfSight.cs", "Health.cs"]
+  }
+}

@@ -10,6 +10,10 @@ import { Overview } from './components/Overview'
 import { ResearchPanel } from './components/ResearchPanel'
 import { SettingsPage } from './components/SettingsPage'
 import { PlannerView } from './components/planner/PlannerView'
+import { TemplatesView } from './components/templates/TemplatesView'
+import { TutorialView } from './components/tutorial/TutorialView'
+import { Tour } from './components/tutorial/Tour'
+import { AssistantPanel } from './components/assistant/AssistantPanel'
 import { BrainstormView } from './components/brainstorm/BrainstormView'
 import { CheatSheetView } from './components/cheatsheet/CheatSheetView'
 import { NodesView } from './components/graph/NodesView'
@@ -86,6 +90,10 @@ function SectionView({ section, project, onOpenAi }: { section: Section; project
       return <BlenderPage projectId={id} />
     case 'krita':
       return <KritaPage projectId={id} />
+    case 'templates':
+      return <TemplatesView projectId={id} />
+    case 'tutorial':
+      return <TutorialView />
     case 'settings':
       return <SettingsPage onOpenAi={onOpenAi} />
   }
@@ -117,6 +125,8 @@ export default function App() {
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [claudeRequest, setClaudeRequest] = useState<ClaudeRequest | null>(null)
+  const [assistantOpen, setAssistantOpen] = useState(false)
+  const [tourOpen, setTourOpen] = useState(false)
   const theme = data.settings.theme
 
   useEffect(() => void init(), [])
@@ -140,9 +150,22 @@ export default function App() {
 
   useEffect(() => {
     const onAsk = (e: Event) => setClaudeRequest({ preset: (e as CustomEvent<{ preset: ClaudeRequest['preset'] }>).detail.preset, topic: '', autorun: true })
+    const onTour = () => setTourOpen(true)
     window.addEventListener('gd-claude', onAsk)
-    return () => window.removeEventListener('gd-claude', onAsk)
+    window.addEventListener('gd-tour', onTour)
+    return () => {
+      window.removeEventListener('gd-claude', onAsk)
+      window.removeEventListener('gd-tour', onTour)
+    }
   }, [])
+
+  // First start with a project: show the tour once.
+  const tourDone = data.settings.tutorial.tourDone
+  const hasProjects = data.projects.length > 0
+  useEffect(() => {
+    if (phase === 'ready' && hasProjects && !tourDone) setTourOpen(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the app becomes ready
+  }, [phase])
 
   useEffect(() => {
     if (phase !== 'ready') return
@@ -152,6 +175,9 @@ export default function App() {
       if (key === 'k') {
         e.preventDefault()
         setPaletteOpen(true)
+      } else if (key === 'j' && projectId) {
+        e.preventDefault()
+        setAssistantOpen((open) => !open)
       } else if (key === 'n' && projectId) {
         e.preventDefault()
         setSection('notes')
@@ -170,14 +196,14 @@ export default function App() {
   if (status.phase === 'loading') return <main className="center-screen muted">{t('loading')}</main>
   if (status.phase === 'error') return <ErrorScreen message={status.message} raw={status.raw} />
 
-  const bare = ['overview', 'settings', 'planner', 'unity', 'blender', 'krita', 'pages', 'tables', 'nodes', 'cheats', 'brainstorm', 'models'].includes(section)
+  const bare = ['overview', 'settings', 'planner', 'unity', 'blender', 'krita', 'pages', 'tables', 'nodes', 'cheats', 'brainstorm', 'models', 'templates', 'tutorial'].includes(section)
   const sectionLabel = resolveSections(project).find((e) => e.id === section)?.label ?? ''
 
   return (
     <div className="app">
       <NavRail />
       <div className="app-main">
-        <TopBar onOpenPalette={() => setPaletteOpen(true)} onOpenAi={() => setAiOpen(true)} onOpenShortcuts={() => setShortcutsOpen(true)} />
+        <TopBar onOpenPalette={() => setPaletteOpen(true)} onOpenAi={() => setAiOpen(true)} onOpenShortcuts={() => setShortcutsOpen(true)} onOpenAssistant={() => setAssistantOpen((open) => !open)} />
         <main className="page">
           {data.projects.length === 0 ? (
             <Welcome />
@@ -207,6 +233,8 @@ export default function App() {
         />
       )}
       {claudeRequest && projectId && <ClaudeDialog projectId={projectId} initial={claudeRequest} onClose={() => setClaudeRequest(null)} />}
+      {assistantOpen && projectId && <AssistantPanel projectId={projectId} onClose={() => setAssistantOpen(false)} />}
+      {tourOpen && <Tour onClose={() => setTourOpen(false)} />}
       {shortcutsOpen && <ShortcutsDialog onClose={() => setShortcutsOpen(false)} />}
       {aiOpen && <AiDialog projectId={projectId} onClose={() => setAiOpen(false)} />}
       <ConnectClaudeDialog />
