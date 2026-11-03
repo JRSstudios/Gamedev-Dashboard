@@ -28,6 +28,10 @@ export const EMPTY_INTEGRATIONS: Integrations = {
   kritaExe: null,
   kritaDir: null,
   unityMap: {},
+  pixelArt: false,
+  pixelsPerUnit: 100,
+  autoImport: false,
+  autoToUnity: false,
 }
 
 /** Where files of a category land inside a Unity project unless the user overrides it. */

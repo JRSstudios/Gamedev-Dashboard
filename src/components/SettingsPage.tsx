@@ -145,6 +145,15 @@ export function SettingsPage({ onOpenAi }: { onOpenAi: () => void }) {
             </select>
           </label>
           <p className="small muted">{t('translationNote')}</p>
+          {IS_DESKTOP && (
+            <>
+              <label className="check">
+                <input type="checkbox" checked={settings.bridgeEnabled} onChange={(e) => mutate((d) => updateSettings(d, { bridgeEnabled: e.target.checked }))} />
+                {t('bridgeSetting')}
+              </label>
+              <p className="small muted">{t('bridgeSettingHint')}</p>
+            </>
+          )}
         </section>
       )}
 

@@ -1,0 +1,6 @@
+{
+  "name": "GamedevDashboard.Bridge.Editor",
+  "rootNamespace": "GamedevDashboard.Bridge",
+  "includePlatforms": ["Editor"],
+  "autoReferenced": false
+}

@@ -74,9 +74,10 @@ pub fn inspect_unity_project(dir: String) -> bool {
 }
 
 /// Copies `src` into `dest_dir/sub`. `kind` is "unity" (dest must be a Unity project) or "blender".
-/// Returns the path of the new copy.
+/// Returns the path of the new copy. With `replace` (auto export of the same file again), an
+/// existing file of the same name is updated instead of getting a `-1` copy.
 #[tauri::command]
-pub fn copy_into_folder(src: String, dest_dir: String, sub: String, kind: String) -> Result<String, String> {
+pub fn copy_into_folder(src: String, dest_dir: String, sub: String, kind: String, replace: Option<bool>) -> Result<String, String> {
     let src = Path::new(&src);
     if !src.is_file() {
         return Err("source is not a file".into());
@@ -99,7 +100,7 @@ pub fn copy_into_folder(src: String, dest_dir: String, sub: String, kind: String
         return Err("target leaves the project folder".into());
     }
     let name = sanitize_name(src.file_name().and_then(|n| n.to_str()).unwrap_or(""))?;
-    let dest = unique_path(&target_dir, &name)?;
+    let dest = if replace.unwrap_or(false) && target_dir.join(&name).is_file() { target_dir.join(&name) } else { unique_path(&target_dir, &name)? };
     fs::copy(src, &dest).map_err(|e| e.to_string())?;
     Ok(dest.to_string_lossy().into_owned())
 }
@@ -245,15 +246,17 @@ mod tests {
         let src = src_dir.join("hero.png");
         fs::write(&src, b"one").unwrap();
 
-        let a = copy_into_folder(src.to_string_lossy().into(), unity.to_string_lossy().into(), "Assets/Art".into(), "unity".into()).unwrap();
-        let b = copy_into_folder(src.to_string_lossy().into(), unity.to_string_lossy().into(), "Assets/Art".into(), "unity".into()).unwrap();
+        let a = copy_into_folder(src.to_string_lossy().into(), unity.to_string_lossy().into(), "Assets/Art".into(), "unity".into(), None).unwrap();
+        let b = copy_into_folder(src.to_string_lossy().into(), unity.to_string_lossy().into(), "Assets/Art".into(), "unity".into(), None).unwrap();
         assert!(a.ends_with("hero.png"));
         assert!(b.ends_with("hero-1.png"));
         assert_eq!(fs::read(&a).unwrap(), b"one");
 
-        assert!(copy_into_folder(src.to_string_lossy().into(), unity.to_string_lossy().into(), "../x".into(), "unity".into()).is_err());
-        assert!(copy_into_folder(src.to_string_lossy().into(), src_dir.to_string_lossy().into(), "".into(), "unity".into()).is_err());
-        assert!(copy_into_folder(src.to_string_lossy().into(), unity.to_string_lossy().into(), "".into(), "other".into()).is_err());
+        let c = copy_into_folder(src.to_string_lossy().into(), unity.to_string_lossy().into(), "Assets/Art".into(), "unity".into(), Some(true)).unwrap();
+        assert_eq!(c, a, "replace updates the existing copy");
+        assert!(copy_into_folder(src.to_string_lossy().into(), unity.to_string_lossy().into(), "../x".into(), "unity".into(), None).is_err());
+        assert!(copy_into_folder(src.to_string_lossy().into(), src_dir.to_string_lossy().into(), "".into(), "unity".into(), None).is_err());
+        assert!(copy_into_folder(src.to_string_lossy().into(), unity.to_string_lossy().into(), "".into(), "other".into(), None).is_err());
         let _ = fs::remove_dir_all(unity);
         let _ = fs::remove_dir_all(src_dir);
     }

@@ -17,6 +17,8 @@ import { NodesView } from './components/graph/NodesView'
 import { ModelsView } from './components/models/ModelsView'
 import { ConnectClaudeDialog, Welcome } from './components/onboarding/Onboarding'
 import { useGlobalDrop } from './globalDrop'
+import { handleExportEvent } from './features/autoImport'
+import { startBridge, useBridgeConfigSync } from './features/bridge'
 import { PagesView } from './components/pages/PagesView'
 import { TablesView } from './components/tables/TablesView'
 import { CommandPalette } from './components/shell/CommandPalette'
@@ -137,6 +139,10 @@ export default function App() {
   const project = data.projects.find((p) => p.id === activeId && !p.archived) ?? null
   const projectId = project?.id ?? null
   const phase = status.phase
+  useBridgeConfigSync(phase === 'ready' ? project : null, data.settings.bridgeEnabled)
+  useEffect(() => {
+    if (phase === 'ready') startBridge(handleExportEvent)
+  }, [phase])
 
   useEffect(() => {
     if (phase !== 'ready') return

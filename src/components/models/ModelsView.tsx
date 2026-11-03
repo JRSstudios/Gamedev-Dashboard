@@ -1,3 +1,9 @@
+import { pathKey, sendJob, useBridge } from '../../features/bridge'
+import { samePath } from '../../features/hub'
+import { sendToUnity } from '../../features/transfer'
+import type { Project } from '../../model/schema'
+import { CheckResult } from '../hub/PluginPanel'
+import { useTransferReport } from '../hub/useTransferReport'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { useImageUrl } from '../../assetUrl'
 import { useT } from '../../i18n'
@@ -24,6 +30,29 @@ interface Item {
 function CompareImage({ asset, opacity }: { asset: Asset; opacity?: number }) {
   const url = useImageUrl(asset)
   return url ? <img className="compare-img" src={url} alt={asset.name} style={opacity === undefined ? undefined : { opacity }} draggable={false} /> : null
+}
+
+/** Model check from the Blender add-on plus one-click transfer to Unity (optionally as a prefab). */
+function ModelActions({ project, path }: { project: Project; path: string }) {
+  const t = useT()
+  const check = useBridge((s) => s.checks[pathKey(path)])
+  const report = useTransferReport()
+  const toUnity = async (prefab: boolean) => {
+    const r = await sendToUnity(project, path, 'model')
+    report('Unity', r)
+    if (r.ok && prefab) await sendJob('unity', { type: 'create_prefab', path: r.path })
+  }
+  return (
+    <div className="model-actions">
+      {check ? <CheckResult check={check} /> : <span className="small muted">{t('checkNone')}</span>}
+      {project.integrations.unityDir && (
+        <div className="row">
+          <button onClick={() => void toUnity(false)}>{t('integToUnity')}</button>
+          <button onClick={() => void toUnity(true)}>{t('unityAsPrefab')}</button>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export function ModelsView({ projectId }: { projectId: string }) {
@@ -55,8 +84,8 @@ export function ModelsView({ projectId }: { projectId: string }) {
 
   const items: Item[] = useMemo(() => {
     const own = assets.filter((a) => a.projectId === projectId && a.kind === 'model').map((a) => ({ key: a.id, name: a.name, path: a.path, asset: a }))
-    const known = new Set(own.map((o) => o.path))
-    const fromInbox = inbox.filter((f) => !known.has(f.path)).map((f) => ({ key: f.path, name: f.name, path: f.path, asset: null }))
+    const known = new Set(own.flatMap((o) => (o.path ? [samePath(o.path)] : [])))
+    const fromInbox = inbox.filter((f) => !known.has(samePath(f.path))).map((f) => ({ key: f.path, name: f.name, path: f.path, asset: null }))
     return [...own, ...fromInbox]
   }, [assets, inbox, projectId])
 
@@ -172,6 +201,7 @@ export function ModelsView({ projectId }: { projectId: string }) {
             {compareAsset && compare === 'overlay' && <CompareImage asset={compareAsset} opacity={opacity} />}
           </div>
         </div>
+        {current?.path && project && <ModelActions project={project} path={current.path} />}
       </section>
     </div>
   )

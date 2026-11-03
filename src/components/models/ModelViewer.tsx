@@ -116,6 +116,9 @@ export default function ModelViewer({ source, wireframe, dark }: { source: Model
       })
       .catch((e: unknown) => {
         if (cancelled) return
+        // Do not leave the previous model on screen behind the error message.
+        if (c.model) c.scene.remove(c.model)
+        c.model = null
         setError(e instanceof Error ? e.message : String(e))
         setStatus('error')
       })

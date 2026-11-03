@@ -8,6 +8,7 @@ import { IS_DESKTOP, type ExternalApp } from '../../platform'
 import { mutate, notify, useStore } from '../../store'
 import { DropTiles, IntegrationPath } from './common'
 import { InboxList } from './InboxList'
+import { BlenderTools, KritaTools, PluginPanel, UnityConsole, UnityPresets } from './PluginPanel'
 
 function useProject(projectId: string): Project | undefined {
   return useStore((s) => s.data.projects.find((p) => p.id === projectId))
@@ -52,8 +53,11 @@ export function UnityPage({ projectId }: { projectId: string }) {
               {p.integrations.unityDir && valid !== null && <p className={valid ? 'small ok' : 'small warn'}>{valid ? t('integValid') : t('integInvalid')}</p>}
               <IntegrationPath project={p} field="unityExe" label={t('integExeUnity')} program />
             </section>
+            <PluginPanel project={p} app="unity" />
+            <UnityConsole projectId={p.id} />
             <section className="panel">
               <h2>{t('integMap')}</h2>
+              <UnityPresets project={p} />
               <div className="map-grid">
                 {ASSET_CATEGORIES.map((c) => (
                   <label key={c} className="field">
@@ -105,6 +109,8 @@ export function BlenderPage({ projectId }: { projectId: string }) {
               <IntegrationPath project={p} field="blenderExe" label={t('integExeBlender')} program />
             </section>
             <AppInbox project={p} source="blender" />
+            <PluginPanel project={p} app="blender" />
+            <BlenderTools project={p} />
           </div>
         </>
       )}
@@ -125,6 +131,8 @@ export function KritaPage({ projectId }: { projectId: string }) {
             <IntegrationPath project={p} field="kritaExe" label={t('kritaExe')} program />
           </section>
           {p.integrations.kritaDir ? <AppInbox project={p} source="krita" /> : <p className="panel muted small">{t('kritaNoDir')}</p>}
+          <PluginPanel project={p} app="krita" />
+          <KritaTools project={p} />
         </div>
       )}
     </AppFrame>

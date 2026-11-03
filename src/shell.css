@@ -75,11 +75,30 @@
 .source-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
 .source-dot.blender { background: #e87d0d; }
 .source-dot.krita { background: #3daee9; }
-.inbox li { display: flex; align-items: center; gap: 10px; }
+.inbox li { display: flex; align-items: center; gap: 4px 10px; flex-wrap: wrap; padding: 4px 0; border-bottom: 1px solid var(--border); }
+.inbox li:last-child { border-bottom: 0; }
 .inbox .link { font-size: 0.85rem; white-space: nowrap; }
-.inbox li > .clip { flex: 1 1 140px; min-width: 0; }
+.inbox li > .clip { flex: 1 1 180px; min-width: 120px; }
 
 /* ---------- program pages ---------- */
 .app-page { display: flex; flex-direction: column; gap: 16px; }
 .app-page-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
 .app-page-head p { max-width: 70ch; margin: 0; }
+
+/* ---------- plugins ---------- */
+.pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 999px; font-size: 0.78rem; background: var(--surface-3); color: var(--muted); white-space: nowrap; }
+.pill.ok { background: color-mix(in srgb, #12b76a 18%, transparent); color: #12b76a; }
+.pill.bad { background: color-mix(in srgb, var(--danger) 16%, transparent); color: var(--danger); }
+.pill.idle { background: var(--accent-soft); color: var(--accent); }
+.plugin-panel .row, .switches { margin-top: 4px; }
+.switches { display: flex; flex-direction: column; gap: 6px; }
+.field.inline { flex-direction: row; align-items: center; gap: 8px; }
+.field.inline input { width: 90px; }
+.log-list { display: flex; flex-direction: column; gap: 4px; max-height: 320px; overflow: auto; }
+.log-list li { display: flex; align-items: flex-start; gap: 8px; padding: 6px 8px; border-radius: var(--radius-sm); background: var(--surface-2); border-left: 3px solid var(--danger); }
+.log-list li.warning { border-left-color: var(--warn); }
+.log-msg { flex: 1; min-width: 0; font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem; white-space: pre-wrap; word-break: break-word; max-height: 4.5em; overflow: hidden; }
+.check-result { display: flex; flex-direction: column; gap: 6px; }
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.unity-console { grid-column: 1 / -1; }
+.model-actions { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-top: 10px; }

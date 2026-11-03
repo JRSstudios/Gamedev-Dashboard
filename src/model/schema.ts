@@ -88,6 +88,12 @@ export const IntegrationsSchema = z.object({
   kritaDir: text(2000).nullable().default(null),
   /** Category -> sub folder inside the Unity project; falls back to DEFAULT_UNITY_MAP. */
   unityMap: z.record(z.string().max(40), text(300)).default({}),
+  /** Unity plugin import presets: point filtering and no compression for sprites. */
+  pixelArt: z.boolean().default(false),
+  pixelsPerUnit: z.number().int().min(1).max(4096).default(100),
+  /** New Blender/Krita exports are added to the project (and sent to Unity) without asking. */
+  autoImport: z.boolean().default(false),
+  autoToUnity: z.boolean().default(false),
 })
 
 export const COLUMN_TYPES = ['text', 'number', 'checkbox', 'select', 'date', 'progress', 'url'] as const
@@ -193,7 +199,7 @@ export const ProjectSchema = z.object({
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   archived: z.boolean(),
   createdAt: iso,
-  integrations: IntegrationsSchema.default({ unityDir: null, unityExe: null, blenderDir: null, blenderExe: null, blenderExportDir: null, kritaExe: null, kritaDir: null, unityMap: {} }),
+  integrations: IntegrationsSchema.default({ unityDir: null, unityExe: null, blenderDir: null, blenderExe: null, blenderExportDir: null, kritaExe: null, kritaDir: null, unityMap: {}, pixelArt: false, pixelsPerUnit: 100, autoImport: false, autoToUnity: false }),
   layout: LayoutSchema.default({ sections: [] }),
   graph: GraphSchema.default({ nodes: [], edges: [] }),
   /** Files the user dismissed from the hub inbox, so they do not come back. */
@@ -240,6 +246,8 @@ export const SettingsSchema = z.object({
       asked: z.boolean().default(false),
     })
     .default({ enabled: false, model: 'claude-sonnet-5-5', webSearch: false, monthlyLimitUsd: null, asked: false }),
+  /** Local connection for the Unity, Blender and Krita plugins. */
+  bridgeEnabled: z.boolean().default(true),
 })
 
 export const DataSchema = z.object({
@@ -306,6 +314,7 @@ export function emptyData(): Data {
       theme: 'light',
       ai: { enabled: false, baseUrl: '', model: '' },
       claude: { enabled: false, model: 'claude-sonnet-5-5', webSearch: false, monthlyLimitUsd: null, asked: false },
+      bridgeEnabled: true,
     },
   }
 }

@@ -175,7 +175,8 @@ export function notify(message: string, action: { label: string; run: () => void
   noticeTimer = setTimeout(() => setState({ notice: null, noticeAction: null }), action ? 9000 : 6000)
 }
 
-export const getData =(): Data => state.data
+export const getData = (): Data => state.data
+export const getActiveProjectId = (): string | null => state.activeProjectId
 
 export function useStore<T>(selector: (s: State) => T): T {
   return useSyncExternalStore(

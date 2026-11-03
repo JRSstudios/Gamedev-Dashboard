@@ -1,0 +1,9 @@
+{
+  "name": "com.gamedev-dashboard.bridge",
+  "version": "0.1.0",
+  "displayName": "Gamedev Dashboard Bridge",
+  "description": "Connects this project to the Gamedev Dashboard app on the same computer: import presets per asset category, jobs started in the dashboard (import, prefab, open scene) and console errors shown in the dashboard. Talks only to 127.0.0.1.",
+  "unity": "6000.0",
+  "author": { "name": "Gamedev Dashboard contributors" },
+  "license": "MIT"
+}

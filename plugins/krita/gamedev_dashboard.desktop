@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Service
+ServiceTypes=Krita/PythonPlugin
+X-KDE-Library=gamedev_dashboard
+X-Python-2-Compatible=false
+X-Krita-Manual=Manual.html
+Name=Gamedev Dashboard
+Comment=Exports PNG files and sprites for Unity on save and tells the Gamedev Dashboard app about them

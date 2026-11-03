@@ -131,8 +131,8 @@ export async function pickProgram(): Promise<string | null> {
 
 export const inspectUnityProject = (dir: string): Promise<boolean> => invoke<boolean>('inspect_unity_project', { dir })
 
-export const copyIntoFolder = (src: string, destDir: string, sub: string, kind: 'unity' | 'blender'): Promise<string> =>
-  invoke<string>('copy_into_folder', { src, destDir, sub, kind })
+export const copyIntoFolder = (src: string, destDir: string, sub: string, kind: 'unity' | 'blender', replace = false): Promise<string> =>
+  invoke<string>('copy_into_folder', { src, destDir, sub, kind, replace })
 
 export const listFolder = (dir: string, exts: string[], limit: number, depth?: number): Promise<FolderEntry[]> =>
   invoke<FolderEntry[]>('list_folder', { dir, exts, limit, depth: depth ?? null })
@@ -151,3 +151,48 @@ export const blendToGlb = (blend: string, exe: string): Promise<string> => invok
 
 /** Last path segment without the extension (folder or file name). */
 export const baseName = (path: string): string => (path.split(/[\\/]/).filter(Boolean).pop() ?? path).replace(/\.[^.]+$/, '')
+
+// ---------- plugin bridge (desktop) ----------
+
+export type BridgeApp = 'unity' | 'blender' | 'krita'
+
+export interface BridgeEvent {
+  app: BridgeApp
+  type: string
+  data: Record<string, unknown>
+  /** Seconds since the Unix epoch. */
+  at: number
+}
+
+export interface BridgeInfo {
+  running: boolean
+  port: number
+  enabled: boolean
+  /** Last contact per plugin, seconds since the Unix epoch. */
+  seen: Partial<Record<BridgeApp, number>>
+}
+
+export interface PluginStatus {
+  unity: boolean
+  blender: string[]
+  blenderFound: boolean
+  krita: boolean
+  kritaFound: boolean
+}
+
+export const bridgeInfo = (): Promise<BridgeInfo> => invoke<BridgeInfo>('bridge_info')
+export const bridgeSetEnabled = (enabled: boolean): Promise<void> => invoke('bridge_set_enabled', { enabled })
+export const bridgeSetConfig = (config: Record<string, unknown>): Promise<void> => invoke('bridge_set_config', { config })
+export const bridgeEnqueue = (app: BridgeApp, job: Record<string, unknown>): Promise<void> => invoke('bridge_enqueue', { app, job })
+export const pluginStatus = (unityDir: string | null): Promise<PluginStatus> => invoke<PluginStatus>('plugin_status', { unityDir })
+export const installUnityPlugin = (unityDir: string): Promise<string> => invoke<string>('install_unity_plugin', { unityDir })
+export const installBlenderAddon = (): Promise<string[]> => invoke<string[]>('install_blender_addon')
+export const installKritaPlugin = (): Promise<string> => invoke<string>('install_krita_plugin')
+export const uninstallPlugin = (kind: BridgeApp, unityDir: string | null): Promise<void> => invoke('uninstall_plugin', { kind, unityDir })
+
+/** Events from the plugins (exports, Unity errors). */
+export async function onBridgeEvent(handler: (e: BridgeEvent) => void): Promise<() => void> {
+  if (!IS_DESKTOP) return () => {}
+  const { listen } = await import('@tauri-apps/api/event')
+  return listen<BridgeEvent>('bridge-event', (e) => handler(e.payload))
+}

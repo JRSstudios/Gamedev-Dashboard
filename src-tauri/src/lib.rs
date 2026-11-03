@@ -5,7 +5,9 @@ use std::{
 };
 use tauri::Manager;
 
+mod bridge;
 mod claude;
+mod installer;
 mod models;
 mod transfer;
 
@@ -114,6 +116,14 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_window_state::Builder::default().build())
+        .manage(bridge::Bridge(std::sync::Mutex::new(bridge::Inner::new(String::new()))))
+        .setup(|app| {
+            // The plugins are optional; without the bridge the dashboard works as before.
+            if let Err(e) = bridge::start(app.handle()) {
+                eprintln!("bridge not started: {e}");
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             load_data,
             save_data,
@@ -130,7 +140,16 @@ pub fn run() {
             transfer::list_folder,
             transfer::open_in_app,
             models::read_model_file,
-            models::blend_to_glb
+            models::blend_to_glb,
+            bridge::bridge_info,
+            bridge::bridge_set_enabled,
+            bridge::bridge_set_config,
+            bridge::bridge_enqueue,
+            installer::install_unity_plugin,
+            installer::install_blender_addon,
+            installer::install_krita_plugin,
+            installer::uninstall_plugin,
+            installer::plugin_status
         ])
         .run(tauri::generate_context!())
         .expect("error while running Gamedev Dashboard");
