@@ -139,7 +139,6 @@ export const en = {
   desc_audio: 'Music and sound effects.',
   desc_assets: 'Every file of this project, sorted by category.',
   desc_notes: 'Quick thoughts, tagged and searchable.',
-  desc_planner: 'Track time and see what happened on which day.',
   desc_integrations: 'Move files between this app, Unity and Blender.',
   desc_settings: 'Projects, appearance, AI and data.',
 
@@ -773,6 +772,7 @@ export const en = {
   unityBuildResult: "Build: {result}, {errors} errors, {seconds} s",
   unityBuildNoScenes: "Build stopped: no scene is enabled in the build profile.",
   unityBuildCompile: "Build stopped: fix the compile errors first.",
+  desc_planner: "Timer and calendar, your weekly working and gamedev times, and hours per goal and section.",
   close: 'Close',
 }
 

@@ -141,7 +141,6 @@ export const ja: Dict = {
   desc_audio: '音楽と効果音。',
   desc_assets: 'プロジェクトの全ファイルをカテゴリ別に。',
   desc_notes: 'タグ付きで検索できる、ちょっとした考え。',
-  desc_planner: '時間を記録し、日ごとの出来事を確認します。',
   desc_integrations: 'このアプリ、Unity、Blender の間でファイルを移動します。',
   desc_settings: 'プロジェクト、外観、AI、データ。',
 
@@ -775,5 +774,6 @@ export const ja: Dict = {
   unityBuildResult: "ビルド：{result}、エラー {errors} 件、{seconds} 秒",
   unityBuildNoScenes: "ビルド停止：ビルドプロファイルで有効なシーンがありません。",
   unityBuildCompile: "ビルド停止：先にコンパイルエラーを直してください。",
+  desc_planner: "タイマーとカレンダー、週ごとの仕事とゲーム開発の時間、目標とセクションごとの時間。",
   close: '閉じる',
 }

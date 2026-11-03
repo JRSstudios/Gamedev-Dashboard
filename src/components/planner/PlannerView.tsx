@@ -35,7 +35,7 @@ export function PlannerView({ projectId }: { projectId: string }) {
     <div className="planner-view">
       <div className="tabs" role="tablist" data-tour="planner-tabs">
         {TABS.map((id) => (
-          <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'on' : ''} onClick={() => pick(id)}>
+          <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'tab on' : 'tab'} onClick={() => pick(id)}>
             {t(`plan_${id}`)}
           </button>
         ))}

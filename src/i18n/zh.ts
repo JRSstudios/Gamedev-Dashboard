@@ -141,7 +141,6 @@ export const zh: Dict = {
   desc_audio: '音乐和音效。',
   desc_assets: '此项目的所有文件，按分类整理。',
   desc_notes: '快速想法，带标签且可搜索。',
-  desc_planner: '记录时间，查看每天做了什么。',
   desc_integrations: '在本应用、Unity 和 Blender 之间传输文件。',
   desc_settings: '项目、外观、AI 和数据。',
 
@@ -775,5 +774,6 @@ export const zh: Dict = {
   unityBuildResult: "构建：{result}，{errors} 个错误，{seconds} 秒",
   unityBuildNoScenes: "构建已停止：构建配置中没有启用的场景。",
   unityBuildCompile: "构建已停止：请先修复编译错误。",
+  desc_planner: "计时器和日历、每周的工作与游戏开发时间，以及每个目标和部分的小时数。",
   close: '关闭',
 }

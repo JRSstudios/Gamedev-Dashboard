@@ -141,7 +141,6 @@ export const es: Dict = {
   desc_audio: 'Música y efectos de sonido.',
   desc_assets: 'Todos los archivos del proyecto, ordenados por categoría.',
   desc_notes: 'Ideas rápidas, con etiquetas y buscables.',
-  desc_planner: 'Registra el tiempo y mira qué pasó cada día.',
   desc_integrations: 'Mueve archivos entre esta app, Unity y Blender.',
   desc_settings: 'Proyectos, apariencia, IA y datos.',
 
@@ -775,5 +774,6 @@ export const es: Dict = {
   unityBuildResult: "Build: {result}, {errors} errores, {seconds} s",
   unityBuildNoScenes: "Build detenida: no hay ninguna escena activada en el perfil de build.",
   unityBuildCompile: "Build detenida: corrige primero los errores de compilación.",
+  desc_planner: "Temporizador y calendario, tus horarios semanales de trabajo y de gamedev, y las horas por objetivo y sección.",
   close: 'Cerrar',
 }
