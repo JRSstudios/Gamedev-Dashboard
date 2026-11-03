@@ -134,9 +134,21 @@ fn take_crash_log(app: tauri::AppHandle) -> Option<String> {
     Some(text.chars().take(16_000).collect())
 }
 
+/// Brings the main window to the front, also when it is minimized or hidden.
+fn reveal_main(app: &tauri::AppHandle) {
+    if let Some(w) = app.get_webview_window("main") {
+        let _ = w.unminimize();
+        let _ = w.show();
+        let _ = w.set_focus();
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        // Must come first: a second start hands over to the running window instead of
+        // starting another app that would fight over data.json, the bridge and the shortcut.
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| reveal_main(app)))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_window_state::Builder::default().build())
@@ -150,22 +162,22 @@ pub fn run() {
         )
         .plugin(
             // Ctrl+Shift+Space brings the window up with a quick note, even from another program.
+            // The shortcut itself is registered in setup, so a shortcut held by another program
+            // only costs the quick note instead of stopping the app.
             tauri_plugin_global_shortcut::Builder::new()
-                .with_shortcuts(["ctrl+shift+space"])
-                .expect("valid shortcut")
                 .with_handler(|app, _shortcut, event| {
                     if event.state == tauri_plugin_global_shortcut::ShortcutState::Pressed {
-                        if let Some(w) = app.get_webview_window("main") {
-                            let _ = w.unminimize();
-                            let _ = w.show();
-                            let _ = w.set_focus();
-                        }
+                        reveal_main(app);
                         let _ = app.emit("quick-note", ());
                     }
                 })
                 .build(),
         )
         .setup(|app| {
+            use tauri_plugin_global_shortcut::GlobalShortcutExt;
+            if let Err(e) = app.global_shortcut().register("ctrl+shift+space") {
+                eprintln!("quick note shortcut not registered: {e}");
+            }
             // Release builds abort on panic; the message is kept so the next start can offer a bug report.
             if let Ok(dir) = app.path().app_data_dir() {
                 let crash = dir.join("crash.log");
