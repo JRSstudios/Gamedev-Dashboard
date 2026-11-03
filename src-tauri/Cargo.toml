@@ -22,7 +22,7 @@ tauri-plugin-global-shortcut = "2"
 serde_json = "1"
 keyring = { version = "3", features = ["windows-native", "apple-native", "linux-native"] }
 ureq = "2"
-zip = { version = "2", default-features = false, features = ["deflate"] }
+zip = { version = "9", default-features = false, features = ["deflate"] }
 serde = { version = "1.0.229", features = ["derive"] }
 tiny_http = "0.12"
 getrandom = "0.2"
