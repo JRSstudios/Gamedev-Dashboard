@@ -103,6 +103,7 @@ export function UnityConsole({ projectId }: { projectId: string }) {
   const logs = useBridge((s) => s.unityLogs)
   const compileErrors = useBridge((s) => s.compileErrors)
   const scenes = useBridge((s) => s.scenes)
+  const build = useBridge((s) => s.build)
   const data = useStore((s) => s.data)
 
   const lookUp = (message: string) => {
@@ -118,9 +119,18 @@ export function UnityConsole({ projectId }: { projectId: string }) {
         <div className="row">
           {compileErrors !== null && <span className={`pill ${compileErrors ? 'bad' : 'ok'}`}>{t('unityCompiled', { n: compileErrors })}</span>}
           <button className="link" onClick={() => void sendJob('unity', { type: 'refresh' })}>{t('unityRefresh')}</button>
+          <button className="link" onClick={() => void sendJob('unity', { type: 'build' }).then(() => notify(t('jobSent')))}>{t('unityBuild')}</button>
           {logs.length > 0 && <button className="link" onClick={clearUnityLogs}>{t('unityClear')}</button>}
         </div>
       </div>
+      {build && (
+        <p className={`small ${build.result === 'Succeeded' ? '' : 'warn'}`}>
+          {build.result === 'Blocked'
+            ? t(build.reason === 'no_scenes' ? 'unityBuildNoScenes' : 'unityBuildCompile')
+            : t('unityBuildResult', { result: build.result, errors: build.errors, seconds: build.seconds })}
+          {build.path && build.result === 'Succeeded' && <> · <span className="muted">{build.path}</span></>}
+        </p>
+      )}
       {logs.length === 0 && <p className="small muted">{t('unityNoLogs')}</p>}
       <ul className="log-list">
         {logs.slice(0, 30).map((l, i) => (
@@ -177,6 +187,13 @@ export function BlenderTools({ project }: { project: Project }) {
         <button onClick={() => void sendJob('blender', { type: 'export' }).then(() => notify(t('jobSent')))}>{t('blenderExportNow')}</button>
         <button onClick={() => void sendJob('blender', { type: 'check' }).then(() => notify(t('jobSent')))}>{t('blenderCheckNow')}</button>
       </div>
+      <h3>{t('blenderHelpers')}</h3>
+      <p className="small muted">{t('blenderHelpersHint')}</p>
+      <div className="row">
+        {(['apply_transforms', 'origin_to_bottom', 'lods', 'batch_export'] as const).map((job) => (
+          <button key={job} onClick={() => void sendJob('blender', { type: job, selectionOnly: job === 'lods' }).then(() => notify(t('jobSent')))}>{t(`blenderJob_${job}`)}</button>
+        ))}
+      </div>
       <AutoImportSwitches project={project} />
       {latest && (
         <>
@@ -196,6 +213,7 @@ export function KritaTools({ project }: { project: Project }) {
       <div className="row">
         <button onClick={() => void sendJob('krita', { type: 'export_png' }).then(() => notify(t('jobSent')))}>{t('kritaExportNow')}</button>
         <button onClick={() => void sendJob('krita', { type: 'export_layers' }).then(() => notify(t('jobSent')))}>{t('kritaExportLayers')}</button>
+        <button onClick={() => void sendJob('krita', { type: 'export_spritesheet' }).then(() => notify(t('jobSent')))}>{t('kritaSpritesheet')}</button>
       </div>
       <AutoImportSwitches project={project} />
     </section>

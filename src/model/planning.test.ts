@@ -165,3 +165,22 @@ describe('assistant answers', () => {
     expect(() => parseCliResult(JSON.stringify({ is_error: true, result: 'Not logged in' }), 'x')).toThrow(/Not logged in/)
   })
 })
+
+describe('page tree', () => {
+  it('nests pages, refuses cycles, keeps children on delete and creates daily notes', async () => {
+    const { addPage, dailyPage, deletePage, pageTree, setParent } = await import('./pages')
+    const created = addProject(emptyData(), 'G')
+    const pid = created.project.id
+    const a = addPage(created.data, pid, 'A')
+    const b = addPage(a.data, pid, 'B', undefined, a.page.id)
+    const c = addPage(b.data, pid, 'C', undefined, b.page.id)
+    expect(pageTree(c.data.pages).map((n) => `${n.page.title}${n.depth}`)).toEqual(['A0', 'B1', 'C2'])
+    expect(setParent(c.data, a.page.id, c.page.id)).toBe(c.data)
+    const removed = deletePage(c.data, b.page.id)
+    expect(removed.pages.find((p) => p.id === c.page.id)?.parentId).toBe(a.page.id)
+    const day = dailyPage(removed, pid, '2026-11-03', 'Devlog')
+    const again = dailyPage(day.data, pid, '2026-11-03', 'Devlog')
+    expect(again.pageId).toBe(day.pageId)
+    expect(again.data.pages.filter((p) => p.title === 'Devlog')).toHaveLength(1)
+  })
+})

@@ -4,6 +4,7 @@ import { addTable, TABLE_TEMPLATES, type TemplateId } from '../../model/tables'
 import { getData, mutate, setFocus, useStore } from '../../store'
 import { Icon } from '../shell/Icon'
 import { TableEditor } from './TableEditor'
+import { TableAltView, ViewSwitch } from './TableViews'
 
 const TEMPLATE_IDS = Object.keys(TABLE_TEMPLATES) as TemplateId[]
 
@@ -57,7 +58,14 @@ export function TablesView({ projectId }: { projectId: string }) {
         </form>
       </aside>
       <div className="split-main">
-        {selected ? <TableEditor key={selected.id} table={selected} /> : <p className="muted empty">{t('noTables')}</p>}
+        {selected ? (
+          <>
+            <ViewSwitch table={selected} />
+            {selected.view === 'table' ? <TableEditor key={selected.id} table={selected} /> : <TableAltView table={selected} />}
+          </>
+        ) : (
+          <p className="muted empty">{t('noTables')}</p>
+        )}
       </div>
     </div>
   )

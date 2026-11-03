@@ -203,12 +203,50 @@ namespace GamedevDashboard.Bridge
                         break;
                     case "presets":
                         break; // the config arrives with every pull
+                    case "build":
+                        Build();
+                        break;
                 }
             }
             catch (Exception e)
             {
                 Debug.LogWarning("[Gamedev Dashboard] " + job.type + " failed: " + e.Message);
             }
+        }
+
+        /// <summary>
+        /// Scene checklist plus a build of the enabled scenes for the active platform into Builds/.
+        /// Nothing is built when there is no enabled scene or the scripts do not compile.
+        /// </summary>
+        public static void Build()
+        {
+            var scenes = new List<string>();
+            foreach (var s in EditorBuildSettings.scenes) if (s.enabled && File.Exists(s.path)) scenes.Add(s.path);
+            if (scenes.Count == 0 || EditorUtility.scriptCompilationFailed)
+            {
+                string reason = scenes.Count == 0 ? "no_scenes" : "compile_errors";
+                Send("build", "{\"result\":\"Blocked\",\"reason\":" + Quote(reason) + ",\"scenes\":" + scenes.Count + "}");
+                Note("Build blocked: " + reason);
+                return;
+            }
+            var target = EditorUserBuildSettings.activeBuildTarget;
+            string folder = Path.Combine("Builds", target.ToString());
+            string name = string.IsNullOrEmpty(PlayerSettings.productName) ? "Game" : PlayerSettings.productName;
+            string file = target == BuildTarget.StandaloneWindows || target == BuildTarget.StandaloneWindows64 ? name + ".exe"
+                : target == BuildTarget.StandaloneOSX ? name + ".app"
+                : target == BuildTarget.StandaloneLinux64 ? name + ".x86_64"
+                : name;
+            var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
+            {
+                scenes = scenes.ToArray(),
+                locationPathName = Path.Combine(folder, file),
+                target = target,
+                options = BuildOptions.None,
+            });
+            var sum = report.summary;
+            Send("build", "{\"result\":" + Quote(sum.result.ToString()) + ",\"errors\":" + sum.totalErrors + ",\"warnings\":" + sum.totalWarnings
+                + ",\"seconds\":" + (int)sum.totalTime.TotalSeconds + ",\"size\":" + sum.totalSize + ",\"path\":" + Quote(Path.GetFullPath(folder)) + ",\"scenes\":" + scenes.Count + "}");
+            Note("Build " + sum.result + " (" + sum.totalErrors + " errors)");
         }
 
         /// <summary>A model in the project becomes a prefab in Assets/Prefabs (never overwritten).</summary>

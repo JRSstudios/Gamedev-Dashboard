@@ -201,3 +201,19 @@ export async function onBridgeEvent(handler: (e: BridgeEvent) => void): Promise<
 export const templatesFetch = (name: string): Promise<string> => invoke<string>('templates_fetch', { name })
 /** Writes a template script into Assets/Scripts/Templates of the Unity project; fails with "exists" instead of overwriting. */
 export const writeUnityScript = (unityDir: string, file: string, text: string): Promise<string> => invoke<string>('write_unity_script', { unityDir, file, text })
+
+export interface SnapshotInfo {
+  date: string
+  size: number
+}
+/** Keeps today's copy of the data (once per day) and mirrors it into the backup folder, if any. */
+export const snapshotNow = (date: string, backupDir: string | null): Promise<boolean> => invoke<boolean>('snapshot_now', { date, backupDir })
+export const listSnapshots = (): Promise<SnapshotInfo[]> => (IS_DESKTOP ? invoke<SnapshotInfo[]>('list_snapshots') : Promise.resolve([]))
+export const readSnapshot = (date: string): Promise<string> => invoke<string>('read_snapshot', { date })
+
+/** Ctrl+Shift+Space anywhere in Windows (registered in Rust). */
+export async function onQuickNoteShortcut(handler: () => void): Promise<() => void> {
+  if (!IS_DESKTOP) return () => {}
+  const { listen } = await import('@tauri-apps/api/event')
+  return listen('quick-note', () => handler())
+}

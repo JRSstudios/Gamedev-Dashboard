@@ -78,6 +78,8 @@ class GamedevDashboardExtension(Extension):
         export.triggered.connect(lambda: self.export_png())
         layers = window.createAction("gdd_export_layers", "Dashboard: export layers as sprites", "tools/scripts")
         layers.triggered.connect(lambda: self.export_layers())
+        sheet = window.createAction("gdd_export_sheet", "Dashboard: export layers as sprite sheet", "tools/scripts")
+        sheet.triggered.connect(lambda: self.export_spritesheet())
         self._auto_action = window.createAction("gdd_auto_export", "Dashboard: export PNG on save", "tools/scripts")
         self._auto_action.setCheckable(True)
         self._auto_action.setChecked(setting("autoExport", "true") == "true")
@@ -142,6 +144,33 @@ class GamedevDashboardExtension(Extension):
             bridge.send_event("exported", {"path": path, "kra": doc.fileName(), "sprite": True})
         return paths
 
+    def export_spritesheet(self, doc=None):
+        """All visible top-level layers side by side in one PNG (one frame per layer, left to right)."""
+        doc = doc or current_document()
+        if not doc or not doc.fileName():
+            return None
+        layers = [n for n in doc.topLevelNodes() if n.visible() and n.type() in ("paintlayer", "grouplayer", "vectorlayer")]
+        if not layers:
+            return None
+        w, h = doc.width(), doc.height()
+        stem = os.path.splitext(os.path.basename(doc.fileName()))[0]
+        path = os.path.join(self.target_dir(doc), stem + "_sheet.png")
+        sheet = Krita.instance().createDocument(w * len(layers), h, stem + "_sheet", "RGBA", "U8", "", 72.0)
+        try:
+            target = sheet.createNode("frames", "paintlayer")
+            sheet.rootNode().addChildNode(target, None)
+            for i, layer in enumerate(layers):
+                # Pixels of the layer itself, at its place in the canvas, moved one frame to the right each time.
+                target.setPixelData(layer.pixelData(0, 0, w, h), i * w, 0, w, h)
+            sheet.setBatchmode(True)
+            self._exporting = True
+            sheet.exportImage(path, InfoObject())
+        finally:
+            self._exporting = False
+            sheet.close()
+        bridge.send_event("exported", {"path": path, "kra": doc.fileName(), "sprite": True, "frames": len(layers), "frameWidth": w, "frameHeight": h})
+        return path
+
     # ---------- dashboard ----------
 
     def on_saved(self, filename):
@@ -165,5 +194,7 @@ class GamedevDashboardExtension(Extension):
                     self.export_png()
                 elif kind == "export_layers":
                     self.export_layers()
+                elif kind == "export_spritesheet":
+                    self.export_spritesheet()
             except Exception:
                 log_error("job %s failed" % kind)

@@ -3,13 +3,14 @@ use std::{
     io::Write,
     path::{Path, PathBuf},
 };
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 
 mod bridge;
 mod claude;
 mod claude_cli;
 mod installer;
 mod models;
+mod snapshots;
 mod templates;
 mod transfer;
 
@@ -119,6 +120,23 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .manage(bridge::Bridge(std::sync::Mutex::new(bridge::Inner::new(String::new()))))
+        .plugin(
+            // Ctrl+Shift+Space brings the window up with a quick note, even from another program.
+            tauri_plugin_global_shortcut::Builder::new()
+                .with_shortcuts(["ctrl+shift+space"])
+                .expect("valid shortcut")
+                .with_handler(|app, _shortcut, event| {
+                    if event.state == tauri_plugin_global_shortcut::ShortcutState::Pressed {
+                        if let Some(w) = app.get_webview_window("main") {
+                            let _ = w.unminimize();
+                            let _ = w.show();
+                            let _ = w.set_focus();
+                        }
+                        let _ = app.emit("quick-note", ());
+                    }
+                })
+                .build(),
+        )
         .setup(|app| {
             // The plugins are optional; without the bridge the dashboard works as before.
             if let Err(e) = bridge::start(app.handle()) {
@@ -155,7 +173,10 @@ pub fn run() {
             installer::uninstall_plugin,
             installer::plugin_status,
             templates::templates_fetch,
-            templates::write_unity_script
+            templates::write_unity_script,
+            snapshots::snapshot_now,
+            snapshots::list_snapshots,
+            snapshots::read_snapshot
         ])
         .run(tauri::generate_context!())
         .expect("error while running Gamedev Dashboard");

@@ -46,6 +46,8 @@ export interface BridgeState {
   checks: Record<string, ModelCheck>
   /** Increments with every export event, so inboxes know to look again. */
   exports: number
+  /** Result of the last Unity build started from the dashboard. */
+  build?: { result: string; reason: string; errors: number; warnings: number; seconds: number; path: string; at: number }
 }
 
 let state: BridgeState = { seen: {}, unityLogs: [], compileErrors: null, scenes: [], checks: {}, exports: 0 }
@@ -90,6 +92,8 @@ export function applyEvent(s: BridgeState, e: BridgeEvent): BridgeState {
     const log: UnityLog = { level: data.level === 'warning' ? 'warning' : 'error', message: str(data.message), stack: str(data.stack), at: e.at }
     return { ...s, seen, unityLogs: [log, ...s.unityLogs].slice(0, MAX_LOGS) }
   }
+  if (e.app === 'unity' && e.type === 'build')
+    return { ...s, seen, build: { result: str(data.result, 40), reason: str(data.reason, 40), errors: num(data.errors), warnings: num(data.warnings), seconds: num(data.seconds), path: str(data.path, 2000), at: e.at } }
   if (e.app === 'unity' && e.type === 'compiled') return { ...s, seen, compileErrors: num(data.errors) }
   if (e.app === 'unity' && e.type === 'scenes' && Array.isArray(data.buildScenes)) {
     const scenes = data.buildScenes

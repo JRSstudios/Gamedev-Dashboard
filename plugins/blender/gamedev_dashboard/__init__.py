@@ -18,7 +18,7 @@ bl_info = {
 import bpy
 from bpy.app.handlers import persistent
 
-from . import bridge, checks, exporter
+from . import bridge, checks, exporter, helpers
 
 POLL_SECONDS = 2.0
 
@@ -91,6 +91,19 @@ def run_job(job):
         export_and_report(job.get("format"), job.get("selectionOnly"))
     elif kind == "check":
         bridge.send_event("check", {"blend": bpy.data.filepath, **checks.check_scene(False)})
+    elif kind in ("apply_transforms", "origin_to_bottom", "lods"):
+        fn = {"apply_transforms": helpers.apply_transforms, "origin_to_bottom": helpers.origin_to_bottom, "lods": helpers.add_lods}[kind]
+        changed = fn(bool(job.get("selectionOnly")))
+        bridge.status = "%s: %d objects" % (kind, len(changed))
+        bridge.send_event("check", {"blend": bpy.data.filepath, "helper": kind, "changed": changed[:100], **checks.check_scene(False)})
+    elif kind == "batch_export":
+        folder = target_dir()
+        if not folder:
+            bridge.status = "No export folder: link one in the dashboard or the add-on preferences"
+            return
+        p = prefs()
+        for path in helpers.batch_export(folder, job.get("format") or (p.export_format if p else "FBX")):
+            bridge.send_event("exported", {"path": path, "blend": bpy.data.filepath, "batch": True})
 
 
 def poll():

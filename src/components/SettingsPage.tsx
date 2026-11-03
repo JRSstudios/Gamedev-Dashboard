@@ -4,6 +4,7 @@ import { LANGUAGES, NATIVE_NAMES, useT } from '../i18n'
 import { updateSettings } from '../model/ops'
 import { IS_DESKTOP } from '../platform'
 import { mutate, notify, useStore } from '../store'
+import { DataSettings } from './DataSettings'
 import { ProjectsManager } from './ProjectsManager'
 import { SectionsSettings } from './SectionsSettings'
 import { UsagePanel } from './UsagePanel'
@@ -205,13 +206,7 @@ export function SettingsPage({ onOpenAi }: { onOpenAi: () => void }) {
         </>
       )}
 
-      {tab === 'data' && (
-        <section className="panel">
-          <h2>{t('settingsData')}</h2>
-          <p className="muted small">{IS_DESKTOP ? t('dataDesktop') : t('dataBrowser')}</p>
-          <p className="small">{t('dataExportHint')}</p>
-        </section>
-      )}
+      {tab === 'data' && <DataSettings />}
     </div>
   )
 }

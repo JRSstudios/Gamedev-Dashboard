@@ -13,6 +13,7 @@ import { PlannerView } from './components/planner/PlannerView'
 import { TemplatesView } from './components/templates/TemplatesView'
 import { TutorialView } from './components/tutorial/TutorialView'
 import { Tour } from './components/tutorial/Tour'
+import { QuickNote } from './components/QuickNote'
 import { AssistantPanel } from './components/assistant/AssistantPanel'
 import { BrainstormView } from './components/brainstorm/BrainstormView'
 import { CheatSheetView } from './components/cheatsheet/CheatSheetView'
@@ -31,9 +32,10 @@ import { TopBar } from './components/shell/TopBar'
 import { useLang, useT } from './i18n'
 import { resolveSections } from './model/layout'
 import type { Project } from './model/schema'
-import { saveTextFile } from './platform'
+import { IS_DESKTOP, saveTextFile, snapshotNow } from './platform'
+import { dayKey } from './model/time'
 import { groupOf, sectionDescription, sectionTitle } from './sections'
-import { init, notify, setSection, startFresh, useStore, type Section } from './store'
+import { getData, init, notify, redo, setSection, startFresh, undo, useStore, type Section } from './store'
 import { toggleTimer } from './timerActions'
 
 function ErrorScreen({ message, raw }: { message: string; raw: string | null }) {
@@ -145,7 +147,11 @@ export default function App() {
   const phase = status.phase
   useBridgeConfigSync(phase === 'ready' ? project : null, data.settings.bridgeEnabled)
   useEffect(() => {
-    if (phase === 'ready') startBridge(handleExportEvent)
+    if (phase !== 'ready') return
+    startBridge(handleExportEvent)
+    // One snapshot per day; a missing backup folder is reported but never blocks the app.
+    if (IS_DESKTOP) void snapshotNow(dayKey(new Date()), getData().settings.backupDir).catch((e: unknown) => notify(t('snapBackupFailed', { reason: String(e) })))
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once when the data is ready
   }, [phase])
 
   useEffect(() => {
@@ -170,8 +176,17 @@ export default function App() {
   useEffect(() => {
     if (phase !== 'ready') return
     const onKey = (e: KeyboardEvent) => {
-      if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey) return
+      if (!(e.ctrlKey || e.metaKey) || e.altKey) return
       const key = e.key.toLowerCase()
+      // Text fields keep their own undo; elsewhere Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z) work on the data.
+      const typing = e.target instanceof HTMLElement && (e.target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName))
+      if ((key === 'z' || key === 'y') && !typing) {
+        e.preventDefault()
+        const redoKey = key === 'y' || e.shiftKey
+        if (!(redoKey ? redo() : undo())) notify(t(redoKey ? 'nothingToRedo' : 'nothingToUndo'))
+        return
+      }
+      if (e.shiftKey) return
       if (key === 'k') {
         e.preventDefault()
         setPaletteOpen(true)
@@ -234,6 +249,7 @@ export default function App() {
       )}
       {claudeRequest && projectId && <ClaudeDialog projectId={projectId} initial={claudeRequest} onClose={() => setClaudeRequest(null)} />}
       {assistantOpen && projectId && <AssistantPanel projectId={projectId} onClose={() => setAssistantOpen(false)} />}
+      <QuickNote />
       {tourOpen && <Tour onClose={() => setTourOpen(false)} />}
       {shortcutsOpen && <ShortcutsDialog onClose={() => setShortcutsOpen(false)} />}
       {aiOpen && <AiDialog projectId={projectId} onClose={() => setAiOpen(false)} />}

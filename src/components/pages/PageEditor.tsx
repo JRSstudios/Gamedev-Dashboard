@@ -14,21 +14,23 @@ import { useImageUrl } from '../../assetUrl'
 import { useT } from '../../i18n'
 import { describeRef, listRefs, type RefInfo } from '../../model/graph'
 import { extractLinks } from '../../model/links'
-import { addBlock, BLOCK_TYPES, deleteBlock, deletePage, moveBlock, newBlock, setBlock, updatePage, type BlockType } from '../../model/pages'
+import { addBlock, BLOCK_TYPES, deleteBlock, deletePage, moveBlock, newBlock, setBlock, setParent, updatePage, type BlockType } from '../../model/pages'
 import type { Asset, Block, Page } from '../../model/schema'
 import { openRef } from '../../openRef'
 import { confirmDialog } from '../../platform'
 import { getData, mutate, useStore } from '../../store'
 import { TableEditor } from '../tables/TableEditor'
+import { Inline } from '../RichText'
 
 /** Textarea that grows with its content, so a page reads like a document instead of a form. */
-function AutoText({ value, onChange, className, placeholder, onKeyDown, autoFocus }: {
+function AutoText({ value, onChange, className, placeholder, onKeyDown, autoFocus, onBlur }: {
   value: string
   onChange: (v: string) => void
   className?: string
   placeholder?: string
   onKeyDown?: (e: KeyboardEvent<HTMLTextAreaElement>) => void
   autoFocus?: boolean
+  onBlur?: () => void
 }) {
   const ref = useRef<HTMLTextAreaElement>(null)
   useEffect(() => {
@@ -48,7 +50,42 @@ function AutoText({ value, onChange, className, placeholder, onKeyDown, autoFocu
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
       onKeyDown={onKeyDown}
+      onBlur={onBlur}
     />
+  )
+}
+
+/** Shows **bold**, *italic*, `code`, links and [[Title]] formatted; a click switches to editing. */
+function RichText({ value, onChange, className, placeholder, autoFocus, projectId }: {
+  value: string
+  onChange: (v: string) => void
+  className?: string
+  placeholder?: string
+  autoFocus?: boolean
+  projectId: string
+}) {
+  const [editing, setEditing] = useState(Boolean(autoFocus) || !value.trim())
+  if (editing)
+    return <AutoText autoFocus={autoFocus || Boolean(value)} className={className} value={value} placeholder={placeholder} onChange={onChange} onBlur={() => value.trim() && setEditing(false)} />
+  const openTitle = (title: string) => {
+    const hit = listRefs(getData(), projectId).find((r) => r.title.trim().toLowerCase() === title.trim().toLowerCase())
+    if (hit) openRef(hit.type, hit.id)
+  }
+  return (
+    <div
+      className={`auto-text rendered ${className ?? ''}`}
+      tabIndex={0}
+      role="textbox"
+      onClick={(e) => (e.target as HTMLElement).closest('a, button') || setEditing(true)}
+      onKeyDown={(e) => e.key === 'Enter' && setEditing(true)}
+    >
+      {value.split('\n').map((line, i) => (
+        <span key={i}>
+          {i > 0 && <br />}
+          <Inline text={line} onWikiLink={openTitle} />
+        </span>
+      ))}
+    </div>
   )
 }
 
@@ -80,8 +117,9 @@ function BlockBody({ page, block, isNew }: { page: Page; block: Block; isNew: bo
     case 'paragraph':
     case 'callout':
       return (
-        <AutoText
+        <RichText
           autoFocus={isNew}
+          projectId={page.projectId}
           className={block.type}
           value={block.text}
           placeholder={t('blockPlaceholder')}
@@ -279,7 +317,18 @@ export function PageEditor({ page }: { page: Page }) {
           ×
         </button>
       </header>
-      <p className="small muted">{t('updated', { date: new Date(page.updatedAt).toLocaleString() })}</p>
+      <p className="small muted page-meta">
+        {t('updated', { date: new Date(page.updatedAt).toLocaleString() })}
+        <label>
+          {t('pageParent')}{' '}
+          <select value={page.parentId ?? ''} onChange={(e) => mutate((d) => setParent(d, page.id, e.target.value || null))}>
+            <option value="">{t('pageTopLevel')}</option>
+            {data.pages
+              .filter((p) => p.projectId === page.projectId && p.id !== page.id)
+              .map((p) => <option key={p.id} value={p.id}>{p.title || t('pageTitlePlaceholder')}</option>)}
+          </select>
+        </label>
+      </p>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={page.blocks.map((b) => b.id)} strategy={verticalListSortingStrategy}>

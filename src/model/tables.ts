@@ -199,3 +199,16 @@ export function tableToMarkdown(table: Table): string {
   const rows = table.rows.map((r) => `| ${table.columns.map((c) => esc(cellText(r.cells[c.id]))).join(' | ')} |`)
   return [`### ${table.name}`, '', head, sep, ...rows].join('\n')
 }
+
+export type TableView = Table['view']
+
+/** Switches how a table is shown; the column groups the kanban board or places rows in the calendar. */
+export const setTableView = (data: Data, tableId: string, view: TableView, viewColumn: string | null): Data =>
+  mapTable(data, tableId, (t) => ({ ...t, view, viewColumn: viewColumn && t.columns.some((c) => c.id === viewColumn) ? viewColumn : null }))
+
+/** The column a view uses: the chosen one if it still fits, else the first column of the right type. */
+export function viewColumnOf(table: Table, view: TableView): Column | null {
+  const type = view === 'kanban' ? 'select' : view === 'calendar' ? 'date' : null
+  if (!type) return null
+  return table.columns.find((c) => c.id === table.viewColumn && c.type === type) ?? table.columns.find((c) => c.type === type) ?? null
+}

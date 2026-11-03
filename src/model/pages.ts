@@ -55,8 +55,62 @@ export const updatePage = (data: Data, pageId: string, patch: Partial<Pick<Page,
     icon: patch.icon !== undefined ? [...patch.icon.trim()].slice(0, 2).join('').slice(0, 8) : p.icon,
   }))
 
-export const deletePage = (data: Data, pageId: string): Data =>
-  removeRefs({ ...data, pages: data.pages.filter((p) => p.id !== pageId) }, 'page', pageId)
+/** Sub-pages move up to the deleted page's parent instead of disappearing. */
+export function deletePage(data: Data, pageId: string): Data {
+  const parent = data.pages.find((p) => p.id === pageId)?.parentId ?? null
+  const pages = data.pages.filter((p) => p.id !== pageId).map((p) => (p.parentId === pageId ? { ...p, parentId: parent } : p))
+  return removeRefs({ ...data, pages }, 'page', pageId)
+}
+
+export interface PageNode {
+  page: Page
+  depth: number
+}
+
+/** Pages in tree order (parents before children); a page whose parent is gone counts as top level. */
+export function pageTree(pages: Page[]): PageNode[] {
+  const ids = new Set(pages.map((p) => p.id))
+  const children = new Map<string | null, Page[]>()
+  for (const p of pages) {
+    const key = p.parentId && ids.has(p.parentId) && p.parentId !== p.id ? p.parentId : null
+    children.set(key, [...(children.get(key) ?? []), p])
+  }
+  const out: PageNode[] = []
+  const seen = new Set<string>()
+  const walk = (parent: string | null, depth: number) => {
+    for (const p of children.get(parent) ?? []) {
+      if (seen.has(p.id)) continue
+      seen.add(p.id)
+      out.push({ page: p, depth })
+      walk(p.id, Math.min(depth + 1, 8))
+    }
+  }
+  walk(null, 0)
+  return out
+}
+
+/** Moves a page under another page (or to the top with `null`); cycles are refused. */
+export function setParent(data: Data, pageId: string, parentId: string | null): Data {
+  for (let p = parentId; p; p = data.pages.find((x) => x.id === p)?.parentId ?? null) if (p === pageId) return data
+  return { ...data, pages: data.pages.map((p) => (p.id === pageId ? { ...p, parentId } : p)) }
+}
+
+/** Today's devlog page under a "Devlog" page; both are created when missing. */
+export function dailyPage(data: Data, projectId: string, date: string, devlogTitle: string): { data: Data; pageId: string } {
+  const mine = data.pages.filter((p) => p.projectId === projectId)
+  let d = data
+  let devlog = mine.find((p) => p.title === devlogTitle && p.parentId === null)
+  if (!devlog) {
+    const r = addPage(d, projectId, devlogTitle, [], null)
+    d = r.data
+    devlog = r.page
+    d = { ...d, pages: d.pages.map((p) => (p.id === devlog!.id ? { ...p, icon: '📓' } : p)) }
+  }
+  const existing = mine.find((p) => p.title === date && p.parentId === devlog.id)
+  if (existing) return { data: d, pageId: existing.id }
+  const r = addPage(d, projectId, date, [{ id: uid(), type: 'checklist', items: [{ text: '', done: false }] }, newBlock('paragraph')], devlog.id)
+  return { data: r.data, pageId: r.page.id }
+}
 
 /** Inserts a block after `afterId` (or at the end) and returns its id. */
 export function addBlock(data: Data, pageId: string, type: BlockType, afterId: string | null = null): { data: Data; blockId: string | null } {

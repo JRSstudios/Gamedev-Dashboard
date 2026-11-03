@@ -1,6 +1,6 @@
-import { MAX_BLOCKS } from './pages'
-import { COLUMN_TYPES, type Block, type ColumnType } from './schema'
-import type { ColumnSpec } from './tables'
+import { addPage, MAX_BLOCKS } from './pages'
+import { COLUMN_TYPES, type Block, type ColumnType, type Data } from './schema'
+import { addTable, sanitizeCell, type ColumnSpec } from './tables'
 
 /**
  * Plain Markdown and CSV to pages and tables: used by templates and by the Obsidian / Notion
@@ -163,4 +163,76 @@ export function csvToTable(text: string): { columns: ColumnSpec[]; rows: (string
     }),
   )
   return { columns, rows }
+}
+
+export interface ImportFile {
+  /** Path inside the picked folder, e.g. "Vault/Levels/Forest.md". */
+  path: string
+  text: string
+}
+
+export const MAX_IMPORT_FILES = 500
+export const MAX_IMPORT_BYTES = 1024 * 1024
+
+/**
+ * Markdown files become pages and CSV files become tables. The folder structure becomes the page
+ * tree: "Levels/Forest.md" lands under a page "Levels" (created when no Levels.md exists).
+ */
+export function importNotes(data: Data, projectId: string, files: ImportFile[]): { data: Data; pages: number; tables: number } {
+  let d = data
+  let pages = 0
+  let tables = 0
+  const folders = new Map<string, string>()
+  const clean = files
+    .filter((f) => /\.(md|markdown|txt|csv)$/i.test(f.path) && f.text.length <= MAX_IMPORT_BYTES)
+    .slice(0, MAX_IMPORT_FILES)
+    .map((f) => ({ ...f, parts: f.path.replace(/\\/g, '/').split('/').filter(Boolean) }))
+    // Skip Obsidian's own settings and trash.
+    .filter((f) => !f.parts.some((p) => p === '.obsidian' || p === '.trash'))
+  const depth = Math.min(...clean.map((f) => f.parts.length))
+  const parentFor = (parts: string[]): string | null => {
+    // The picked folder itself is not a page.
+    const dirs = parts.slice(depth - 1, -1)
+    let parent: string | null = null
+    for (let i = 0; i < dirs.length; i++) {
+      const key = dirs.slice(0, i + 1).join('/')
+      let id = folders.get(key)
+      if (!id) {
+        const r = addPage(d, projectId, dirs[i], [], parent)
+        d = r.data
+        id = r.page.id
+        folders.set(key, id)
+        pages++
+      }
+      parent = id
+    }
+    return parent
+  }
+  for (const f of clean.sort((a, b) => a.parts.length - b.parts.length)) {
+    const name = f.parts[f.parts.length - 1]
+    if (/\.csv$/i.test(name)) {
+      const { columns, rows } = csvToTable(f.text)
+      if (!columns.length) continue
+      const r = addTable(d, projectId, name.replace(/\.csv$/i, '').replace(/\s+[0-9a-f]{32}$/i, ''))
+      const cols = columns.map((c) => ({ id: crypto.randomUUID(), name: c.name, type: c.type, options: c.options ?? [] }))
+      const tableRows = rows.map((values) => ({ id: crypto.randomUUID(), cells: Object.fromEntries(cols.map((c, i) => [c.id, sanitizeCell(c, values[i])])) }))
+      d = { ...r.data, tables: r.data.tables.map((x) => (x.id === r.table.id ? { ...x, columns: cols, rows: tableRows } : x)) }
+      tables++
+    } else {
+      const { title, body } = splitMarkdown(f.text, name)
+      const parent = parentFor(f.parts)
+      // A note named like its folder (Notion: "Levels.md" next to "Levels/") fills that folder page.
+      const folderKey = [...f.parts.slice(depth - 1, -1), title].join('/')
+      const existing = folders.get(folderKey)
+      if (existing) {
+        d = { ...d, pages: d.pages.map((p) => (p.id === existing ? { ...p, blocks: mdToBlocks(body) } : p)) }
+        continue
+      }
+      const r = addPage(d, projectId, title, mdToBlocks(body), parent)
+      d = r.data
+      folders.set(folderKey, r.page.id)
+      pages++
+    }
+  }
+  return { data: d, pages, tables }
 }

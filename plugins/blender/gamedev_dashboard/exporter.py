@@ -10,9 +10,9 @@ def file_name(fmt):
     return stem + (".glb" if fmt == "GLB" else ".fbx")
 
 
-def export(folder, fmt="FBX", selection_only=False):
+def export(folder, fmt="FBX", selection_only=False, path=None):
     os.makedirs(folder, exist_ok=True)
-    path = os.path.join(folder, file_name(fmt))
+    path = path or os.path.join(folder, file_name(fmt))
     if fmt == "GLB":
         bpy.ops.export_scene.gltf(
             filepath=path,

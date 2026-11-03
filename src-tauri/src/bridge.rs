@@ -32,9 +32,9 @@ fn event_types(app: &str) -> &'static [&'static str] {
 
 fn job_types(app: &str) -> &'static [&'static str] {
     match app {
-        "unity" => &["import", "refresh", "create_prefab", "open_scene", "presets"],
-        "blender" => &["export", "check"],
-        "krita" => &["export_png", "export_layers"],
+        "unity" => &["import", "refresh", "create_prefab", "open_scene", "presets", "build"],
+        "blender" => &["export", "check", "apply_transforms", "origin_to_bottom", "batch_export", "lods"],
+        "krita" => &["export_png", "export_layers", "export_spritesheet"],
         _ => &[],
     }
 }

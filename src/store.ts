@@ -112,16 +112,55 @@ export function startFresh() {
 
 // ---- public API -----------------------------------------------------------
 
+// ---- undo / redo ------------------------------------------------------------
+// Data is immutable, so a history entry is just the previous object. Quick successive changes
+// (typing in a field) are merged into one step.
+
+const HISTORY = 60
+const MERGE_MS = 800
+let past: Data[] = []
+let future: Data[] = []
+let lastChange = 0
+
 /** Apply a pure transformation from `model/ops` and autosave. */
 export function mutate(fn: (data: Data) => Data) {
   const next = fn(state.data)
   if (next === state.data) return
+  const now = Date.now()
+  if (now - lastChange > MERGE_MS || past.length === 0) past = [...past, state.data].slice(-HISTORY)
+  lastChange = now
+  future = []
   setState({ data: next })
   scheduleSave()
 }
 
+function travel(from: Data[], to: Data[]): [Data[], Data[]] | null {
+  const target = from[from.length - 1]
+  if (!target) return null
+  const data = state.data
+  setState({ data: target })
+  scheduleSave()
+  lastChange = 0
+  return [from.slice(0, -1), [...to, data].slice(-HISTORY)]
+}
+
+/** Returns false when there was nothing to undo. */
+export function undo(): boolean {
+  const r = travel(past, future)
+  if (r) [past, future] = r
+  return Boolean(r)
+}
+
+export function redo(): boolean {
+  const r = travel(future, past)
+  if (r) [future, past] = r
+  return Boolean(r)
+}
+
 export function replaceData(json: string) {
   const data = parseData(json)
+  past = [...past, state.data].slice(-HISTORY)
+  future = []
   const active = data.projects.find((p) => !p.archived)?.id ?? null
   setState({ data, activeProjectId: active })
   scheduleSave()
